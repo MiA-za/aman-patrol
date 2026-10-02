@@ -62,7 +62,7 @@ security rules, and a private photo store.
 
 ## Step 4 — Make sign-up friendlier (one toggle)
 
-1. In the sidebar, click the **⚙️ Project Settings** (bottom left), then
+1. In the sidebar, click the **Project Settings** (bottom left), then
    **Authentication**.
 2. Under **Email**, find **"Confirm email"** and turn it **OFF**.
 
@@ -119,7 +119,7 @@ and shared.
 
 | What you see | What it means |
 |---|---|
-| "Success. No rows returned" after pasting the SQL | ✅ It worked. That's normal. |
+| "Success. No rows returned" after pasting the SQL | It worked. That's normal. |
 | Red error mentioning "already exists" | You (or I) ran the schema twice. Mostly harmless — send it to me to check. |
 | Forgot the database password | You don't need it for anything in this guide. Ignore it. |
 | "Region" list doesn't show Cape Town | Pick Frankfurt/London — perfectly fine. |

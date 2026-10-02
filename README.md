@@ -14,7 +14,7 @@ Civic, volunteer, and rooted in:
 
 ## Try it now (demo — nothing to install)
 
-**Open the live site: <https://mia-za.github.io/aman-patrol/>** 🎉
+**Open the live site: <https://mia-za.github.io/aman-patrol/>**
 
 Prefer to run it yourself? Either:
 
@@ -29,10 +29,10 @@ offline.
 
 | Account | Email | What you see |
 |---|---|---|
-| 🛡️ Coordinator | `coordinator@demo.co.za` | Approvals, all volunteers, roster management, incident statuses, reports + CSV export |
-| 🚶 Volunteer (approved) | `aisha@demo.co.za` | Dashboard, roster, START/END shift, log incidents, map, notifications |
-| 🚶 Volunteer (approved) | `mo@demo.co.za` | Same as Aisha |
-| ⏳ Volunteer (pending) | `pending@demo.co.za` | The "under review" screen a new applicant sees |
+| Coordinator | `coordinator@demo.co.za` | Approvals, all volunteers, roster management, incident statuses, reports + CSV export |
+| Volunteer (approved) | `aisha@demo.co.za` | Dashboard, roster, START/END shift, log incidents, map, notifications |
+| Volunteer (approved) | `mo@demo.co.za` | Same as Aisha |
+| Volunteer (pending) | `pending@demo.co.za` | The "under review" screen a new applicant sees |
 
 The registration screen is the first thing a new patroller sees — register for
 real, then log in as the coordinator to approve yourself.
@@ -62,20 +62,22 @@ Tell me which two serve the area and I'll lock them in as the patrol anchors.
 1. **Registration** — first screen; full details, 18+ and Code of Conduct
    confirmations, pending approval flow.
 2. **Login** — email + password (+ one-tap demo accounts).
-3. **Home dashboard** — greeting, live weather tile with rain/wind warnings,
+3. **Home dashboard** — greeting, the **dua for safety card** (see
+   *Duas in the app* below), live weather tile with rain/wind warnings,
    my-next-shift card, big buttons: Log an Incident, Claim a Patrol Slot, Area
    Map, Notifications, Patrol Radio (Zello placeholder).
 4. **Patrol roster** — real slots, Zone A/B, patrol windows (Morning patrol,
    Madrassah drop-off, Afternoon patrol, Jumu'ah, Evening after Maghrib/Isha),
    "1 of 2" sign-ups, understaffed labels, **START SHIFT / END SHIFT** with
-   GPS + time capture (the official shift log).
+   GPS + time capture (the official shift log); starting a shift shows the
+   authentic dua for leaving the home.
 5. **Log an incident** — auto GPS + time, VOI/POI/SOI categories with their
    exact field sets, photo upload with victim/minor consent checkbox, and the
    response & handover record (SAPS/armed response details, no case numbers).
 6. **Area map** — Leaflet + OSM, all real layers shown at once (masjids,
    schools, parks, businesses, police, main roads, intersections) plus
    coordinator custom pins (dark spots, risk corners, madrassah corridors)
-   and recent incidents. Coordinator adds pins with the 📍 button on the map.
+   and recent incidents. Coordinator adds pins with the pin button on the map.
 7. **Notifications** — in-app feed + browser notifications; approvals,
    15-minute shift reminders, incidents in your zone, understaffed slots,
    coordinator announcements.
@@ -101,21 +103,28 @@ no screens.
 ## Files
 
 ```
-images/logo.png       the Aman logo (also embedded inline in the app)
-index.html            app shell
+index.html            THE APP — complete single-file build (everything embedded;
+                      this is the page GitHub Pages serves)
+multi-file.html       the same app split into the files below (for development)
 css/styles.css        design system (navy/teal, mobile-first)
 css/leaflet.css       Leaflet map styles (local copy)
+css/images/           small icon files that ship with the Leaflet map library
 js/lib/leaflet.js     Leaflet map library (local copy, no CDN needed)
+js/app.js             router, shell, register/login/dashboard/roster/notifications,
+                      icon set and duas
+js/admin.js           coordinator dashboard
+js/incident.js        VOI / POI / SOI reporting
+js/map.js             area map: OSM layers + custom pins + incidents
 js/data.js            area data snapshot — REAL OpenStreetMap data (auto-generated)
 js/store.js           demo data layer (localStorage) — mirrors the Supabase tables
 js/weather.js         Open-Meteo live weather
-js/map.js             area map: OSM layers + custom pins + incidents
-js/incident.js        VOI / POI / SOI reporting
-js/admin.js           coordinator dashboard
-js/app.js             router, shell, register/login/dashboard/roster/notifications
+images/logo.png       the Aman logo (also embedded inline in the app)
+images/favicon.png    app icon file (also embedded inline)
+images/designarena_image_cbaeo2tp.png   original full-size logo artwork
 supabase/schema.sql   paste-once SQL for the live backend
 SUPABASE_SETUP.md     layman's step-by-step Supabase guide
-PUT_ON_GITHUB.md      put the app on GitHub Pages — free hosting + shareable link
+PUT_ON_GITHUB.md      how this site was put on GitHub Pages (already done)
+OPEN_SOURCE_NOTES.md  research: similar open-source projects and what we can learn
 ```
 
 Logo: the provided Aman logo is embedded throughout (header, sign-in
@@ -123,9 +132,36 @@ screens, app icon/favicon). Original kept at `images/logo.png`.
 
 ## Free hosting on a link
 
-Follow **`PUT_ON_GITHUB.md`** to put the app on GitHub Pages — a free
-shareable link like `https://yourname.github.io/aman-patrol/` that volunteers
-can open on their phones and add to their home screens.
+Done — the app is hosted free on GitHub Pages at
+<https://mia-za.github.io/aman-patrol/> (served from the `main` branch, root
+folder). Volunteers can open it on their phones and add it to their home
+screens. **`PUT_ON_GITHUB.md`** documents how it was set up and how to update
+the site by hand.
+
+---
+
+## Duas in the app
+
+Aman Patrol opens with authentic words of protection — never invented ones.
+Each dua is shown in Arabic, transliteration and English, **with its source**:
+
+- **On the home dashboard (after login)** — the protection dua:
+  *Bismillāhilladhī lā yaḍurru maʿasmihī shayʾun fil-arḍi wa lā fis-samāʾ,
+  wa huwas-Samīʿul-ʿAlīm* — Sunan Abī Dāwūd 5088 · Jāmiʿ at-Tirmidhī 3388.
+  The Prophet ﷻ taught that whoever recites it three times in the morning
+  and the evening, nothing will harm them.
+- **When starting a patrol shift** — the dua for leaving the home:
+  *Bismillāhi tawakkaltu ʿalallāh, wa lā ḥawla wa lā quwwata illā billāh* —
+  Sunan Abī Dāwūd 5095 · Jāmiʿ at-Tirmidhī 3426.
+
+---
+
+## Design notes
+
+- All interface icons are clean, professional inline SVG line icons
+  (Feather/Lucide style) — no emoji anywhere in the app.
+- Deep navy (#13294b) primary, teal (#0e9f9f) accent, white cards, large tap
+  targets, phone-first.
 
 ---
 
@@ -138,6 +174,8 @@ can open on their phones and add to their home screens.
 - No photos of victims or minors — enforced with a required consent checkbox.
 - No invented place names — every map feature is real OpenStreetMap data or a
   coordinator-confirmed pin.
+- No invented duas — every dua shown is authentic, with its hadith source
+  displayed.
 
 Map data © OpenStreetMap contributors (ODbL) · Weather: Open-Meteo ·
-Built for the community, with barakah. 🤲
+Built for the community, with barakah.

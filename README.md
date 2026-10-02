@@ -14,15 +14,16 @@ Civic, volunteer, and rooted in:
 
 ## Try it now (demo — nothing to install)
 
-**Option A — this folder on a web server** (best, full experience including
-live map tiles & live weather):
+**Open the live site: <https://mia-za.github.io/aman-patrol/>** 🎉
 
-- Serve this folder with any static server, e.g.
+Prefer to run it yourself? Either:
+
+- double-click `index.html` — the whole app is embedded in that one file, or
+- serve this repository folder with any static server, e.g.
   `python3 -m http.server 8000` then open `http://localhost:8000`.
 
-**Option B — single file**: open `Aman-Patrol-Demo.html` (one level up from
-this folder) by double-clicking it. Everything is inside that one file. Street
-map tiles and live weather need internet; every screen still works offline.
+Street map tiles and live weather need internet; every screen still works
+offline.
 
 ### Demo accounts (password for all: `demo1234`)
 

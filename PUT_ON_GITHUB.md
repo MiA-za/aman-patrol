@@ -1,5 +1,10 @@
 # Putting Aman Patrol on GitHub — for non-technical people
 
+> ✅ **Status: already done!** Aman Patrol is live at
+> **https://mia-za.github.io/aman-patrol/** (GitHub Pages, `main` branch, root
+> folder). This guide is kept for reference — and Step 5 below is still the
+> way to update the site by hand if you ever need to.
+
 **Why do this?**
 1. **Free hosting** — GitHub can serve the app on a link like
    `https://yourname.github.io/aman-patrol/` that any volunteer can open on

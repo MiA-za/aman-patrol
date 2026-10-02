@@ -21,7 +21,7 @@
     var S = window.AmanStore;
     var user = S.sessionUser();
     if (!user || user.role !== "coordinator") {
-      screen.innerHTML = '<div class="empty"><div class="big">🔒</div>Coordinator access only.</div>';
+      screen.innerHTML = '<div class="empty"><div class="big">' + window.AmanUI.I("lock",36) + '</div>Coordinator access only.</div>';
       return;
     }
     screen.className = "screen";
@@ -65,14 +65,14 @@
     var S = window.AmanStore;
     var pending = S.users().filter(function (u) { return u.status === "pending"; });
     if (!pending.length) {
-      el.innerHTML = '<div class="empty"><div class="big">🎉</div>No registrations waiting.<br>All applications have been reviewed.</div>';
+      el.innerHTML = '<div class="empty"><div class="big">' + window.AmanUI.I("check_circle",36) + '</div>No registrations waiting.<br>All applications have been reviewed.</div>';
       return;
     }
     el.innerHTML = pending.map(function (u) {
       return userCard(u,
         '<div class="row mt-12">' +
-        '<button class="btn btn-ok grow" data-approve="' + u.id + '">✓ Approve</button>' +
-        '<button class="btn btn-ghost danger grow" data-decline="' + u.id + '">✕ Decline</button></div>');
+        '<button class="btn btn-ok grow" data-approve="' + u.id + '">' + window.AmanUI.I("check",15) + ' Approve</button>' +
+        '<button class="btn btn-ghost danger grow" data-decline="' + u.id + '">' + window.AmanUI.I("x",15) + ' Decline</button></div>');
     }).join("");
     el.querySelectorAll("[data-approve]").forEach(function (b) {
       b.onclick = function () {
@@ -217,7 +217,7 @@
           '<span class="chip ' + statusClass(i.status) + '">' + esc(i.status) + "</span></div>" +
           '<div class="muted" style="font-size:0.76rem;margin-top:6px">' + esc((i.location_address || "") + " · " + (i.zone || "")) + "</div>" +
           "</div>";
-      }).join("") : '<div class="empty"><div class="big">🗒️</div>No incidents match this filter.</div>');
+      }).join("") : '<div class="empty"><div class="big">' + window.AmanUI.I("list",36) + '</div>No incidents match this filter.</div>');
 
     el.querySelector("#inc-filter").addEventListener("click", function (e) {
       var b = e.target.closest("button[data-f]");
@@ -232,9 +232,9 @@
   renderIncidents.filter = "all";
 
   function incIcon(cat) {
-    if (cat.indexOf("Vehicle") !== -1) return "🚗";
-    if (cat.indexOf("Person") !== -1) return "🚶";
-    return "❗";
+    if (cat.indexOf("Vehicle") !== -1) return window.AmanUI.I("car", 15);
+    if (cat.indexOf("Person") !== -1) return window.AmanUI.I("user", 15);
+    return window.AmanUI.I("alert", 15);
   }
   function statusClass(s) {
     if (s === "Resolved") return "ok";
@@ -356,7 +356,7 @@
         return '<div><span class="dl-k">' + s + '</span><span class="dl-v">' + byStatus[s] + "</span></div>";
       }).join("") + "</div></div>" : "") +
 
-      '<button class="btn btn-teal block" id="csv-btn" style="margin-bottom:12px">⬇ Export incidents as CSV</button>' +
+      '<button class="btn btn-teal block" id="csv-btn" style="margin-bottom:12px">' + window.AmanUI.I("download",16) + ' Export incidents as CSV</button>' +
 
       '<h3 style="font-size:0.95rem;margin:4px 0 8px">Incidents (' + list.length + ")</h3>" +
       '<div class="card tight tbl-wrap"><table class="tbl"><tr><th>When</th><th>Category</th><th>Zone</th><th>Status</th></tr>' +

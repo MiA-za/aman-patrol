@@ -75,12 +75,12 @@
     var g = state.gps;
     box.innerHTML =
       '<div style="flex:1">' +
-      '<div class="gps-main">📍 ' + g.lat.toFixed(5) + ", " + g.lng.toFixed(5) + "</div>" +
+      '<div class="gps-main">' + window.AmanUI.I("pin",14) + ' ' + g.lat.toFixed(5) + ", " + g.lng.toFixed(5) + "</div>" +
       '<div class="gps-sub">' + (g.accuracy ? "±" + g.accuracy + "m · " : "") + g.source +
       " · " + window.AmanStore.fmtDateTime(new Date().toISOString()) + "</div></div>" +
       '<button type="button" class="link-btn" style="color:#7de3e3" id="gps-retry">Retry</button>';
     document.getElementById("gps-retry").onclick = function () {
-      box.innerHTML = '<div style="flex:1"><div class="gps-main">📍 Locating…</div><div class="gps-sub">Requesting your position</div></div>';
+      box.innerHTML = '<div style="flex:1"><div class="gps-main">' + window.AmanUI.I("pin",14) + ' Locating…</div><div class="gps-sub">Requesting your position</div></div>';
       captureGPS();
     };
   }
@@ -119,7 +119,7 @@
     screen.innerHTML =
       '<h1 class="page-title">Log an incident</h1>' +
       '<p class="page-sub">Observe and report — do not confront. Your GPS position and the current time are captured automatically.</p>' +
-      '<div class="gps-box" id="gps-box"><div style="flex:1"><div class="gps-main">📍 Locating…</div><div class="gps-sub">Requesting your position</div></div></div>' +
+      '<div class="gps-box" id="gps-box"><div style="flex:1"><div class="gps-main">' + window.AmanUI.I("pin",14) + ' Locating…</div><div class="gps-sub">Requesting your position</div></div></div>' +
 
       '<div class="segmented" id="cat-seg">' +
       CATS.map(function (c) { return '<button data-cat="' + c.id + '" class="' + (c.id === state.cat ? "active" : "") + '">' + c.seg + "</button>"; }).join("") +
@@ -133,7 +133,7 @@
 
       '<div class="field"><label>Photo (camera / gallery)</label>' +
       '<input type="file" id="f-photo" accept="image/*" style="display:none">' +
-      '<button type="button" class="btn btn-ghost block" id="photo-btn">📷 Attach photo</button>' +
+      '<button type="button" class="btn btn-ghost block" id="photo-btn">' + window.AmanUI.I("camera",16) + ' Attach photo</button>' +
       '<img id="photo-preview" class="photo-preview hidden" alt="Photo preview">' +
       '<button type="button" class="link-btn hidden" id="photo-remove">Remove photo</button>' +
       '<div class="hint">Photos of vehicles, property or the street scene only — never of people without need, and never of victims or minors.</div></div>' +
@@ -275,7 +275,7 @@
     var screen = document.getElementById("screen");
     screen.innerHTML =
       '<div class="card center" style="padding:26px 16px">' +
-      '<div style="font-size:3rem">✅</div>' +
+      '<div class="big-ico">' + window.AmanUI.I("check_circle",44) + '</div>' +
       '<h3 style="font-size:1.15rem">Report submitted</h3>' +
       '<p class="muted" style="font-size:0.84rem;line-height:1.55">Jazakallahu khayran. Your ' + ui.esc(inc.category) +
       " report was logged at " + S.fmtDateTime(inc.created_at) + " and the coordinator has been notified.</p>" +
@@ -286,7 +286,7 @@
       "<dt>Status</dt><dd>" + ui.esc(inc.status) + "</dd>" +
       "</dl>" +
       '<div class="row">' +
-      '<button class="btn btn-ghost grow" id="go-map">📍 View on map</button>' +
+      '<button class="btn btn-ghost grow" id="go-map">' + window.AmanUI.I("pin",15) + ' View on map</button>' +
       '<a class="btn btn-primary grow" href="#/dashboard">Done</a>' +
       "</div></div>";
     document.getElementById("go-map").onclick = function () {

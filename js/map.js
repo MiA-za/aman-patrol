@@ -19,10 +19,10 @@
   var addPinMode = false;
   var onAddPinCb = null;
 
-  function pinIcon(color, emoji, letter) {
+  function pinIcon(color, glyph, letter) {
     var inner = letter
       ? '<span style="transform:rotate(45deg);font-weight:900;font-size:12px;color:#fff">' + letter + "</span>"
-      : "<span>" + emoji + "</span>";
+      : "<span>" + window.AmanUI.I(glyph, 14) + "</span>";
     return L.divIcon({
       className: "",
       html: '<div class="pin" style="background:' + color + '">' + inner + "</div>",
@@ -46,7 +46,7 @@
     // masjids
     mk("masjids", "Masjids", true, true);
     (A.masjids || []).forEach(function (m) {
-      L.marker([m.lat, m.lng], { icon: pinIcon("#0e9f9f", "🕌") })
+      L.marker([m.lat, m.lng], { icon: pinIcon("#0e9f9f", "mosque") })
         .bindPopup("<b>" + esc(m.name) + "</b><br>Place of worship (Muslim)<br><i>Coordinator to confirm which two masjids serve Greenside &amp; Emmarentia.</i>" + srcTag())
         .addTo(layers.masjids.group);
     });
@@ -54,7 +54,7 @@
     // schools
     mk("schools", "Schools", false, true);
     (A.schools || []).forEach(function (s) {
-      L.marker([s.lat, s.lng], { icon: pinIcon("#13294b", "🏫") })
+      L.marker([s.lat, s.lng], { icon: pinIcon("#13294b", "school") })
         .bindPopup("<b>" + esc(s.name) + "</b><br>School" + srcTag())
         .addTo(layers.schools.group);
     });
@@ -62,7 +62,7 @@
     // parks / green
     mk("parks", "Parks & green", false, true);
     (A.parks || []).forEach(function (p) {
-      L.marker([p.lat, p.lng], { icon: pinIcon("#16a34a", "🌳") })
+      L.marker([p.lat, p.lng], { icon: pinIcon("#16a34a", "tree") })
         .bindPopup("<b>" + esc(p.name) + "</b><br>" + esc((p.kind || "park").replace("_", " ")) + srcTag())
         .addTo(layers.parks.group);
     });
@@ -70,7 +70,7 @@
     // police
     mk("police", "Police", true, true);
     (A.police || []).forEach(function (p) {
-      L.marker([p.lat, p.lng], { icon: pinIcon("#2563eb", "👮") })
+      L.marker([p.lat, p.lng], { icon: pinIcon("#2563eb", "shield_star") })
         .bindPopup("<b>" + esc(p.name) + "</b><br>SAPS police station" + srcTag())
         .addTo(layers.police.group);
     });
@@ -118,11 +118,11 @@
     layers.pins.group.clearLayers();
     var S = window.AmanStore;
     var TYPE = {
-      dark_spot: { color: "#1e293b", emoji: "🌑", label: "Dark spot" },
-      risk_corner: { color: "#dc2626", emoji: "⚠️", label: "Known risk corner" },
-      madrassah_corridor: { color: "#0e9f9f", emoji: "🚸", label: "Madrassah walking corridor" },
-      recent_incident: { color: "#ea580c", emoji: "📍", label: "Recent incident location" },
-      other: { color: "#5d6c82", emoji: "📌", label: "Coordinator pin" }
+      dark_spot: { color: "#1e293b", glyph: "moon", label: "Dark spot" },
+      risk_corner: { color: "#dc2626", glyph: "alert", label: "Known risk corner" },
+      madrassah_corridor: { color: "#0e9f9f", glyph: "users", label: "Madrassah walking corridor" },
+      recent_incident: { color: "#ea580c", glyph: "pin", label: "Recent incident location" },
+      other: { color: "#5d6c82", glyph: "pin", label: "Coordinator pin" }
     };
     S.pins().forEach(function (p) {
       var t = TYPE[p.type] || TYPE.other;
@@ -131,7 +131,7 @@
       if (u && u.role === "coordinator") {
         del = '<br><button class="link-btn" style="padding:2px 0" onclick="AmanApp.deletePin(\'' + p.id + '\')">Remove pin</button>';
       }
-      L.marker([p.lat, p.lng], { icon: pinIcon(t.color, t.emoji) })
+      L.marker([p.lat, p.lng], { icon: pinIcon(t.color, t.glyph) })
         .bindPopup("<b>" + esc(p.label) + "</b><br>" + t.label + " — coordinator-confirmed" + del)
         .addTo(layers.pins.group);
     });

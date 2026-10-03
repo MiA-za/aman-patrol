@@ -614,14 +614,28 @@
               "• <b>Total incidents logged:</b> " + incCount + " on record.<br>" +
               "• <b>Roster status:</b> " + openSlots + " upcoming slots need a partner.<br>" +
               "• <b>Priority watch areas:</b> Madrassah walking corridor on Greenside Road, Tana Road park edge, and Barry Hertzog robots.";
+          } else if (S.askAman) {
+            hist.innerHTML += '<div style="margin-top:10px;text-align:right"><span style="background:var(--navy-soft);padding:4px 10px;border-radius:8px;display:inline-block"><b>You:</b> ' + esc(query) + '</span></div>' +
+              '<div class="ai-wait" style="margin-top:8px;color:var(--muted)">Aman is checking the free AI service...</div>';
+            hist.scrollTop = hist.scrollHeight;
+            sendBtn.disabled = true;
+            S.askAman(query, (location.hash.replace(/^#\/?/, "").split("/")[0] || "dashboard")).then(function (data) {
+              var wait = hist.querySelector(".ai-wait");
+              if (wait) wait.outerHTML = '<div style="margin-top:8px"><div style="color:var(--teal-dark);font-weight:700">Aman AI:</div><div style="white-space:pre-wrap">' + esc(data.answer) + '</div><div class="hint">Free AI response. Confirm critical information with the coordinator or emergency service.</div></div>';
+              hist.scrollTop = hist.scrollHeight;
+            }).catch(function () {
+              var wait = hist.querySelector(".ai-wait");
+              if (wait) wait.outerHTML = '<div style="margin-top:8px"><div style="color:var(--teal-dark);font-weight:700">Aman built-in help:</div>Free AI is unavailable right now. Remember: observe and report only; never confront, pursue, or patrol alone. For an immediate police emergency call SAPS on 10111. Ask the coordinator if you need guidance that is not covered here.</div>';
+            }).finally(function () { sendBtn.disabled = false; });
+            return;
           } else {
-            reply = "<b>Aman AI Guidance:</b><br>" +
+            reply = "<b>Aman built-in guidance:</b><br>" +
               "Remember our core principle: <b>Observe and report only — never confront, never pursue, never patrol alone.</b><br>" +
-              "For immediate police or medical assistance, dial 10111 (SAPS) or 082 911 (Netcare). Use the Incident tab to log detailed reports with GPS and photos.";
+              "For immediate police assistance, dial 10111. Ask the coordinator if you need guidance that is not covered here.";
           }
 
           hist.innerHTML += '<div style="margin-top:10px;text-align:right"><span style="background:var(--navy-soft);padding:4px 10px;border-radius:8px;display:inline-block"><b>You:</b> ' + esc(query) + '</span></div>' +
-            '<div style="margin-top:8px"><div style="color:var(--teal-dark);font-weight:700">Aman AI:</div>' + reply + '</div>';
+            '<div style="margin-top:8px"><div style="color:var(--teal-dark);font-weight:700">Aman:</div>' + reply + '</div>';
           hist.scrollTop = hist.scrollHeight;
         }
 

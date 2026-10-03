@@ -20,7 +20,7 @@
     var n = String(phone || "").replace(/[^0-9+]/g, "");
     if (n.indexOf("+") === 0) n = n.slice(1);
     else if (n.charAt(0) === "0") n = "27" + n.slice(1);
-    var msg = "السلام عليكم " + (first || "") + "! Your Aman Patrol registration is approved. " +
+    var msg = "السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللَّهِ وَبَرَكَاتُهُ " + (first || "") + "! Your Aman Patrol registration is approved. " +
       "Open the app and log in with the email you registered. " +
       "Remember: observe and report only, never patrol alone, emergencies 10111. " +
       "App: https://mia-za.github.io/aman-patrol/";
@@ -305,7 +305,10 @@
       '<p class="m-sub">Logged ' + esc(S.fmtDateTime(i.created_at)) + " by " + esc(reporter ? reporter.first_name + " " + reporter.surname : "?") + " · " + esc(i.zone || "") + "</p>" +
       '<dl class="kv"><dt>Location</dt><dd>' + esc(i.location_address) + "</dd>" +
       "<dt>GPS</dt><dd>" + esc(i.gps_lat + ", " + i.gps_lng) + "</dd></dl>" +
-      (i.photo_url ? '<img src="' + i.photo_url + '" class="photo-preview" alt="Incident photo" style="max-height:180px">' : "") +
+      '<div class="row mt-8" style="gap:8px;margin-bottom:12px">' +
+      '<button type="button" class="btn btn-teal btn-sm grow" id="im-route-btn">' + ui.I("map", 14) + ' Route on Map</button>' +
+      '<a class="btn btn-ghost btn-sm grow" href="https://www.google.com/maps/dir/?api=1&destination=' + i.gps_lat + ',' + i.gps_lng + '" target="_blank" rel="noopener">Google Maps</a></div>' +
+      (i.photo_url ? (i.photo_url.indexOf("data:video") === 0 || i.photo_url.indexOf(".mp4") !== -1 || i.photo_url.indexOf(".webm") !== -1 ? '<video controls src="' + i.photo_url + '" class="photo-preview" style="max-height:180px;width:100%"></video>' : '<img src="' + i.photo_url + '" class="photo-preview" alt="Incident photo" style="max-height:180px">') : "") +
       (i.description ? '<div class="field"><label>Description</label><div style="font-size:0.84rem;line-height:1.5">' + esc(i.description) + "</div></div>" : "") +
       (fieldsHtml ? '<div class="detail-list" style="margin-bottom:12px">' + fieldsHtml + "</div>" : "") +
       statusHtml +
@@ -315,6 +318,18 @@
       (coord ? '<button class="btn btn-teal" id="im-save">Save changes</button>' : "") + "</div>";
 
     ui.modal(body, function (root) {
+      var rBtn = root.querySelector("#im-route-btn");
+      if (rBtn) {
+        rBtn.onclick = function () {
+          ui.closeModal();
+          location.hash = "#/map";
+          setTimeout(function () {
+            if (window.AmanMap && window.AmanMap.routeTo) {
+              window.AmanMap.routeTo(i.gps_lat, i.gps_lng, i.category);
+            }
+          }, 350);
+        };
+      }
       if (!coord) return;
       root.querySelector("#im-save").onclick = function () {
         S.updateIncident(id, {

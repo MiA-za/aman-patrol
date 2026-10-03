@@ -51,16 +51,16 @@
         .addTo(layers.masjids.group);
     });
 
-    // schools
-    mk("schools", "Schools", false, true);
+    // schools (off by default to avoid clutter)
+    mk("schools", "Schools", false, false);
     (A.schools || []).forEach(function (s) {
       L.marker([s.lat, s.lng], { icon: pinIcon("#13294b", "school") })
         .bindPopup("<b>" + esc(s.name) + "</b><br>School" + srcTag())
         .addTo(layers.schools.group);
     });
 
-    // parks / green
-    mk("parks", "Parks & green", false, true);
+    // parks / green (off by default)
+    mk("parks", "Parks & green", false, false);
     (A.parks || []).forEach(function (p) {
       L.marker([p.lat, p.lng], { icon: pinIcon("#16a34a", "tree") })
         .bindPopup("<b>" + esc(p.name) + "</b><br>" + esc((p.kind || "park").replace("_", " ")) + srcTag())
@@ -111,6 +111,29 @@
     // incidents
     mk("incidents", "Incidents", false, true);
     refreshIncidentLayer();
+
+    // live on-duty patrollers
+    mk("patrollers", "On-duty patrollers", true, true);
+    refreshPatrollersLayer();
+  }
+
+  function refreshPatrollersLayer() {
+    if (!layers.patrollers) return;
+    layers.patrollers.group.clearLayers();
+    var S = window.AmanStore;
+    var list = S.listLiveLocations ? S.listLiveLocations() : [];
+    list.forEach(function (p) {
+      var u = S.userById ? S.userById(p.user_id) : null;
+      var name = u ? (u.first_name + " " + (u.surname ? u.surname[0] + "." : "")) : "Patroller";
+      var icon = L.divIcon({
+        className: "",
+        html: '<div class="patroller-pin"><div class="patroller-pulse"></div><div class="patroller-dot">' + window.AmanUI.I("shield", 12) + '</div></div>',
+        iconSize: [28, 28], iconAnchor: [14, 14]
+      });
+      L.marker([p.lat, p.lng], { icon: icon })
+        .bindPopup("<b>" + esc(name) + "</b><br>On-duty patroller (Live GPS active)<br><span style=\'font-size:0.7rem;color:#8b98ab\'>Accuracy: ±" + (p.accuracy || 10) + "m</span>")
+        .addTo(layers.patrollers.group);
+    });
   }
 
   function refreshPinLayer() {
@@ -155,11 +178,46 @@
     });
   }
 
+  var currentRouteLayer = null;
+  function routeTo(destLat, destLng, destTitle) {
+    if (!map) return;
+    var userGps = (window.AmanLiveTracking && window.AmanLiveTracking.lat)
+      ? { lat: window.AmanLiveTracking.lat, lng: window.AmanLiveTracking.lng }
+      : window.AREA.center;
+    var url = "https://router.project-osrm.org/route/v1/driving/" +
+      userGps.lng + "," + userGps.lat + ";" + destLng + "," + destLat +
+      "?overview=full&geometries=geojson";
+    
+    fetch(url)
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (!data || !data.routes || !data.routes[0]) throw new Error("No route found");
+        var route = data.routes[0];
+        var distKm = (route.distance / 1000).toFixed(1);
+        var durMin = Math.round(route.duration / 60);
+        if (currentRouteLayer) { map.removeLayer(currentRouteLayer); }
+        currentRouteLayer = L.geoJSON(route.geometry, {
+          style: { color: "#0e9f9f", weight: 5, opacity: 0.9, dashArray: "6, 6" }
+        }).addTo(map);
+        map.fitBounds(currentRouteLayer.getBounds(), { padding: [40, 40] });
+        setNote("Route to " + esc(destTitle || "destination") + ": " + distKm + " km · ~" + durMin + " min. Observe and report only.");
+      })
+      .catch(function () {
+        if (currentRouteLayer) { map.removeLayer(currentRouteLayer); }
+        currentRouteLayer = L.polyline([[userGps.lat, userGps.lng], [destLat, destLng]], {
+          color: "#0e9f9f", weight: 4, dashArray: "6, 6"
+        }).addTo(map);
+        map.fitBounds(currentRouteLayer.getBounds(), { padding: [40, 40] });
+        setNote("Direct route to " + esc(destTitle || "destination") + " plotted.");
+      });
+  }
+
   function renderToolbar() {
-    // all layers shown at once — no toggle pills (per coordinator request)
+    // Only attach uncluttered, essential safety layers
     Object.keys(layers).forEach(function (id) {
-      layers[id].on = true;
-      layers[id].group.addTo(map);
+      if (layers[id].on) {
+        layers[id].group.addTo(map);
+      }
     });
   }
 
@@ -238,6 +296,8 @@
     destroy: destroy,
     refreshPins: refreshPinLayer,
     refreshIncidents: refreshIncidentLayer,
+    refreshPatrollers: refreshPatrollersLayer,
+    routeTo: routeTo,
     setAddPinHandler: function (fn) { onAddPinCb = fn; },
     startAddPin: startAddPin,
     focus: function (lat, lng, marker) {

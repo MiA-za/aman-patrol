@@ -140,19 +140,8 @@
           role: "volunteer", status: "pending", password: "demo1234", created_at: new Date(now - 20 * H).toISOString()
         }
       ],
-      slots: [
-        { id: "s1", zone: ZONE_A, activity_window: "Madrassah drop-off", date: dateISO(1), day_offset: 1, time_window: "07:30–08:30", min_required: 2 },
-        { id: "s2", zone: ZONE_B, activity_window: "Afternoon patrol", date: dateISO(1), day_offset: 1, time_window: "12:00–14:00", min_required: 2 },
-        { id: "s3", zone: ZONE_A, activity_window: "Morning patrol", date: dateISO(2), day_offset: 2, time_window: "06:00–08:00", min_required: 2 },
-        { id: "s4", zone: ZONE_B, activity_window: "Jumu'ah", date: dateISO(nextFridayOffset()), day_offset: nextFridayOffset(), time_window: "11:30–13:30", min_required: 2 },
-        { id: "s5", zone: ZONE_A, activity_window: "Evening after Maghrib/Isha", date: dateISO(3), day_offset: 3, time_window: "19:45–22:00", min_required: 2 }
-      ],
-      claims: [
-        { id: "c1", slot_id: "s2", user_id: "u-aisha", status: "claimed", start_shift_time: null, end_shift_time: null, start_gps: null, end_gps: null, reminded: false },
-        { id: "c2", slot_id: "s3", user_id: "u-aisha", status: "claimed", start_shift_time: null, end_shift_time: null, start_gps: null, end_gps: null, reminded: false },
-        { id: "c3", slot_id: "s3", user_id: "u-mo", status: "claimed", start_shift_time: null, end_shift_time: null, start_gps: null, end_gps: null, reminded: false },
-        { id: "c4", slot_id: "s4", user_id: "u-mo", status: "claimed", start_shift_time: null, end_shift_time: null, start_gps: null, end_gps: null, reminded: false }
-      ],
+      slots: [],
+      claims: [],
       incidents: [
         {
           id: "i1", user_id: "u-aisha", category: "Suspicious Vehicle (VOI)", status: "SAPS/Security Notified",
@@ -191,7 +180,7 @@
       notifications: [
         { id: "n1", audience: { type: "user", id: "u-aisha" }, kind: "ok", title: "Your registration was approved", body: "السلام عليكم — Welcome to Aman Patrol, Aisha! Your registration is approved. You can now claim patrol slots. Remember: observe and report only — never patrol alone.", created_at: new Date(now - 21 * 24 * H).toISOString(), read_by: ["u-aisha"] },
         { id: "n2", audience: { type: "user", id: "u-coord" }, kind: "info", title: "New registration awaiting review", body: "Ismail Desai (Emmarentia) has applied to join Aman Patrol.", created_at: new Date(now - 20 * H).toISOString(), read_by: [] },
-        { id: "n3", audience: { type: "all" }, kind: "warn", title: "A patrol slot is understaffed", body: "Tomorrow 12:00 — Afternoon patrol (Zone B – Emmarentia) needs one more volunteer.", created_at: new Date(now - 5 * H).toISOString(), read_by: [] },
+        { id: "n3", audience: { type: "all" }, kind: "info", title: "Patrol roster open", body: "Volunteers can create and claim shifts from the Roster tab. Minimum 2 patrollers required.", created_at: new Date(now - 5 * H).toISOString(), read_by: [] },
         { id: "n4", audience: { type: "user", id: "u-mo" }, kind: "danger", title: "New incident logged in your zone", body: "Suspicious Vehicle (VOI) reported on Gleneagles Road, Greenside.", created_at: new Date(now - 26 * H).toISOString(), read_by: [] },
         { id: "n5", audience: { type: "all" }, kind: "info", title: "Coordinator announcement", body: "Jumu'ah patrol this week: please be at the masjid by 11:15. As-salamu alaykum — thank you for serving the community.", created_at: new Date(now - 2 * H).toISOString(), read_by: [] }
       ],
@@ -293,10 +282,10 @@
     var u = userById(id);
     if (!u) return;
     u.status = "approved";
-    pushNotif({ audience: { type: "user", id: id }, kind: "ok", title: "Your registration was approved", body: "السلام عليكم — Welcome to Aman Patrol, " + u.first_name + "! Your registration is approved. You can now claim patrol slots. Remember: observe and report only — never patrol alone." });
+    pushNotif({ audience: { type: "user", id: id }, kind: "ok", title: "Your registration was approved", body: "السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللَّهِ وَبَرَكَاتُهُ — Welcome to Aman Patrol, " + u.first_name + "! Your registration is approved. You can now claim patrol slots. Remember: observe and report only — never patrol alone." });
     save();
     var su = sessionUser();
-    if (su) sendMessage(su.id, "السلام عليكم — Welcome to Aman Patrol, " + u.first_name + "! You are approved — log in with the email you registered. Observe and report only, never patrol alone. Emergencies: call 10111.");
+    if (su) sendMessage(su.id, "السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللَّهِ وَبَرَكَاتُهُ — Welcome to Aman Patrol, " + u.first_name + "! You are approved — log in with the email you registered. Observe and report only, never patrol alone. Emergencies: call 10111.");
   }
   function declineUser(id) {
     var u = userById(id);
@@ -396,7 +385,7 @@
     save();
     return { ok: true, start_shift_time: new Date().toISOString() };
   }
-  function endShift(slotId, userId, gps) {
+  function endShift(slotId, userId, gps, notes) {
     var c = myClaimFor(slotId, userId);
     if (!c || c.status !== "started") return { ok: false, error: "Start the shift first." };
     var d = load();
@@ -405,10 +394,49 @@
         d.claims[i].status = "completed";
         d.claims[i].end_shift_time = new Date().toISOString();
         d.claims[i].end_gps = gps;
+        d.claims[i].notes = notes ? String(notes).trim().slice(0, 500) : null;
       }
     }
     save();
     return { ok: true, end_shift_time: new Date().toISOString() };
+  }
+
+  function updateProfile(userId, patch) {
+    var u = userById(userId);
+    if (!u) return { ok: false, error: "User not found." };
+    var allowed = ["whatsapp", "emergency_contact_name", "emergency_contact_number", "street", "suburb"];
+    var d = load();
+    for (var i = 0; i < d.users.length; i++) {
+      if (d.users[i].id === userId) {
+        allowed.forEach(function (k) {
+          if (patch[k] !== undefined) d.users[i][k] = patch[k];
+        });
+        break;
+      }
+    }
+    save();
+    return { ok: true };
+  }
+
+  var liveLocations = {};
+  function updateLiveLocation(userId, gps) {
+    if (!gps) { delete liveLocations[userId]; return; }
+    liveLocations[userId] = {
+      user_id: userId,
+      lat: gps.lat,
+      lng: gps.lng,
+      accuracy: gps.accuracy || null,
+      heading: gps.heading || null,
+      updated_at: Date.now()
+    };
+  }
+  function listLiveLocations() {
+    var cutoff = Date.now() - 300000;
+    var out = [];
+    for (var k in liveLocations) {
+      if (liveLocations[k].updated_at > cutoff) out.push(liveLocations[k]);
+    }
+    return out;
   }
   function completedShifts() {
     var d = load();
@@ -634,12 +662,18 @@
       return m.user_id !== user.id && new Date(m.created_at).getTime() > seen;
     }).length;
   }
-  function sendMessage(userId, body) {
+  function sendMessage(userId, body, audioUrl) {
     body = String(body || "").trim().slice(0, 500);
-    if (!body) return { ok: false, error: "Type a message first." };
+    if (!body && !audioUrl) return { ok: false, error: "Type a message or record audio first." };
     var d = load();
     if (!d.messages) d.messages = [];
-    d.messages.push({ id: uid("m"), user_id: userId, body: body, created_at: new Date().toISOString() });
+    d.messages.push({
+      id: uid("m"),
+      user_id: userId,
+      body: body || "Voice message",
+      audio_url: audioUrl || null,
+      created_at: new Date().toISOString()
+    });
     if (d.messages.length > 500) d.messages.splice(0, d.messages.length - 500);
     save();
     return { ok: true };
@@ -684,7 +718,7 @@
     users: users, userById: userById, userLabel: userLabel, approveUser: approveUser, declineUser: declineUser,
     // slots & claims
     slots: slots, slotById: slotById, claimSlot: claimSlot, unclaim: unclaim, myClaims: myClaims,
-    myClaimFor: myClaimFor, startShift: startShift, endShift: endShift, completedShifts: completedShifts,
+    myClaimFor: myClaimFor, startShift: startShift, endShift: endShift, completedShifts: completedShifts, updateProfile: updateProfile, updateLiveLocation: updateLiveLocation, listLiveLocations: listLiveLocations,
     addSlot: addSlot, removeSlot: removeSlot, assignVolunteer: assignVolunteer, removeClaim: removeClaim,
     createSlot: createSlot, deleteOwnSlot: deleteOwnSlot, raiseSOS: raiseSOS,
     getSetting: getSetting, setSetting: setSetting,

@@ -1267,6 +1267,76 @@ html[data-theme="dark"] .cal-cell.selected { background: #25477e; border-color: 
 }
 .approve-banner .ab-text { font-size: 0.85rem; line-height: 1.5; }
 
+/* ---------- on-shift live tracking banner ---------- */
+.on-shift-banner {
+  background: linear-gradient(135deg, #065f46 0%, #047857 100%);
+  color: #fff; padding: 10px 14px; border-radius: var(--radius);
+  margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;
+  box-shadow: 0 4px 12px rgba(4, 120, 87, 0.25); font-size: 0.82rem; font-weight: 700;
+}
+.pulse-dot {
+  width: 10px; height: 10px; border-radius: 50%; background: #34d399;
+  display: inline-block; margin-right: 8px; vertical-align: middle;
+  animation: pulse-green 1.8s infinite;
+}
+@keyframes pulse-green {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.7); }
+  70% { transform: scale(1.1); box-shadow: 0 0 0 8px rgba(52, 211, 153, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }
+}
+
+/* ---------- patroller beacon on map ---------- */
+.patroller-pin { position: relative; width: 28px; height: 28px; }
+.patroller-dot {
+  position: absolute; left: 4px; top: 4px; width: 20px; height: 20px;
+  background: var(--ok); color: #fff; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3); border: 2px solid #fff;
+}
+.patroller-pulse {
+  position: absolute; left: 0; top: 0; width: 28px; height: 28px;
+  border-radius: 50%; background: rgba(16, 185, 129, 0.4);
+  animation: pulse-green 2s infinite;
+}
+
+/* ---------- compass tool ---------- */
+.compass-wrap { text-align: center; padding: 12px 0 6px; }
+.compass-dial {
+  width: 170px; height: 170px; margin: 0 auto 12px; border-radius: 50%;
+  border: 4px solid var(--teal); background: var(--card);
+  position: relative; display: flex; align-items: center; justify-content: center;
+  box-shadow: inset 0 0 14px rgba(0,0,0,0.1), var(--shadow);
+}
+.compass-needle {
+  position: absolute; width: 6px; height: 130px; left: calc(50% - 3px); top: 16px;
+  transition: transform 0.2s ease-out; transform-origin: 50% 50%;
+}
+.compass-needle::before {
+  content: ''; position: absolute; top: 0; left: 0; width: 0; height: 0;
+  border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 56px solid var(--danger);
+  transform: translateX(-3px);
+}
+.compass-needle::after {
+  content: ''; position: absolute; bottom: 0; left: 0; width: 0; height: 0;
+  border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 56px solid var(--navy);
+  transform: translateX(-3px);
+}
+.compass-deg { font-size: 1.6rem; font-weight: 900; color: var(--navy); }
+.compass-card-label { font-size: 0.9rem; font-weight: 800; color: var(--teal-dark); margin-top: 2px; }
+.compass-meta { font-size: 0.76rem; color: var(--muted); margin-top: 8px; line-height: 1.5; }
+
+/* ---------- PTT hold-to-talk in chat ---------- */
+.ptt-wrap { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
+.ptt-btn {
+  background: var(--navy); color: #fff; border: none; border-radius: 12px;
+  padding: 10px 14px; font-weight: 800; font-size: 0.84rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  user-select: none; -webkit-user-select: none; flex: 1; min-height: 44px;
+}
+.ptt-btn.recording { background: var(--danger) !important; animation: pulse-green 1s infinite; }
+.audio-msg { margin-top: 6px; max-width: 100%; }
+.audio-msg audio { width: 100%; height: 36px; border-radius: 8px; }
+
 </style>
 </head>
 <body>
@@ -1500,19 +1570,8 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
           role: "volunteer", status: "pending", password: "demo1234", created_at: new Date(now - 20 * H).toISOString()
         }
       ],
-      slots: [
-        { id: "s1", zone: ZONE_A, activity_window: "Madrassah drop-off", date: dateISO(1), day_offset: 1, time_window: "07:30–08:30", min_required: 2 },
-        { id: "s2", zone: ZONE_B, activity_window: "Afternoon patrol", date: dateISO(1), day_offset: 1, time_window: "12:00–14:00", min_required: 2 },
-        { id: "s3", zone: ZONE_A, activity_window: "Morning patrol", date: dateISO(2), day_offset: 2, time_window: "06:00–08:00", min_required: 2 },
-        { id: "s4", zone: ZONE_B, activity_window: "Jumu'ah", date: dateISO(nextFridayOffset()), day_offset: nextFridayOffset(), time_window: "11:30–13:30", min_required: 2 },
-        { id: "s5", zone: ZONE_A, activity_window: "Evening after Maghrib/Isha", date: dateISO(3), day_offset: 3, time_window: "19:45–22:00", min_required: 2 }
-      ],
-      claims: [
-        { id: "c1", slot_id: "s2", user_id: "u-aisha", status: "claimed", start_shift_time: null, end_shift_time: null, start_gps: null, end_gps: null, reminded: false },
-        { id: "c2", slot_id: "s3", user_id: "u-aisha", status: "claimed", start_shift_time: null, end_shift_time: null, start_gps: null, end_gps: null, reminded: false },
-        { id: "c3", slot_id: "s3", user_id: "u-mo", status: "claimed", start_shift_time: null, end_shift_time: null, start_gps: null, end_gps: null, reminded: false },
-        { id: "c4", slot_id: "s4", user_id: "u-mo", status: "claimed", start_shift_time: null, end_shift_time: null, start_gps: null, end_gps: null, reminded: false }
-      ],
+      slots: [],
+      claims: [],
       incidents: [
         {
           id: "i1", user_id: "u-aisha", category: "Suspicious Vehicle (VOI)", status: "SAPS/Security Notified",
@@ -1551,7 +1610,7 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
       notifications: [
         { id: "n1", audience: { type: "user", id: "u-aisha" }, kind: "ok", title: "Your registration was approved", body: "السلام عليكم — Welcome to Aman Patrol, Aisha! Your registration is approved. You can now claim patrol slots. Remember: observe and report only — never patrol alone.", created_at: new Date(now - 21 * 24 * H).toISOString(), read_by: ["u-aisha"] },
         { id: "n2", audience: { type: "user", id: "u-coord" }, kind: "info", title: "New registration awaiting review", body: "Ismail Desai (Emmarentia) has applied to join Aman Patrol.", created_at: new Date(now - 20 * H).toISOString(), read_by: [] },
-        { id: "n3", audience: { type: "all" }, kind: "warn", title: "A patrol slot is understaffed", body: "Tomorrow 12:00 — Afternoon patrol (Zone B – Emmarentia) needs one more volunteer.", created_at: new Date(now - 5 * H).toISOString(), read_by: [] },
+        { id: "n3", audience: { type: "all" }, kind: "info", title: "Patrol roster open", body: "Volunteers can create and claim shifts from the Roster tab. Minimum 2 patrollers required.", created_at: new Date(now - 5 * H).toISOString(), read_by: [] },
         { id: "n4", audience: { type: "user", id: "u-mo" }, kind: "danger", title: "New incident logged in your zone", body: "Suspicious Vehicle (VOI) reported on Gleneagles Road, Greenside.", created_at: new Date(now - 26 * H).toISOString(), read_by: [] },
         { id: "n5", audience: { type: "all" }, kind: "info", title: "Coordinator announcement", body: "Jumu'ah patrol this week: please be at the masjid by 11:15. As-salamu alaykum — thank you for serving the community.", created_at: new Date(now - 2 * H).toISOString(), read_by: [] }
       ],
@@ -1653,10 +1712,10 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     var u = userById(id);
     if (!u) return;
     u.status = "approved";
-    pushNotif({ audience: { type: "user", id: id }, kind: "ok", title: "Your registration was approved", body: "السلام عليكم — Welcome to Aman Patrol, " + u.first_name + "! Your registration is approved. You can now claim patrol slots. Remember: observe and report only — never patrol alone." });
+    pushNotif({ audience: { type: "user", id: id }, kind: "ok", title: "Your registration was approved", body: "السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللَّهِ وَبَرَكَاتُهُ — Welcome to Aman Patrol, " + u.first_name + "! Your registration is approved. You can now claim patrol slots. Remember: observe and report only — never patrol alone." });
     save();
     var su = sessionUser();
-    if (su) sendMessage(su.id, "السلام عليكم — Welcome to Aman Patrol, " + u.first_name + "! You are approved — log in with the email you registered. Observe and report only, never patrol alone. Emergencies: call 10111.");
+    if (su) sendMessage(su.id, "السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللَّهِ وَبَرَكَاتُهُ — Welcome to Aman Patrol, " + u.first_name + "! You are approved — log in with the email you registered. Observe and report only, never patrol alone. Emergencies: call 10111.");
   }
   function declineUser(id) {
     var u = userById(id);
@@ -1756,7 +1815,7 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     save();
     return { ok: true, start_shift_time: new Date().toISOString() };
   }
-  function endShift(slotId, userId, gps) {
+  function endShift(slotId, userId, gps, notes) {
     var c = myClaimFor(slotId, userId);
     if (!c || c.status !== "started") return { ok: false, error: "Start the shift first." };
     var d = load();
@@ -1765,10 +1824,49 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
         d.claims[i].status = "completed";
         d.claims[i].end_shift_time = new Date().toISOString();
         d.claims[i].end_gps = gps;
+        d.claims[i].notes = notes ? String(notes).trim().slice(0, 500) : null;
       }
     }
     save();
     return { ok: true, end_shift_time: new Date().toISOString() };
+  }
+
+  function updateProfile(userId, patch) {
+    var u = userById(userId);
+    if (!u) return { ok: false, error: "User not found." };
+    var allowed = ["whatsapp", "emergency_contact_name", "emergency_contact_number", "street", "suburb"];
+    var d = load();
+    for (var i = 0; i < d.users.length; i++) {
+      if (d.users[i].id === userId) {
+        allowed.forEach(function (k) {
+          if (patch[k] !== undefined) d.users[i][k] = patch[k];
+        });
+        break;
+      }
+    }
+    save();
+    return { ok: true };
+  }
+
+  var liveLocations = {};
+  function updateLiveLocation(userId, gps) {
+    if (!gps) { delete liveLocations[userId]; return; }
+    liveLocations[userId] = {
+      user_id: userId,
+      lat: gps.lat,
+      lng: gps.lng,
+      accuracy: gps.accuracy || null,
+      heading: gps.heading || null,
+      updated_at: Date.now()
+    };
+  }
+  function listLiveLocations() {
+    var cutoff = Date.now() - 300000;
+    var out = [];
+    for (var k in liveLocations) {
+      if (liveLocations[k].updated_at > cutoff) out.push(liveLocations[k]);
+    }
+    return out;
   }
   function completedShifts() {
     var d = load();
@@ -1994,12 +2092,18 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
       return m.user_id !== user.id && new Date(m.created_at).getTime() > seen;
     }).length;
   }
-  function sendMessage(userId, body) {
+  function sendMessage(userId, body, audioUrl) {
     body = String(body || "").trim().slice(0, 500);
-    if (!body) return { ok: false, error: "Type a message first." };
+    if (!body && !audioUrl) return { ok: false, error: "Type a message or record audio first." };
     var d = load();
     if (!d.messages) d.messages = [];
-    d.messages.push({ id: uid("m"), user_id: userId, body: body, created_at: new Date().toISOString() });
+    d.messages.push({
+      id: uid("m"),
+      user_id: userId,
+      body: body || "Voice message",
+      audio_url: audioUrl || null,
+      created_at: new Date().toISOString()
+    });
     if (d.messages.length > 500) d.messages.splice(0, d.messages.length - 500);
     save();
     return { ok: true };
@@ -2044,7 +2148,7 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     users: users, userById: userById, userLabel: userLabel, approveUser: approveUser, declineUser: declineUser,
     // slots & claims
     slots: slots, slotById: slotById, claimSlot: claimSlot, unclaim: unclaim, myClaims: myClaims,
-    myClaimFor: myClaimFor, startShift: startShift, endShift: endShift, completedShifts: completedShifts,
+    myClaimFor: myClaimFor, startShift: startShift, endShift: endShift, completedShifts: completedShifts, updateProfile: updateProfile, updateLiveLocation: updateLiveLocation, listLiveLocations: listLiveLocations,
     addSlot: addSlot, removeSlot: removeSlot, assignVolunteer: assignVolunteer, removeClaim: removeClaim,
     createSlot: createSlot, deleteOwnSlot: deleteOwnSlot, raiseSOS: raiseSOS,
     getSetting: getSetting, setSetting: setSetting,
@@ -2230,16 +2334,16 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
         .addTo(layers.masjids.group);
     });
 
-    // schools
-    mk("schools", "Schools", false, true);
+    // schools (off by default to avoid clutter)
+    mk("schools", "Schools", false, false);
     (A.schools || []).forEach(function (s) {
       L.marker([s.lat, s.lng], { icon: pinIcon("#13294b", "school") })
         .bindPopup("<b>" + esc(s.name) + "</b><br>School" + srcTag())
         .addTo(layers.schools.group);
     });
 
-    // parks / green
-    mk("parks", "Parks & green", false, true);
+    // parks / green (off by default)
+    mk("parks", "Parks & green", false, false);
     (A.parks || []).forEach(function (p) {
       L.marker([p.lat, p.lng], { icon: pinIcon("#16a34a", "tree") })
         .bindPopup("<b>" + esc(p.name) + "</b><br>" + esc((p.kind || "park").replace("_", " ")) + srcTag())
@@ -2290,6 +2394,29 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     // incidents
     mk("incidents", "Incidents", false, true);
     refreshIncidentLayer();
+
+    // live on-duty patrollers
+    mk("patrollers", "On-duty patrollers", true, true);
+    refreshPatrollersLayer();
+  }
+
+  function refreshPatrollersLayer() {
+    if (!layers.patrollers) return;
+    layers.patrollers.group.clearLayers();
+    var S = window.AmanStore;
+    var list = S.listLiveLocations ? S.listLiveLocations() : [];
+    list.forEach(function (p) {
+      var u = S.userById ? S.userById(p.user_id) : null;
+      var name = u ? (u.first_name + " " + (u.surname ? u.surname[0] + "." : "")) : "Patroller";
+      var icon = L.divIcon({
+        className: "",
+        html: '<div class="patroller-pin"><div class="patroller-pulse"></div><div class="patroller-dot">' + window.AmanUI.I("shield", 12) + '</div></div>',
+        iconSize: [28, 28], iconAnchor: [14, 14]
+      });
+      L.marker([p.lat, p.lng], { icon: icon })
+        .bindPopup("<b>" + esc(name) + "</b><br>On-duty patroller (Live GPS active)<br><span style=\'font-size:0.7rem;color:#8b98ab\'>Accuracy: ±" + (p.accuracy || 10) + "m</span>")
+        .addTo(layers.patrollers.group);
+    });
   }
 
   function refreshPinLayer() {
@@ -2334,11 +2461,46 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     });
   }
 
+  var currentRouteLayer = null;
+  function routeTo(destLat, destLng, destTitle) {
+    if (!map) return;
+    var userGps = (window.AmanLiveTracking && window.AmanLiveTracking.lat)
+      ? { lat: window.AmanLiveTracking.lat, lng: window.AmanLiveTracking.lng }
+      : window.AREA.center;
+    var url = "https://router.project-osrm.org/route/v1/driving/" +
+      userGps.lng + "," + userGps.lat + ";" + destLng + "," + destLat +
+      "?overview=full&geometries=geojson";
+    
+    fetch(url)
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (!data || !data.routes || !data.routes[0]) throw new Error("No route found");
+        var route = data.routes[0];
+        var distKm = (route.distance / 1000).toFixed(1);
+        var durMin = Math.round(route.duration / 60);
+        if (currentRouteLayer) { map.removeLayer(currentRouteLayer); }
+        currentRouteLayer = L.geoJSON(route.geometry, {
+          style: { color: "#0e9f9f", weight: 5, opacity: 0.9, dashArray: "6, 6" }
+        }).addTo(map);
+        map.fitBounds(currentRouteLayer.getBounds(), { padding: [40, 40] });
+        setNote("Route to " + esc(destTitle || "destination") + ": " + distKm + " km · ~" + durMin + " min. Observe and report only.");
+      })
+      .catch(function () {
+        if (currentRouteLayer) { map.removeLayer(currentRouteLayer); }
+        currentRouteLayer = L.polyline([[userGps.lat, userGps.lng], [destLat, destLng]], {
+          color: "#0e9f9f", weight: 4, dashArray: "6, 6"
+        }).addTo(map);
+        map.fitBounds(currentRouteLayer.getBounds(), { padding: [40, 40] });
+        setNote("Direct route to " + esc(destTitle || "destination") + " plotted.");
+      });
+  }
+
   function renderToolbar() {
-    // all layers shown at once — no toggle pills (per coordinator request)
+    // Only attach uncluttered, essential safety layers
     Object.keys(layers).forEach(function (id) {
-      layers[id].on = true;
-      layers[id].group.addTo(map);
+      if (layers[id].on) {
+        layers[id].group.addTo(map);
+      }
     });
   }
 
@@ -2417,6 +2579,8 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     destroy: destroy,
     refreshPins: refreshPinLayer,
     refreshIncidents: refreshIncidentLayer,
+    refreshPatrollers: refreshPatrollersLayer,
+    routeTo: routeTo,
     setAddPinHandler: function (fn) { onAddPinCb = fn; },
     startAddPin: startAddPin,
     focus: function (lat, lng, marker) {
@@ -2770,7 +2934,7 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     var n = String(phone || "").replace(/[^0-9+]/g, "");
     if (n.indexOf("+") === 0) n = n.slice(1);
     else if (n.charAt(0) === "0") n = "27" + n.slice(1);
-    var msg = "السلام عليكم " + (first || "") + "! Your Aman Patrol registration is approved. " +
+    var msg = "السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللَّهِ وَبَرَكَاتُهُ " + (first || "") + "! Your Aman Patrol registration is approved. " +
       "Open the app and log in with the email you registered. " +
       "Remember: observe and report only, never patrol alone, emergencies 10111. " +
       "App: https://mia-za.github.io/aman-patrol/";
@@ -3055,6 +3219,9 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
       '<p class="m-sub">Logged ' + esc(S.fmtDateTime(i.created_at)) + " by " + esc(reporter ? reporter.first_name + " " + reporter.surname : "?") + " · " + esc(i.zone || "") + "</p>" +
       '<dl class="kv"><dt>Location</dt><dd>' + esc(i.location_address) + "</dd>" +
       "<dt>GPS</dt><dd>" + esc(i.gps_lat + ", " + i.gps_lng) + "</dd></dl>" +
+      '<div class="row mt-8" style="gap:8px;margin-bottom:12px">' +
+      '<button type="button" class="btn btn-teal btn-sm grow" id="im-route-btn">' + ui.I("map", 14) + ' Route on Map</button>' +
+      '<a class="btn btn-ghost btn-sm grow" href="https://www.google.com/maps/dir/?api=1&destination=' + i.gps_lat + ',' + i.gps_lng + '" target="_blank" rel="noopener">Google Maps</a></div>' +
       (i.photo_url ? '<img src="' + i.photo_url + '" class="photo-preview" alt="Incident photo" style="max-height:180px">' : "") +
       (i.description ? '<div class="field"><label>Description</label><div style="font-size:0.84rem;line-height:1.5">' + esc(i.description) + "</div></div>" : "") +
       (fieldsHtml ? '<div class="detail-list" style="margin-bottom:12px">' + fieldsHtml + "</div>" : "") +
@@ -3065,6 +3232,18 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
       (coord ? '<button class="btn btn-teal" id="im-save">Save changes</button>' : "") + "</div>";
 
     ui.modal(body, function (root) {
+      var rBtn = root.querySelector("#im-route-btn");
+      if (rBtn) {
+        rBtn.onclick = function () {
+          ui.closeModal();
+          location.hash = "#/map";
+          setTimeout(function () {
+            if (window.AmanMap && window.AmanMap.routeTo) {
+              window.AmanMap.routeTo(i.gps_lat, i.gps_lng, i.category);
+            }
+          }, 350);
+        };
+      }
       if (!coord) return;
       root.querySelector("#im-save").onclick = function () {
         S.updateIncident(id, {
@@ -3538,9 +3717,9 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
       var u = userById(id);
       pushNotif({
         audience: { type: "user", id: id }, kind: "ok", title: "Your registration was approved",
-        body: "السلام عليكم — Welcome to Aman Patrol, " + (u ? u.first_name : "volunteer") + "! Your registration is approved. You can now claim patrol slots. Remember: observe and report only — never patrol alone."
+        body: "السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللَّهِ وَبَرَكَاتُهُ — Welcome to Aman Patrol, " + (u ? u.first_name : "volunteer") + "! Your registration is approved. You can now claim patrol slots. Remember: observe and report only — never patrol alone."
       });
-      sendMessage(me.id, "السلام عليكم — Welcome to Aman Patrol, " + (u ? u.first_name : "volunteer") + "! You are approved — log in with the email you registered. Observe and report only, never patrol alone. Emergencies: call 10111.");
+      sendMessage(me.id, "السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللَّهِ وَبَرَكَاتُهُ — Welcome to Aman Patrol, " + (u ? u.first_name : "volunteer") + "! You are approved — log in with the email you registered. Observe and report only, never patrol alone. Emergencies: call 10111.");
       refreshSoon("users"); refreshSoon("roster");
     });
   }
@@ -3704,11 +3883,12 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     return { ok: true, start_shift_time: now };
   }
 
-  function endShift(slotId, userId, gps) {
+  function endShift(slotId, userId, gps, notes) {
     var c = myClaimFor(slotId, userId);
     if (!c || c.status !== "started") return { ok: false, error: "Start the shift first." };
     var now = new Date().toISOString();
     c.status = "completed"; c.end_shift_time = now; c.end_gps = gps;
+    if (notes) c.notes = String(notes).trim().slice(0, 500);
     notify();
     if (String(c.id).indexOf("tmp-") !== 0) {
       sb.from("slot_claims").update({
@@ -3717,6 +3897,50 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
       }).eq("id", c.id).then(function (r) { if (r.error) toastUI("Could not record shift end: " + dbError(r)); });
     }
     return { ok: true, end_shift_time: now };
+  }
+
+  function updateProfile(userId, patch) {
+    if (!me || me.id !== userId) return Promise.resolve({ ok: false, error: "Not authorized" });
+    var allowed = ["whatsapp", "emergency_contact_name", "emergency_contact_number", "street", "suburb"];
+    var clean = {};
+    allowed.forEach(function (k) {
+      if (patch[k] !== undefined) clean[k] = patch[k];
+    });
+    for (var k in clean) me[k] = clean[k];
+    for (var i = 0; i < users.length; i++) {
+      if (users[i].id === userId) {
+        for (var k in clean) users[i][k] = clean[k];
+      }
+    }
+    notify();
+    return sb.from("profiles").update(clean).eq("id", userId).then(function (r) {
+      if (r.error) {
+        toastUI("Could not update profile: " + dbError(r));
+        return { ok: false, error: r.error.message };
+      }
+      return { ok: true };
+    });
+  }
+
+  var liveLocations = {};
+  function updateLiveLocation(userId, gps) {
+    if (!gps) { delete liveLocations[userId]; return; }
+    liveLocations[userId] = {
+      user_id: userId,
+      lat: gps.lat,
+      lng: gps.lng,
+      accuracy: gps.accuracy || null,
+      heading: gps.heading || null,
+      updated_at: Date.now()
+    };
+  }
+  function listLiveLocations() {
+    var cutoff = Date.now() - 300000;
+    var out = [];
+    for (var k in liveLocations) {
+      if (liveLocations[k].updated_at > cutoff) out.push(liveLocations[k]);
+    }
+    return out;
   }
 
   function completedShifts() {
@@ -3978,13 +4202,14 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     }
     return n;
   }
-  function sendMessage(userId, body) {
+  function sendMessage(userId, body, audioUrl) {
     if (!me) return { ok: false, error: "You are not signed in." };
     body = String(body || "").trim().slice(0, 500);
-    if (!body) return { ok: false, error: "Type a message first." };
-    msgRows.push({ id: "tmp-m-" + (++tmpId), user_id: userId, body: body, created_at: new Date().toISOString() });
+    if (!body && !audioUrl) return { ok: false, error: "Type a message or record audio first." };
+    var rec = { id: "tmp-m-" + (++tmpId), user_id: userId, body: body || "Voice message", audio_url: audioUrl || null, created_at: new Date().toISOString() };
+    msgRows.push(rec);
     notify();
-    sb.from("messages").insert({ user_id: userId, body: body }).then(function (r) {
+    sb.from("messages").insert({ user_id: userId, body: body || "Voice message" }).then(function (r) {
       if (r.error) { toastUI("Message not delivered: " + dbError(r)); refreshSoon("messages"); }
       else refreshSoon("messages");
     });
@@ -4061,7 +4286,7 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     users: listUsers, userById: userById, userLabel: userLabel, approveUser: approveUser, declineUser: declineUser,
     // slots & claims
     slots: listSlots, slotById: slotById, claimSlot: claimSlot, unclaim: unclaim, myClaims: myClaims,
-    myClaimFor: myClaimFor, startShift: startShift, endShift: endShift, completedShifts: completedShifts,
+    myClaimFor: myClaimFor, startShift: startShift, endShift: endShift, completedShifts: completedShifts, updateProfile: updateProfile, updateLiveLocation: updateLiveLocation, listLiveLocations: listLiveLocations,
     addSlot: addSlot, removeSlot: removeSlot, assignVolunteer: assignVolunteer, removeClaim: removeClaim,
     createSlot: createSlot, deleteOwnSlot: deleteOwnSlot, raiseSOS: raiseSOS,
     getSetting: getSetting, setSetting: setSetting,
@@ -4131,6 +4356,10 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     x: '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
     info: '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>',
     alert: '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+    compass: '<circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" fill="currentColor" stroke="none"/>',
+    camera: '<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
+    mic: '<path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>',
+    download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
     play: '<polygon points="6 4 20 12 6 20 6 4"/>',
     stop: '<rect x="6" y="6" width="12" height="12" rx="1"/>',
     pin: '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>',
@@ -4527,6 +4756,291 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
   /* ============================================================
      SCREEN: DASHBOARD
      ============================================================ */
+  /* ============================================================
+     LIVE GPS TRACKING & ON-SHIFT MANAGEMENT
+     ============================================================ */
+  window.AmanLiveTracking = {
+    active: false,
+    watchId: null,
+    lat: null,
+    lng: null,
+    accuracy: null,
+    heading: null,
+    startedAt: null
+  };
+
+  function startLiveTracking(user) {
+    if (!navigator.geolocation) return;
+    if (window.AmanLiveTracking.watchId) {
+      navigator.geolocation.clearWatch(window.AmanLiveTracking.watchId);
+    }
+    window.AmanLiveTracking.active = true;
+    window.AmanLiveTracking.startedAt = Date.now();
+    window.AmanLiveTracking.watchId = navigator.geolocation.watchPosition(
+      function (pos) {
+        window.AmanLiveTracking.lat = pos.coords.latitude;
+        window.AmanLiveTracking.lng = pos.coords.longitude;
+        window.AmanLiveTracking.accuracy = Math.round(pos.coords.accuracy || 0);
+        window.AmanLiveTracking.heading = pos.coords.heading !== null && !isNaN(pos.coords.heading) ? Math.round(pos.coords.heading) : null;
+        if (S().updateLiveLocation) {
+          S().updateLiveLocation(user.id, {
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+            accuracy: window.AmanLiveTracking.accuracy,
+            heading: window.AmanLiveTracking.heading
+          });
+        }
+      },
+      function (err) {
+        console.warn("GPS watch error:", err);
+      },
+      { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
+    );
+  }
+
+  function stopLiveTracking(user) {
+    if (window.AmanLiveTracking.watchId) {
+      navigator.geolocation.clearWatch(window.AmanLiveTracking.watchId);
+      window.AmanLiveTracking.watchId = null;
+    }
+    window.AmanLiveTracking.active = false;
+    window.AmanLiveTracking.lat = null;
+    window.AmanLiveTracking.lng = null;
+    if (S().updateLiveLocation && user) {
+      S().updateLiveLocation(user.id, null);
+    }
+  }
+
+  function onShiftBannerHtml() {
+    if (!window.AmanLiveTracking.active) return "";
+    var acc = window.AmanLiveTracking.accuracy || 8;
+    return '<div class="on-shift-banner">' +
+      '<div><span class="pulse-dot"></span><span>LIVE ON SHIFT · GPS Active (±' + acc + 'm)</span></div>' +
+      '<button class="btn btn-sm btn-ghost" id="onshift-banner-btn" style="color:#fff;border-color:rgba(255,255,255,0.4)">' + I("compass", 13) + ' Compass</button>' +
+      '</div>';
+  }
+
+  function downloadIcs(slotId) {
+    var slot = S().slotById(slotId);
+    if (!slot) return;
+    var startISO = S().slotStartISO(slot);
+    var endISO = S().slotEndISO(slot);
+    var dStart = new Date(startISO);
+    var dEnd = new Date(endISO);
+    function fmtCal(d) {
+      return d.getUTCFullYear() + pad2(d.getUTCMonth() + 1) + pad2(d.getUTCDate()) + "T" +
+             pad2(d.getUTCHours()) + pad2(d.getUTCMinutes()) + pad2(d.getUTCSeconds()) + "Z";
+    }
+    var ics = "BEGIN:VCALENDAR\r\n" +
+      "VERSION:2.0\r\n" +
+      "PRODID:-//Aman Patrol//Patrol Roster//EN\r\n" +
+      "CALSCALE:GREGORIAN\r\n" +
+      "METHOD:PUBLISH\r\n" +
+      "BEGIN:VEVENT\r\n" +
+      "UID:slot-" + slot.id + "@amanpatrol.co.za\r\n" +
+      "DTSTAMP:" + fmtCal(new Date()) + "\r\n" +
+      "DTSTART:" + fmtCal(dStart) + "\r\n" +
+      "DTEND:" + fmtCal(dEnd) + "\r\n" +
+      "SUMMARY:Aman Patrol — " + slot.activity_window + " (" + slot.time_window + ")\r\n" +
+      "DESCRIPTION:Aman Patrol community shift in " + (slot.zone || "Greenside/Emmarentia") + ". Observe and report only — never patrol alone. Emergencies: call 10111.\r\n" +
+      "LOCATION:" + (slot.zone || "Greenside and Emmarentia, Johannesburg") + "\r\n" +
+      "STATUS:CONFIRMED\r\n" +
+      "END:VEVENT\r\n" +
+      "END:VCALENDAR\r\n";
+    var blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "aman-patrol-" + slot.date + ".ics";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast("Calendar invite downloaded. Tap to add to your calendar.", "ok");
+  }
+
+  function compassModal() {
+    var lat = (window.AmanLiveTracking && window.AmanLiveTracking.lat) || -26.148;
+    var lng = (window.AmanLiveTracking && window.AmanLiveTracking.lng) || 28.005;
+    var acc = (window.AmanLiveTracking && window.AmanLiveTracking.accuracy) || 8;
+    
+    modal(
+      "<h3>" + I("compass", 18) + " Compass &amp; Direction Finder</h3>" +
+      '<div class="compass-wrap">' +
+      '<div class="compass-dial" id="compass-dial">' +
+      '<div class="compass-needle" id="compass-needle"></div>' +
+      '<div><div class="compass-deg" id="compass-deg">--°</div>' +
+      '<div class="compass-card-label" id="compass-card-label">NORTH</div></div>' +
+      "</div>" +
+      '<div class="compass-meta">' +
+      '<div><b>GPS Position:</b> <span id="compass-coords">' + lat.toFixed(5) + ', ' + lng.toFixed(5) + ' (±' + acc + 'm)</span></div>' +
+      '<div><b>Location:</b> Greenside &amp; Emmarentia, Johannesburg</div>' +
+      '<div><b>Local Time:</b> ' + new Date().toLocaleTimeString('en-ZA', { timeZone: 'Africa/Johannesburg' }) + ' SAST</div>' +
+      "</div>" +
+      "</div>" +
+      '<div class="row mt-12">' +
+      '<button class="btn btn-teal grow" id="compass-cam-btn">' + I("camera", 15) + ' Timestamp Evidence Camera</button>' +
+      '<button class="btn btn-primary" data-close>Close</button>' +
+      "</div>",
+      function (root) {
+        var needle = root.querySelector("#compass-needle");
+        var degEl = root.querySelector("#compass-deg");
+        var cardEl = root.querySelector("#compass-card-label");
+        
+        function getDirection(deg) {
+          var dirs = ["NORTH", "NORTHEAST", "EAST", "SOUTHEAST", "SOUTH", "SOUTHWEST", "WEST", "NORTHWEST"];
+          var index = Math.round(deg / 45) % 8;
+          return dirs[index];
+        }
+
+        function handleOrientation(e) {
+          var heading = null;
+          if (e.webkitCompassHeading !== undefined) {
+            heading = e.webkitCompassHeading;
+          } else if (e.alpha !== null && e.alpha !== undefined) {
+            heading = (360 - e.alpha) % 360;
+          }
+          if (heading !== null && !isNaN(heading)) {
+            var deg = Math.round(heading);
+            if (needle) needle.style.transform = "rotate(" + deg + "deg)";
+            if (degEl) degEl.textContent = deg + "°";
+            if (cardEl) cardEl.textContent = getDirection(deg);
+          }
+        }
+
+        if (window.DeviceOrientationEvent) {
+          window.addEventListener("deviceorientation", handleOrientation, true);
+        }
+
+        root.querySelector("#compass-cam-btn").onclick = function () {
+          closeModal();
+          evidenceCameraModal();
+        };
+      }
+    );
+  }
+
+  function evidenceCameraModal() {
+    modal(
+      "<h3>" + I("camera", 18) + " Timestamp Evidence Camera</h3>" +
+      '<p class="m-sub">Photos are stamped with exact date, time, GPS coordinates, and heading.</p>' +
+      '<div class="field">' +
+      '<label>Capture or select photo</label>' +
+      '<input type="file" id="ev-photo-input" accept="image/*" capture="environment" style="display:none">' +
+      '<button type="button" class="btn btn-primary block" id="ev-take-btn">' + I("camera", 16) + ' Open Camera</button>' +
+      "</div>" +
+      '<div id="ev-preview-wrap" style="display:none;margin-top:12px">' +
+      '<canvas id="ev-canvas" style="width:100%;border-radius:12px;border:1px solid var(--line);box-shadow:var(--shadow)"></canvas>' +
+      '<div class="row mt-12">' +
+      '<a class="btn btn-ok grow" id="ev-save-btn" download="aman-patrol-evidence.jpg">Save Stamped Photo</a>' +
+      '<a class="btn btn-teal grow" href="#/incident" id="ev-incident-btn">Report Incident</a>' +
+      "</div></div>" +
+      '<div class="m-actions"><button class="btn btn-ghost" data-close>Close</button></div>',
+      function (root) {
+        var inp = root.querySelector("#ev-photo-input");
+        var btn = root.querySelector("#ev-take-btn");
+        var wrap = root.querySelector("#ev-preview-wrap");
+        var canvas = root.querySelector("#ev-canvas");
+        var saveBtn = root.querySelector("#ev-save-btn");
+
+        btn.onclick = function () { inp.click(); };
+
+        inp.onchange = function (e) {
+          var file = e.target.files && e.target.files[0];
+          if (!file) return;
+          var reader = new FileReader();
+          reader.onload = function (evt) {
+            var img = new Image();
+            img.onload = function () {
+              var maxW = 1200;
+              var scale = Math.min(1, maxW / img.width);
+              canvas.width = img.width * scale;
+              canvas.height = img.height * scale;
+              var ctx = canvas.getContext("2d");
+              ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+              var lat = (window.AmanLiveTracking && window.AmanLiveTracking.lat) || -26.148;
+              var lng = (window.AmanLiveTracking && window.AmanLiveTracking.lng) || 28.005;
+              var acc = (window.AmanLiveTracking && window.AmanLiveTracking.accuracy) || 8;
+              var nowStr = new Date().toISOString().replace("T", " ").slice(0, 19) + " SAST";
+
+              var barH = Math.max(70, canvas.height * 0.12);
+              ctx.fillStyle = "rgba(12, 27, 51, 0.78)";
+              ctx.fillRect(0, canvas.height - barH, canvas.width, barH);
+
+              ctx.fillStyle = "#34d399";
+              var fontSizeTitle = Math.max(14, Math.round(canvas.width * 0.024));
+              ctx.font = "bold " + fontSizeTitle + "px sans-serif";
+              ctx.fillText("AMAN PATROL · GREENSIDE & EMMARENTIA", 16, canvas.height - barH + fontSizeTitle + 6);
+
+              ctx.fillStyle = "#ffffff";
+              var fontSizeSub = Math.max(11, Math.round(canvas.width * 0.018));
+              ctx.font = fontSizeSub + "px monospace";
+              ctx.fillText("TIME: " + nowStr + " | GPS: " + lat.toFixed(5) + ", " + lng.toFixed(5) + " (±" + acc + "m)", 16, canvas.height - barH + fontSizeTitle + fontSizeSub + 12);
+              ctx.fillText("COMMUNITY WATCH · OBSERVE AND REPORT ONLY", 16, canvas.height - barH + fontSizeTitle + fontSizeSub * 2 + 18);
+
+              var dataUrl = canvas.toDataURL("image/jpeg", 0.88);
+              saveBtn.href = dataUrl;
+              wrap.style.display = "block";
+              btn.textContent = "Retake Photo";
+            };
+            img.src = evt.target.result;
+          };
+          reader.readAsDataURL(file);
+        };
+      }
+    );
+  }
+
+  function editProfileModal(user) {
+    modal(
+      "<h3>" + I("user", 18) + " Edit Profile</h3>" +
+      '<p class="m-sub">Update your contact details and emergency contact below:</p>' +
+      '<div class="field"><label>Cell Number <span class="req">*</span></label><input id="ep-cell" value="' + esc(user.whatsapp || "") + '"></div>' +
+      '<div class="grid-2">' +
+      '<div class="field"><label>Street Address <span class="req">*</span></label><input id="ep-street" value="' + esc(user.street || "") + '"></div>' +
+      '<div class="field"><label>Suburb <span class="req">*</span></label><select id="ep-suburb">' +
+      '<option' + (user.suburb === "Greenside" ? " selected" : "") + '>Greenside</option>' +
+      '<option' + (user.suburb === "Emmarentia" ? " selected" : "") + '>Emmarentia</option></select></div></div>' +
+      '<div class="field"><label>Emergency Contact Name <span class="req">*</span></label><input id="ep-ecname" value="' + esc(user.emergency_contact_name || "") + '"></div>' +
+      '<div class="field"><label>Emergency Contact Number <span class="req">*</span></label><input id="ep-ecnum" value="' + esc(user.emergency_contact_number || "") + '"></div>' +
+      '<div class="m-actions">' +
+      '<button class="btn btn-ghost" data-close>Cancel</button>' +
+      '<button class="btn btn-primary" id="ep-save-btn">Save Changes</button>' +
+      "</div>",
+      function (root) {
+        root.querySelector("#ep-save-btn").onclick = function () {
+          var cell = root.querySelector("#ep-cell").value.trim();
+          var street = root.querySelector("#ep-street").value.trim();
+          var suburb = root.querySelector("#ep-suburb").value;
+          var ecname = root.querySelector("#ep-ecname").value.trim();
+          var ecnum = root.querySelector("#ep-ecnum").value.trim();
+          if (!cell || !street || !ecname || !ecnum) {
+            toast("Please fill in all required fields.", "error");
+            return;
+          }
+          var patch = {
+            whatsapp: cell,
+            street: street,
+            suburb: suburb,
+            emergency_contact_name: ecname,
+            emergency_contact_number: ecnum
+          };
+          var res = S().updateProfile(user.id, patch);
+          Promise.resolve(res).then(function (r) {
+            if (r && r.ok === false) {
+              toast(r.error || "Could not update profile", "error");
+            } else {
+              toast("Profile updated successfully.", "ok");
+              closeModal();
+              renderMore();
+            }
+          });
+        };
+      }
+    );
+  }
+
   function renderDashboard() {
     var user = S().sessionUser();
     setShell(true);
@@ -4534,6 +5048,7 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     screenEl.className = "screen";
     var coord = user.role === "coordinator";
     screenEl.innerHTML =
+      onShiftBannerHtml() +
       '<div class="row spread" style="align-items:flex-start">' +
       '<div><h1 class="page-title" style="margin-bottom:2px">As-salamu alaykum, ' + esc(user.first_name) + "</h1>" +
       '<p class="page-sub" style="margin:0">' + esc(user.street + ", " + user.suburb) + "</p></div>" +
@@ -4559,6 +5074,7 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
       '<a class="action" href="#/map"><div class="a-icon teal">' + I("map",20) + '</div><div class="a-label">View area map</div><div class="a-sub">Real area data + risk pins</div></a>' +
       '<a class="action" href="#/notifications"><div class="a-icon warn">' + I("bell",20) + '</div><div class="a-label">Notifications</div><div class="a-sub" id="dash-notif-sub">' + S().unreadCount(user) + ' unread</div></a>' +
       '<a class="action" href="#/chat"><div class="a-icon info">' + I("chat",20) + '</div><div class="a-label">Team chat</div><div class="a-sub">Message volunteers in the app</div></a>' +
+      '<button class="action" id="dash-compass-btn" style="text-align:left;cursor:pointer"><div class="a-icon teal">' + I("compass",20) + '</div><div class="a-label">Compass &amp; Camera</div><div class="a-sub">Bearing · GPS · Stamped photos</div></button>' +
       '<button class="action" id="radio-btn" style="text-align:left;cursor:pointer"><div class="a-icon warn">' + I("radio",20) + '</div><div class="a-label">Patrol comms and voice</div><div class="a-sub">How the team talks on shift</div></button>' +
       "</div>" +
       (coord ? '<a class="action full" href="#/admin/approvals"><div class="a-icon navy">' + I("shield",20) + '</div><div class="grow"><div class="a-label">Coordinator dashboard</div><div class="a-sub">Approvals · volunteers · incidents · reports</div></div></a>' : "");
@@ -4582,6 +5098,8 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     });
 
     $("#radio-btn").onclick = radioModal;
+    var dcb = $("#dash-compass-btn"); if (dcb) dcb.onclick = compassModal;
+    var osb = $("#onshift-banner-btn"); if (osb) osb.onclick = compassModal;
     refreshBell();
   }
 
@@ -4622,11 +5140,14 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
       (started
         ? '<button class="btn btn-primary grow" data-end="' + c.slot_id + '">' + I("stop",15) + ' END SHIFT</button>'
         : '<button class="btn btn-ok grow" data-start="' + c.slot_id + '">' + I("play",15) + ' START SHIFT</button>') +
+      '<button class="btn btn-ghost btn-sm" data-cal-slot="' + c.slot_id + '" title="Add to calendar">' + I("calendar",13) + ' Calendar</button>' +
       "</div></div>";
     var sb = box.querySelector("[data-start]");
     if (sb) sb.onclick = function () { startShiftFlow(sb.getAttribute("data-start"), renderDashboard); };
     var eb = box.querySelector("[data-end]");
     if (eb) eb.onclick = function () { endShiftFlow(eb.getAttribute("data-end"), renderDashboard); };
+    var cb = box.querySelector("[data-cal-slot]");
+    if (cb) cb.onclick = function () { downloadIcs(cb.getAttribute("data-cal-slot")); };
   }
 
   /* ============================================================
@@ -4718,6 +5239,7 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     });
     $all("[data-start]").forEach(function (b) { b.onclick = function () { startShiftFlow(b.getAttribute("data-start"), renderRoster); }; });
     $all("[data-end]").forEach(function (b) { b.onclick = function () { endShiftFlow(b.getAttribute("data-end"), renderRoster); }; });
+    $all("[data-cal-slot]").forEach(function (b) { b.onclick = function () { downloadIcs(b.getAttribute("data-cal-slot")); }; });
   }
 
   function slotCardHtml(s, user, mine, dateLabel) {
@@ -4730,7 +5252,7 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
       else if (mine.status === "completed")
         action = '<span class="chip ok">' + I("check", 11) + " Completed " + esc(S().fmtTime(mine.end_shift_time)) + "</span>";
       else
-        action = '<button class="btn btn-ok grow" data-start="' + s.id + '">' + I("play", 15) + ' START SHIFT</button><button class="btn btn-ghost danger btn-sm" data-unclaim="' + s.id + '">Leave</button>';
+        action = '<button class="btn btn-ok grow" data-start="' + s.id + '">' + I("play", 15) + ' START SHIFT</button><button class="btn btn-ghost btn-sm" data-cal-slot="' + s.id + '">' + I("calendar", 13) + ' Calendar</button><button class="btn btn-ghost danger btn-sm" data-unclaim="' + s.id + '">Leave</button>';
     } else if (!s.full) {
       action = '<button class="btn btn-teal grow" data-claim="' + s.id + '">Join this patrol</button>';
     } else {
@@ -4816,7 +5338,8 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
       if (!gps) gps = zoneCenter(slot.zone);
       var res = S().startShift(slotId, user.id, gps);
       if (!res.ok) { toast(res.error, "error"); return; }
-      toast("Shift started at " + S().fmtTime(res.start_shift_time) + " · GPS " + gps.lat.toFixed(4) + ", " + gps.lng.toFixed(4) + " (" + gps.source + ")", "ok");
+      startLiveTracking(user);
+      toast("Shift started at " + S().fmtTime(res.start_shift_time) + " · Live GPS tracking active.", "ok");
       duaModal("safety");
       if (rerender) rerender();
     });
@@ -4824,14 +5347,32 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
   function endShiftFlow(slotId, rerender) {
     var user = S().sessionUser();
     var slot = S().slotById(slotId);
-    captureGPS(function (gps) {
-      if (!gps) gps = zoneCenter(slot.zone);
-      var res = S().endShift(slotId, user.id, gps);
-      if (!res.ok) { toast(res.error, "error"); return; }
-      toast("Shift completed at " + S().fmtTime(res.end_shift_time) + " — thank you for your service. Shift log updated.", "ok");
-      duaModal("completion");
-      if (rerender) rerender();
-    });
+    modal(
+      "<h3>" + I("stop", 18) + " End patrol shift</h3>" +
+      '<p class="m-sub">Thank you for serving the community. You can record optional handover notes below:</p>' +
+      '<div class="field"><label>Shift handover notes (optional)</label>' +
+      '<textarea id="shift-handover-notes" placeholder="e.g. All quiet on Tana Rd; no suspicious activity observed."></textarea></div>' +
+      '<div class="m-actions">' +
+      '<button class="btn btn-ghost" data-close>Cancel</button>' +
+      '<button class="btn btn-primary" id="confirm-end-shift">End Shift &amp; Save</button>' +
+      "</div>",
+      function (root) {
+        root.querySelector("#confirm-end-shift").onclick = function () {
+          var notes = root.querySelector("#shift-handover-notes").value;
+          closeModal();
+          toast("Capturing final GPS position…");
+          captureGPS(function (gps) {
+            if (!gps) gps = zoneCenter(slot.zone);
+            var res = S().endShift(slotId, user.id, gps, notes);
+            if (!res.ok) { toast(res.error, "error"); return; }
+            stopLiveTracking(user);
+            toast("Shift completed at " + S().fmtTime(res.end_shift_time) + " — thank you for your service.", "ok");
+            duaModal("completion");
+            if (rerender) rerender();
+          });
+        };
+      }
+    );
   }
 
   /* ============================================================
@@ -5039,6 +5580,8 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
   /* ============================================================
      SCREEN: TEAM CHAT
      ============================================================ */
+  var mediaRecorder = null;
+  var audioChunks = [];
   function renderChat() {
     var user = S().sessionUser();
     setShell(true);
@@ -5047,20 +5590,24 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     var list = S().messages();
     var items = list.map(function (m) {
       var mine = m.user_id === user.id;
+      var audioTag = m.audio_url ? '<div class="audio-msg"><audio controls src="' + esc(m.audio_url) + '"></audio></div>' : '';
       return '<div class="msg' + (mine ? " mine" : "") + '">' +
         (mine ? "" : '<div class="msg-name">' + esc(S().userLabel(m.user_id)) + "</div>") +
-        '<div class="msg-bubble">' + esc(m.body) + "</div>" +
+        '<div class="msg-bubble">' + esc(m.body) + audioTag + "</div>" +
         '<div class="msg-time">' + esc(S().fmtTime(m.created_at)) + "</div></div>";
     }).join("");
     screenEl.innerHTML =
       "<h1 class=\"page-title\">Team chat</h1>" +
-      '<p class="page-sub">Operational messages only — observe and report. Never post personal details of residents or persons of interest (Sitr). For voice, use the WhatsApp group.</p>' +
+      '<p class="page-sub">Operational messages only — observe and report. Use text or hold the PTT button to record instant voice notes.</p>' +
       '<div class="chat-wrap" id="chat-list">' +
       (items || '<p class="muted center" style="font-size:0.82rem;padding:18px 0">No messages yet — say as-salamu alaykum.</p>') +
       "</div>" +
       '<div class="chat-input">' +
       '<input id="chat-box" maxlength="500" placeholder="Message the team..." autocomplete="off">' +
-      '<button class="btn btn-teal" id="chat-send">Send</button></div>';
+      '<button class="btn btn-teal" id="chat-send">Send</button></div>' +
+      '<div class="ptt-wrap">' +
+      '<button type="button" class="ptt-btn" id="ptt-talk-btn">' + I("mic", 16) + ' <span id="ptt-lbl">HOLD TO TALK (PTT)</span></button>' +
+      '</div>';
     var box = $("#chat-box");
     function sendNow() {
       var res = S().sendMessage(user.id, box.value);
@@ -5070,6 +5617,65 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     }
     $("#chat-send").onclick = sendNow;
     box.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); sendNow(); } });
+
+    // PTT Recording
+    var pttBtn = $("#ptt-talk-btn");
+    var pttLbl = $("#ptt-lbl");
+    var recTimer = null;
+    var recStart = 0;
+
+    function startRec(e) {
+      if (e) e.preventDefault();
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        toast("Audio recording not supported on this browser.", "error");
+        return;
+      }
+      navigator.mediaDevices.getUserMedia({ audio: true }).then(function (stream) {
+        audioChunks = [];
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.ondataavailable = function (evt) { if (evt.data.size > 0) audioChunks.push(evt.data); };
+        mediaRecorder.onstop = function () {
+          stream.getTracks().forEach(function (t) { t.stop(); });
+          var blob = new Blob(audioChunks, { type: "audio/webm" });
+          var dur = Math.max(1, Math.round((Date.now() - recStart) / 1000));
+          var reader = new FileReader();
+          reader.onload = function () {
+            S().sendMessage(user.id, "Voice Note (" + dur + "s)", reader.result);
+            renderChat();
+          };
+          reader.readAsDataURL(blob);
+        };
+        mediaRecorder.start();
+        recStart = Date.now();
+        pttBtn.classList.add("recording");
+        pttLbl.textContent = "RECORDING... (RELEASE TO SEND)";
+        recTimer = setInterval(function () {
+          var s = Math.round((Date.now() - recStart) / 1000);
+          pttLbl.textContent = "RECORDING (" + s + "s) · RELEASE TO SEND";
+          if (s >= 30) stopRec();
+        }, 1000);
+      }).catch(function (err) {
+        toast("Microphone access needed for PTT voice notes.", "error");
+      });
+    }
+
+    function stopRec(e) {
+      if (e) e.preventDefault();
+      if (recTimer) { clearInterval(recTimer); recTimer = null; }
+      pttBtn.classList.remove("recording");
+      pttLbl.textContent = "HOLD TO TALK (PTT)";
+      if (mediaRecorder && mediaRecorder.state === "recording") {
+        mediaRecorder.stop();
+      }
+    }
+
+    if (pttBtn) {
+      pttBtn.addEventListener("mousedown", startRec);
+      pttBtn.addEventListener("mouseup", stopRec);
+      pttBtn.addEventListener("touchstart", startRec, { passive: false });
+      pttBtn.addEventListener("touchend", stopRec, { passive: false });
+    }
+
     S().markChatSeen();
     refreshBell();
     setTimeout(function () { window.scrollTo(0, document.body.scrollHeight); }, 30);
@@ -5091,7 +5697,9 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
       '<span class="chip ' + (user.role === "coordinator" ? "teal" : "ok") + '">' + (user.role === "coordinator" ? "Coordinator" : "Volunteer") + "</span></div>" +
       '<div class="divider"></div>' +
       '<dl class="kv"><dt>Cell Number</dt><dd>' + esc(user.whatsapp) + "</dd>" +
-      "<dt>Address</dt><dd>" + esc(user.street + ", " + user.suburb) + "</dd></dl></div>" +
+      "<dt>Address</dt><dd>" + esc(user.street + ", " + user.suburb) + "</dd>" +
+      '<dt>Emergency</dt><dd>' + esc((user.emergency_contact_name || "") + " " + (user.emergency_contact_number || "")) + "</dd></dl>" +
+      '<button class="btn btn-ghost btn-sm block mt-12" id="edit-prof-btn">' + I("user", 13) + ' Edit Contact Details</button></div>' +
 
       (S().getSetting("whatsapp_group_url") ? '<a class="action full" href="' + esc(S().getSetting("whatsapp_group_url")) + '" target="_blank" rel="noopener" style="margin-bottom:12px"><div class="a-icon" style="background:var(--ok);color:#fff">' + I("megaphone",20) + '</div><div class="grow"><div class="a-label">Community WhatsApp group</div><div class="a-sub">Open the Aman Patrol group chat</div></div></a>' : "") +
 
@@ -5125,6 +5733,7 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
       '<p class="center" style="font-size:0.66rem;color:var(--muted);line-height:1.6">Aman Patrol · Greenside &amp; Emmarentia<br>Observe and report only · Never patrol alone · Map data © OpenStreetMap</p>';
 
     $all("[data-inc]").forEach(function (r) { r.onclick = function () { window.AmanAdmin.incidentModal(r.getAttribute("data-inc"), null); }; });
+    var epb = $("#edit-prof-btn"); if (epb) epb.onclick = function () { editProfileModal(user); };
     $("#coc-btn").onclick = codeOfConductModal;
     $("#radio-btn2").onclick = radioModal;
     $("#logout-btn").onclick = doLogout;

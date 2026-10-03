@@ -46,6 +46,10 @@
     x: '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
     info: '<circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/>',
     alert: '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+    compass: '<circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" fill="currentColor" stroke="none"/>',
+    camera: '<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
+    mic: '<path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>',
+    download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
     play: '<polygon points="6 4 20 12 6 20 6 4"/>',
     stop: '<rect x="6" y="6" width="12" height="12" rx="1"/>',
     pin: '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>',
@@ -442,6 +446,291 @@
   /* ============================================================
      SCREEN: DASHBOARD
      ============================================================ */
+  /* ============================================================
+     LIVE GPS TRACKING & ON-SHIFT MANAGEMENT
+     ============================================================ */
+  window.AmanLiveTracking = {
+    active: false,
+    watchId: null,
+    lat: null,
+    lng: null,
+    accuracy: null,
+    heading: null,
+    startedAt: null
+  };
+
+  function startLiveTracking(user) {
+    if (!navigator.geolocation) return;
+    if (window.AmanLiveTracking.watchId) {
+      navigator.geolocation.clearWatch(window.AmanLiveTracking.watchId);
+    }
+    window.AmanLiveTracking.active = true;
+    window.AmanLiveTracking.startedAt = Date.now();
+    window.AmanLiveTracking.watchId = navigator.geolocation.watchPosition(
+      function (pos) {
+        window.AmanLiveTracking.lat = pos.coords.latitude;
+        window.AmanLiveTracking.lng = pos.coords.longitude;
+        window.AmanLiveTracking.accuracy = Math.round(pos.coords.accuracy || 0);
+        window.AmanLiveTracking.heading = pos.coords.heading !== null && !isNaN(pos.coords.heading) ? Math.round(pos.coords.heading) : null;
+        if (S().updateLiveLocation) {
+          S().updateLiveLocation(user.id, {
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+            accuracy: window.AmanLiveTracking.accuracy,
+            heading: window.AmanLiveTracking.heading
+          });
+        }
+      },
+      function (err) {
+        console.warn("GPS watch error:", err);
+      },
+      { enableHighAccuracy: true, maximumAge: 5000, timeout: 15000 }
+    );
+  }
+
+  function stopLiveTracking(user) {
+    if (window.AmanLiveTracking.watchId) {
+      navigator.geolocation.clearWatch(window.AmanLiveTracking.watchId);
+      window.AmanLiveTracking.watchId = null;
+    }
+    window.AmanLiveTracking.active = false;
+    window.AmanLiveTracking.lat = null;
+    window.AmanLiveTracking.lng = null;
+    if (S().updateLiveLocation && user) {
+      S().updateLiveLocation(user.id, null);
+    }
+  }
+
+  function onShiftBannerHtml() {
+    if (!window.AmanLiveTracking.active) return "";
+    var acc = window.AmanLiveTracking.accuracy || 8;
+    return '<div class="on-shift-banner">' +
+      '<div><span class="pulse-dot"></span><span>LIVE ON SHIFT · GPS Active (±' + acc + 'm)</span></div>' +
+      '<button class="btn btn-sm btn-ghost" id="onshift-banner-btn" style="color:#fff;border-color:rgba(255,255,255,0.4)">' + I("compass", 13) + ' Compass</button>' +
+      '</div>';
+  }
+
+  function downloadIcs(slotId) {
+    var slot = S().slotById(slotId);
+    if (!slot) return;
+    var startISO = S().slotStartISO(slot);
+    var endISO = S().slotEndISO(slot);
+    var dStart = new Date(startISO);
+    var dEnd = new Date(endISO);
+    function fmtCal(d) {
+      return d.getUTCFullYear() + pad2(d.getUTCMonth() + 1) + pad2(d.getUTCDate()) + "T" +
+             pad2(d.getUTCHours()) + pad2(d.getUTCMinutes()) + pad2(d.getUTCSeconds()) + "Z";
+    }
+    var ics = "BEGIN:VCALENDAR\r\n" +
+      "VERSION:2.0\r\n" +
+      "PRODID:-//Aman Patrol//Patrol Roster//EN\r\n" +
+      "CALSCALE:GREGORIAN\r\n" +
+      "METHOD:PUBLISH\r\n" +
+      "BEGIN:VEVENT\r\n" +
+      "UID:slot-" + slot.id + "@amanpatrol.co.za\r\n" +
+      "DTSTAMP:" + fmtCal(new Date()) + "\r\n" +
+      "DTSTART:" + fmtCal(dStart) + "\r\n" +
+      "DTEND:" + fmtCal(dEnd) + "\r\n" +
+      "SUMMARY:Aman Patrol — " + slot.activity_window + " (" + slot.time_window + ")\r\n" +
+      "DESCRIPTION:Aman Patrol community shift in " + (slot.zone || "Greenside/Emmarentia") + ". Observe and report only — never patrol alone. Emergencies: call 10111.\r\n" +
+      "LOCATION:" + (slot.zone || "Greenside and Emmarentia, Johannesburg") + "\r\n" +
+      "STATUS:CONFIRMED\r\n" +
+      "END:VEVENT\r\n" +
+      "END:VCALENDAR\r\n";
+    var blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = "aman-patrol-" + slot.date + ".ics";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast("Calendar invite downloaded. Tap to add to your calendar.", "ok");
+  }
+
+  function compassModal() {
+    var lat = (window.AmanLiveTracking && window.AmanLiveTracking.lat) || -26.148;
+    var lng = (window.AmanLiveTracking && window.AmanLiveTracking.lng) || 28.005;
+    var acc = (window.AmanLiveTracking && window.AmanLiveTracking.accuracy) || 8;
+    
+    modal(
+      "<h3>" + I("compass", 18) + " Compass &amp; Direction Finder</h3>" +
+      '<div class="compass-wrap">' +
+      '<div class="compass-dial" id="compass-dial">' +
+      '<div class="compass-needle" id="compass-needle"></div>' +
+      '<div><div class="compass-deg" id="compass-deg">--°</div>' +
+      '<div class="compass-card-label" id="compass-card-label">NORTH</div></div>' +
+      "</div>" +
+      '<div class="compass-meta">' +
+      '<div><b>GPS Position:</b> <span id="compass-coords">' + lat.toFixed(5) + ', ' + lng.toFixed(5) + ' (±' + acc + 'm)</span></div>' +
+      '<div><b>Location:</b> Greenside &amp; Emmarentia, Johannesburg</div>' +
+      '<div><b>Local Time:</b> ' + new Date().toLocaleTimeString('en-ZA', { timeZone: 'Africa/Johannesburg' }) + ' SAST</div>' +
+      "</div>" +
+      "</div>" +
+      '<div class="row mt-12">' +
+      '<button class="btn btn-teal grow" id="compass-cam-btn">' + I("camera", 15) + ' Timestamp Evidence Camera</button>' +
+      '<button class="btn btn-primary" data-close>Close</button>' +
+      "</div>",
+      function (root) {
+        var needle = root.querySelector("#compass-needle");
+        var degEl = root.querySelector("#compass-deg");
+        var cardEl = root.querySelector("#compass-card-label");
+        
+        function getDirection(deg) {
+          var dirs = ["NORTH", "NORTHEAST", "EAST", "SOUTHEAST", "SOUTH", "SOUTHWEST", "WEST", "NORTHWEST"];
+          var index = Math.round(deg / 45) % 8;
+          return dirs[index];
+        }
+
+        function handleOrientation(e) {
+          var heading = null;
+          if (e.webkitCompassHeading !== undefined) {
+            heading = e.webkitCompassHeading;
+          } else if (e.alpha !== null && e.alpha !== undefined) {
+            heading = (360 - e.alpha) % 360;
+          }
+          if (heading !== null && !isNaN(heading)) {
+            var deg = Math.round(heading);
+            if (needle) needle.style.transform = "rotate(" + deg + "deg)";
+            if (degEl) degEl.textContent = deg + "°";
+            if (cardEl) cardEl.textContent = getDirection(deg);
+          }
+        }
+
+        if (window.DeviceOrientationEvent) {
+          window.addEventListener("deviceorientation", handleOrientation, true);
+        }
+
+        root.querySelector("#compass-cam-btn").onclick = function () {
+          closeModal();
+          evidenceCameraModal();
+        };
+      }
+    );
+  }
+
+  function evidenceCameraModal() {
+    modal(
+      "<h3>" + I("camera", 18) + " Timestamp Evidence Camera</h3>" +
+      '<p class="m-sub">Photos are stamped with exact date, time, GPS coordinates, and heading.</p>' +
+      '<div class="field">' +
+      '<label>Capture or select photo</label>' +
+      '<input type="file" id="ev-photo-input" accept="image/*" capture="environment" style="display:none">' +
+      '<button type="button" class="btn btn-primary block" id="ev-take-btn">' + I("camera", 16) + ' Open Camera</button>' +
+      "</div>" +
+      '<div id="ev-preview-wrap" style="display:none;margin-top:12px">' +
+      '<canvas id="ev-canvas" style="width:100%;border-radius:12px;border:1px solid var(--line);box-shadow:var(--shadow)"></canvas>' +
+      '<div class="row mt-12">' +
+      '<a class="btn btn-ok grow" id="ev-save-btn" download="aman-patrol-evidence.jpg">Save Stamped Photo</a>' +
+      '<a class="btn btn-teal grow" href="#/incident" id="ev-incident-btn">Report Incident</a>' +
+      "</div></div>" +
+      '<div class="m-actions"><button class="btn btn-ghost" data-close>Close</button></div>',
+      function (root) {
+        var inp = root.querySelector("#ev-photo-input");
+        var btn = root.querySelector("#ev-take-btn");
+        var wrap = root.querySelector("#ev-preview-wrap");
+        var canvas = root.querySelector("#ev-canvas");
+        var saveBtn = root.querySelector("#ev-save-btn");
+
+        btn.onclick = function () { inp.click(); };
+
+        inp.onchange = function (e) {
+          var file = e.target.files && e.target.files[0];
+          if (!file) return;
+          var reader = new FileReader();
+          reader.onload = function (evt) {
+            var img = new Image();
+            img.onload = function () {
+              var maxW = 1200;
+              var scale = Math.min(1, maxW / img.width);
+              canvas.width = img.width * scale;
+              canvas.height = img.height * scale;
+              var ctx = canvas.getContext("2d");
+              ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+              var lat = (window.AmanLiveTracking && window.AmanLiveTracking.lat) || -26.148;
+              var lng = (window.AmanLiveTracking && window.AmanLiveTracking.lng) || 28.005;
+              var acc = (window.AmanLiveTracking && window.AmanLiveTracking.accuracy) || 8;
+              var nowStr = new Date().toISOString().replace("T", " ").slice(0, 19) + " SAST";
+
+              var barH = Math.max(70, canvas.height * 0.12);
+              ctx.fillStyle = "rgba(12, 27, 51, 0.78)";
+              ctx.fillRect(0, canvas.height - barH, canvas.width, barH);
+
+              ctx.fillStyle = "#34d399";
+              var fontSizeTitle = Math.max(14, Math.round(canvas.width * 0.024));
+              ctx.font = "bold " + fontSizeTitle + "px sans-serif";
+              ctx.fillText("AMAN PATROL · GREENSIDE & EMMARENTIA", 16, canvas.height - barH + fontSizeTitle + 6);
+
+              ctx.fillStyle = "#ffffff";
+              var fontSizeSub = Math.max(11, Math.round(canvas.width * 0.018));
+              ctx.font = fontSizeSub + "px monospace";
+              ctx.fillText("TIME: " + nowStr + " | GPS: " + lat.toFixed(5) + ", " + lng.toFixed(5) + " (±" + acc + "m)", 16, canvas.height - barH + fontSizeTitle + fontSizeSub + 12);
+              ctx.fillText("COMMUNITY WATCH · OBSERVE AND REPORT ONLY", 16, canvas.height - barH + fontSizeTitle + fontSizeSub * 2 + 18);
+
+              var dataUrl = canvas.toDataURL("image/jpeg", 0.88);
+              saveBtn.href = dataUrl;
+              wrap.style.display = "block";
+              btn.textContent = "Retake Photo";
+            };
+            img.src = evt.target.result;
+          };
+          reader.readAsDataURL(file);
+        };
+      }
+    );
+  }
+
+  function editProfileModal(user) {
+    modal(
+      "<h3>" + I("user", 18) + " Edit Profile</h3>" +
+      '<p class="m-sub">Update your contact details and emergency contact below:</p>' +
+      '<div class="field"><label>Cell Number <span class="req">*</span></label><input id="ep-cell" value="' + esc(user.whatsapp || "") + '"></div>' +
+      '<div class="grid-2">' +
+      '<div class="field"><label>Street Address <span class="req">*</span></label><input id="ep-street" value="' + esc(user.street || "") + '"></div>' +
+      '<div class="field"><label>Suburb <span class="req">*</span></label><select id="ep-suburb">' +
+      '<option' + (user.suburb === "Greenside" ? " selected" : "") + '>Greenside</option>' +
+      '<option' + (user.suburb === "Emmarentia" ? " selected" : "") + '>Emmarentia</option></select></div></div>' +
+      '<div class="field"><label>Emergency Contact Name <span class="req">*</span></label><input id="ep-ecname" value="' + esc(user.emergency_contact_name || "") + '"></div>' +
+      '<div class="field"><label>Emergency Contact Number <span class="req">*</span></label><input id="ep-ecnum" value="' + esc(user.emergency_contact_number || "") + '"></div>' +
+      '<div class="m-actions">' +
+      '<button class="btn btn-ghost" data-close>Cancel</button>' +
+      '<button class="btn btn-primary" id="ep-save-btn">Save Changes</button>' +
+      "</div>",
+      function (root) {
+        root.querySelector("#ep-save-btn").onclick = function () {
+          var cell = root.querySelector("#ep-cell").value.trim();
+          var street = root.querySelector("#ep-street").value.trim();
+          var suburb = root.querySelector("#ep-suburb").value;
+          var ecname = root.querySelector("#ep-ecname").value.trim();
+          var ecnum = root.querySelector("#ep-ecnum").value.trim();
+          if (!cell || !street || !ecname || !ecnum) {
+            toast("Please fill in all required fields.", "error");
+            return;
+          }
+          var patch = {
+            whatsapp: cell,
+            street: street,
+            suburb: suburb,
+            emergency_contact_name: ecname,
+            emergency_contact_number: ecnum
+          };
+          var res = S().updateProfile(user.id, patch);
+          Promise.resolve(res).then(function (r) {
+            if (r && r.ok === false) {
+              toast(r.error || "Could not update profile", "error");
+            } else {
+              toast("Profile updated successfully.", "ok");
+              closeModal();
+              renderMore();
+            }
+          });
+        };
+      }
+    );
+  }
+
   function renderDashboard() {
     var user = S().sessionUser();
     setShell(true);
@@ -449,6 +738,7 @@
     screenEl.className = "screen";
     var coord = user.role === "coordinator";
     screenEl.innerHTML =
+      onShiftBannerHtml() +
       '<div class="row spread" style="align-items:flex-start">' +
       '<div><h1 class="page-title" style="margin-bottom:2px">As-salamu alaykum, ' + esc(user.first_name) + "</h1>" +
       '<p class="page-sub" style="margin:0">' + esc(user.street + ", " + user.suburb) + "</p></div>" +
@@ -474,6 +764,7 @@
       '<a class="action" href="#/map"><div class="a-icon teal">' + I("map",20) + '</div><div class="a-label">View area map</div><div class="a-sub">Real area data + risk pins</div></a>' +
       '<a class="action" href="#/notifications"><div class="a-icon warn">' + I("bell",20) + '</div><div class="a-label">Notifications</div><div class="a-sub" id="dash-notif-sub">' + S().unreadCount(user) + ' unread</div></a>' +
       '<a class="action" href="#/chat"><div class="a-icon info">' + I("chat",20) + '</div><div class="a-label">Team chat</div><div class="a-sub">Message volunteers in the app</div></a>' +
+      '<button class="action" id="dash-compass-btn" style="text-align:left;cursor:pointer"><div class="a-icon teal">' + I("compass",20) + '</div><div class="a-label">Compass &amp; Camera</div><div class="a-sub">Bearing · GPS · Stamped photos</div></button>' +
       '<button class="action" id="radio-btn" style="text-align:left;cursor:pointer"><div class="a-icon warn">' + I("radio",20) + '</div><div class="a-label">Patrol comms and voice</div><div class="a-sub">How the team talks on shift</div></button>' +
       "</div>" +
       (coord ? '<a class="action full" href="#/admin/approvals"><div class="a-icon navy">' + I("shield",20) + '</div><div class="grow"><div class="a-label">Coordinator dashboard</div><div class="a-sub">Approvals · volunteers · incidents · reports</div></div></a>' : "");
@@ -497,6 +788,8 @@
     });
 
     $("#radio-btn").onclick = radioModal;
+    var dcb = $("#dash-compass-btn"); if (dcb) dcb.onclick = compassModal;
+    var osb = $("#onshift-banner-btn"); if (osb) osb.onclick = compassModal;
     refreshBell();
   }
 
@@ -537,11 +830,14 @@
       (started
         ? '<button class="btn btn-primary grow" data-end="' + c.slot_id + '">' + I("stop",15) + ' END SHIFT</button>'
         : '<button class="btn btn-ok grow" data-start="' + c.slot_id + '">' + I("play",15) + ' START SHIFT</button>') +
+      '<button class="btn btn-ghost btn-sm" data-cal-slot="' + c.slot_id + '" title="Add to calendar">' + I("calendar",13) + ' Calendar</button>' +
       "</div></div>";
     var sb = box.querySelector("[data-start]");
     if (sb) sb.onclick = function () { startShiftFlow(sb.getAttribute("data-start"), renderDashboard); };
     var eb = box.querySelector("[data-end]");
     if (eb) eb.onclick = function () { endShiftFlow(eb.getAttribute("data-end"), renderDashboard); };
+    var cb = box.querySelector("[data-cal-slot]");
+    if (cb) cb.onclick = function () { downloadIcs(cb.getAttribute("data-cal-slot")); };
   }
 
   /* ============================================================
@@ -633,6 +929,7 @@
     });
     $all("[data-start]").forEach(function (b) { b.onclick = function () { startShiftFlow(b.getAttribute("data-start"), renderRoster); }; });
     $all("[data-end]").forEach(function (b) { b.onclick = function () { endShiftFlow(b.getAttribute("data-end"), renderRoster); }; });
+    $all("[data-cal-slot]").forEach(function (b) { b.onclick = function () { downloadIcs(b.getAttribute("data-cal-slot")); }; });
   }
 
   function slotCardHtml(s, user, mine, dateLabel) {
@@ -645,7 +942,7 @@
       else if (mine.status === "completed")
         action = '<span class="chip ok">' + I("check", 11) + " Completed " + esc(S().fmtTime(mine.end_shift_time)) + "</span>";
       else
-        action = '<button class="btn btn-ok grow" data-start="' + s.id + '">' + I("play", 15) + ' START SHIFT</button><button class="btn btn-ghost danger btn-sm" data-unclaim="' + s.id + '">Leave</button>';
+        action = '<button class="btn btn-ok grow" data-start="' + s.id + '">' + I("play", 15) + ' START SHIFT</button><button class="btn btn-ghost btn-sm" data-cal-slot="' + s.id + '">' + I("calendar", 13) + ' Calendar</button><button class="btn btn-ghost danger btn-sm" data-unclaim="' + s.id + '">Leave</button>';
     } else if (!s.full) {
       action = '<button class="btn btn-teal grow" data-claim="' + s.id + '">Join this patrol</button>';
     } else {
@@ -731,7 +1028,8 @@
       if (!gps) gps = zoneCenter(slot.zone);
       var res = S().startShift(slotId, user.id, gps);
       if (!res.ok) { toast(res.error, "error"); return; }
-      toast("Shift started at " + S().fmtTime(res.start_shift_time) + " · GPS " + gps.lat.toFixed(4) + ", " + gps.lng.toFixed(4) + " (" + gps.source + ")", "ok");
+      startLiveTracking(user);
+      toast("Shift started at " + S().fmtTime(res.start_shift_time) + " · Live GPS tracking active.", "ok");
       duaModal("safety");
       if (rerender) rerender();
     });
@@ -739,14 +1037,32 @@
   function endShiftFlow(slotId, rerender) {
     var user = S().sessionUser();
     var slot = S().slotById(slotId);
-    captureGPS(function (gps) {
-      if (!gps) gps = zoneCenter(slot.zone);
-      var res = S().endShift(slotId, user.id, gps);
-      if (!res.ok) { toast(res.error, "error"); return; }
-      toast("Shift completed at " + S().fmtTime(res.end_shift_time) + " — thank you for your service. Shift log updated.", "ok");
-      duaModal("completion");
-      if (rerender) rerender();
-    });
+    modal(
+      "<h3>" + I("stop", 18) + " End patrol shift</h3>" +
+      '<p class="m-sub">Thank you for serving the community. You can record optional handover notes below:</p>' +
+      '<div class="field"><label>Shift handover notes (optional)</label>' +
+      '<textarea id="shift-handover-notes" placeholder="e.g. All quiet on Tana Rd; no suspicious activity observed."></textarea></div>' +
+      '<div class="m-actions">' +
+      '<button class="btn btn-ghost" data-close>Cancel</button>' +
+      '<button class="btn btn-primary" id="confirm-end-shift">End Shift &amp; Save</button>' +
+      "</div>",
+      function (root) {
+        root.querySelector("#confirm-end-shift").onclick = function () {
+          var notes = root.querySelector("#shift-handover-notes").value;
+          closeModal();
+          toast("Capturing final GPS position…");
+          captureGPS(function (gps) {
+            if (!gps) gps = zoneCenter(slot.zone);
+            var res = S().endShift(slotId, user.id, gps, notes);
+            if (!res.ok) { toast(res.error, "error"); return; }
+            stopLiveTracking(user);
+            toast("Shift completed at " + S().fmtTime(res.end_shift_time) + " — thank you for your service.", "ok");
+            duaModal("completion");
+            if (rerender) rerender();
+          });
+        };
+      }
+    );
   }
 
   /* ============================================================
@@ -954,6 +1270,8 @@
   /* ============================================================
      SCREEN: TEAM CHAT
      ============================================================ */
+  var mediaRecorder = null;
+  var audioChunks = [];
   function renderChat() {
     var user = S().sessionUser();
     setShell(true);
@@ -962,20 +1280,24 @@
     var list = S().messages();
     var items = list.map(function (m) {
       var mine = m.user_id === user.id;
+      var audioTag = m.audio_url ? '<div class="audio-msg"><audio controls src="' + esc(m.audio_url) + '"></audio></div>' : '';
       return '<div class="msg' + (mine ? " mine" : "") + '">' +
         (mine ? "" : '<div class="msg-name">' + esc(S().userLabel(m.user_id)) + "</div>") +
-        '<div class="msg-bubble">' + esc(m.body) + "</div>" +
+        '<div class="msg-bubble">' + esc(m.body) + audioTag + "</div>" +
         '<div class="msg-time">' + esc(S().fmtTime(m.created_at)) + "</div></div>";
     }).join("");
     screenEl.innerHTML =
       "<h1 class=\"page-title\">Team chat</h1>" +
-      '<p class="page-sub">Operational messages only — observe and report. Never post personal details of residents or persons of interest (Sitr). For voice, use the WhatsApp group.</p>' +
+      '<p class="page-sub">Operational messages only — observe and report. Use text or hold the PTT button to record instant voice notes.</p>' +
       '<div class="chat-wrap" id="chat-list">' +
       (items || '<p class="muted center" style="font-size:0.82rem;padding:18px 0">No messages yet — say as-salamu alaykum.</p>') +
       "</div>" +
       '<div class="chat-input">' +
       '<input id="chat-box" maxlength="500" placeholder="Message the team..." autocomplete="off">' +
-      '<button class="btn btn-teal" id="chat-send">Send</button></div>';
+      '<button class="btn btn-teal" id="chat-send">Send</button></div>' +
+      '<div class="ptt-wrap">' +
+      '<button type="button" class="ptt-btn" id="ptt-talk-btn">' + I("mic", 16) + ' <span id="ptt-lbl">HOLD TO TALK (PTT)</span></button>' +
+      '</div>';
     var box = $("#chat-box");
     function sendNow() {
       var res = S().sendMessage(user.id, box.value);
@@ -985,6 +1307,65 @@
     }
     $("#chat-send").onclick = sendNow;
     box.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); sendNow(); } });
+
+    // PTT Recording
+    var pttBtn = $("#ptt-talk-btn");
+    var pttLbl = $("#ptt-lbl");
+    var recTimer = null;
+    var recStart = 0;
+
+    function startRec(e) {
+      if (e) e.preventDefault();
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        toast("Audio recording not supported on this browser.", "error");
+        return;
+      }
+      navigator.mediaDevices.getUserMedia({ audio: true }).then(function (stream) {
+        audioChunks = [];
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.ondataavailable = function (evt) { if (evt.data.size > 0) audioChunks.push(evt.data); };
+        mediaRecorder.onstop = function () {
+          stream.getTracks().forEach(function (t) { t.stop(); });
+          var blob = new Blob(audioChunks, { type: "audio/webm" });
+          var dur = Math.max(1, Math.round((Date.now() - recStart) / 1000));
+          var reader = new FileReader();
+          reader.onload = function () {
+            S().sendMessage(user.id, "Voice Note (" + dur + "s)", reader.result);
+            renderChat();
+          };
+          reader.readAsDataURL(blob);
+        };
+        mediaRecorder.start();
+        recStart = Date.now();
+        pttBtn.classList.add("recording");
+        pttLbl.textContent = "RECORDING... (RELEASE TO SEND)";
+        recTimer = setInterval(function () {
+          var s = Math.round((Date.now() - recStart) / 1000);
+          pttLbl.textContent = "RECORDING (" + s + "s) · RELEASE TO SEND";
+          if (s >= 30) stopRec();
+        }, 1000);
+      }).catch(function (err) {
+        toast("Microphone access needed for PTT voice notes.", "error");
+      });
+    }
+
+    function stopRec(e) {
+      if (e) e.preventDefault();
+      if (recTimer) { clearInterval(recTimer); recTimer = null; }
+      pttBtn.classList.remove("recording");
+      pttLbl.textContent = "HOLD TO TALK (PTT)";
+      if (mediaRecorder && mediaRecorder.state === "recording") {
+        mediaRecorder.stop();
+      }
+    }
+
+    if (pttBtn) {
+      pttBtn.addEventListener("mousedown", startRec);
+      pttBtn.addEventListener("mouseup", stopRec);
+      pttBtn.addEventListener("touchstart", startRec, { passive: false });
+      pttBtn.addEventListener("touchend", stopRec, { passive: false });
+    }
+
     S().markChatSeen();
     refreshBell();
     setTimeout(function () { window.scrollTo(0, document.body.scrollHeight); }, 30);
@@ -1006,7 +1387,9 @@
       '<span class="chip ' + (user.role === "coordinator" ? "teal" : "ok") + '">' + (user.role === "coordinator" ? "Coordinator" : "Volunteer") + "</span></div>" +
       '<div class="divider"></div>' +
       '<dl class="kv"><dt>Cell Number</dt><dd>' + esc(user.whatsapp) + "</dd>" +
-      "<dt>Address</dt><dd>" + esc(user.street + ", " + user.suburb) + "</dd></dl></div>" +
+      "<dt>Address</dt><dd>" + esc(user.street + ", " + user.suburb) + "</dd>" +
+      '<dt>Emergency</dt><dd>' + esc((user.emergency_contact_name || "") + " " + (user.emergency_contact_number || "")) + "</dd></dl>" +
+      '<button class="btn btn-ghost btn-sm block mt-12" id="edit-prof-btn">' + I("user", 13) + ' Edit Contact Details</button></div>' +
 
       (S().getSetting("whatsapp_group_url") ? '<a class="action full" href="' + esc(S().getSetting("whatsapp_group_url")) + '" target="_blank" rel="noopener" style="margin-bottom:12px"><div class="a-icon" style="background:var(--ok);color:#fff">' + I("megaphone",20) + '</div><div class="grow"><div class="a-label">Community WhatsApp group</div><div class="a-sub">Open the Aman Patrol group chat</div></div></a>' : "") +
 
@@ -1040,6 +1423,7 @@
       '<p class="center" style="font-size:0.66rem;color:var(--muted);line-height:1.6">Aman Patrol · Greenside &amp; Emmarentia<br>Observe and report only · Never patrol alone · Map data © OpenStreetMap</p>';
 
     $all("[data-inc]").forEach(function (r) { r.onclick = function () { window.AmanAdmin.incidentModal(r.getAttribute("data-inc"), null); }; });
+    var epb = $("#edit-prof-btn"); if (epb) epb.onclick = function () { editProfileModal(user); };
     $("#coc-btn").onclick = codeOfConductModal;
     $("#radio-btn2").onclick = radioModal;
     $("#logout-btn").onclick = doLogout;

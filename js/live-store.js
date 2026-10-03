@@ -357,9 +357,9 @@
       var u = userById(id);
       pushNotif({
         audience: { type: "user", id: id }, kind: "ok", title: "Your registration was approved",
-        body: "السلام عليكم — Welcome to Aman Patrol, " + (u ? u.first_name : "volunteer") + "! Your registration is approved. You can now claim patrol slots. Remember: observe and report only — never patrol alone."
+        body: "السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللَّهِ وَبَرَكَاتُهُ — Welcome to Aman Patrol, " + (u ? u.first_name : "volunteer") + "! Your registration is approved. You can now claim patrol slots. Remember: observe and report only — never patrol alone."
       });
-      sendMessage(me.id, "السلام عليكم — Welcome to Aman Patrol, " + (u ? u.first_name : "volunteer") + "! You are approved — log in with the email you registered. Observe and report only, never patrol alone. Emergencies: call 10111.");
+      sendMessage(me.id, "السَّلَامُ عَلَيْكُمْ وَرَحْمَةُ اللَّهِ وَبَرَكَاتُهُ — Welcome to Aman Patrol, " + (u ? u.first_name : "volunteer") + "! You are approved — log in with the email you registered. Observe and report only, never patrol alone. Emergencies: call 10111.");
       refreshSoon("users"); refreshSoon("roster");
     });
   }
@@ -523,11 +523,12 @@
     return { ok: true, start_shift_time: now };
   }
 
-  function endShift(slotId, userId, gps) {
+  function endShift(slotId, userId, gps, notes) {
     var c = myClaimFor(slotId, userId);
     if (!c || c.status !== "started") return { ok: false, error: "Start the shift first." };
     var now = new Date().toISOString();
     c.status = "completed"; c.end_shift_time = now; c.end_gps = gps;
+    if (notes) c.notes = String(notes).trim().slice(0, 500);
     notify();
     if (String(c.id).indexOf("tmp-") !== 0) {
       sb.from("slot_claims").update({
@@ -536,6 +537,50 @@
       }).eq("id", c.id).then(function (r) { if (r.error) toastUI("Could not record shift end: " + dbError(r)); });
     }
     return { ok: true, end_shift_time: now };
+  }
+
+  function updateProfile(userId, patch) {
+    if (!me || me.id !== userId) return Promise.resolve({ ok: false, error: "Not authorized" });
+    var allowed = ["whatsapp", "emergency_contact_name", "emergency_contact_number", "street", "suburb"];
+    var clean = {};
+    allowed.forEach(function (k) {
+      if (patch[k] !== undefined) clean[k] = patch[k];
+    });
+    for (var k in clean) me[k] = clean[k];
+    for (var i = 0; i < users.length; i++) {
+      if (users[i].id === userId) {
+        for (var k in clean) users[i][k] = clean[k];
+      }
+    }
+    notify();
+    return sb.from("profiles").update(clean).eq("id", userId).then(function (r) {
+      if (r.error) {
+        toastUI("Could not update profile: " + dbError(r));
+        return { ok: false, error: r.error.message };
+      }
+      return { ok: true };
+    });
+  }
+
+  var liveLocations = {};
+  function updateLiveLocation(userId, gps) {
+    if (!gps) { delete liveLocations[userId]; return; }
+    liveLocations[userId] = {
+      user_id: userId,
+      lat: gps.lat,
+      lng: gps.lng,
+      accuracy: gps.accuracy || null,
+      heading: gps.heading || null,
+      updated_at: Date.now()
+    };
+  }
+  function listLiveLocations() {
+    var cutoff = Date.now() - 300000;
+    var out = [];
+    for (var k in liveLocations) {
+      if (liveLocations[k].updated_at > cutoff) out.push(liveLocations[k]);
+    }
+    return out;
   }
 
   function completedShifts() {
@@ -797,13 +842,14 @@
     }
     return n;
   }
-  function sendMessage(userId, body) {
+  function sendMessage(userId, body, audioUrl) {
     if (!me) return { ok: false, error: "You are not signed in." };
     body = String(body || "").trim().slice(0, 500);
-    if (!body) return { ok: false, error: "Type a message first." };
-    msgRows.push({ id: "tmp-m-" + (++tmpId), user_id: userId, body: body, created_at: new Date().toISOString() });
+    if (!body && !audioUrl) return { ok: false, error: "Type a message or record audio first." };
+    var rec = { id: "tmp-m-" + (++tmpId), user_id: userId, body: body || "Voice message", audio_url: audioUrl || null, created_at: new Date().toISOString() };
+    msgRows.push(rec);
     notify();
-    sb.from("messages").insert({ user_id: userId, body: body }).then(function (r) {
+    sb.from("messages").insert({ user_id: userId, body: body || "Voice message" }).then(function (r) {
       if (r.error) { toastUI("Message not delivered: " + dbError(r)); refreshSoon("messages"); }
       else refreshSoon("messages");
     });
@@ -880,7 +926,7 @@
     users: listUsers, userById: userById, userLabel: userLabel, approveUser: approveUser, declineUser: declineUser,
     // slots & claims
     slots: listSlots, slotById: slotById, claimSlot: claimSlot, unclaim: unclaim, myClaims: myClaims,
-    myClaimFor: myClaimFor, startShift: startShift, endShift: endShift, completedShifts: completedShifts,
+    myClaimFor: myClaimFor, startShift: startShift, endShift: endShift, completedShifts: completedShifts, updateProfile: updateProfile, updateLiveLocation: updateLiveLocation, listLiveLocations: listLiveLocations,
     addSlot: addSlot, removeSlot: removeSlot, assignVolunteer: assignVolunteer, removeClaim: removeClaim,
     createSlot: createSlot, deleteOwnSlot: deleteOwnSlot, raiseSOS: raiseSOS,
     getSetting: getSetting, setSetting: setSetting,

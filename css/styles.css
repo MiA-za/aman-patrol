@@ -669,6 +669,22 @@ html[data-theme="dark"] .cal-cell.selected { background: #25477e; border-color: 
 .msg-time { font-size: 0.64rem; color: var(--muted); margin-top: 3px; }
 .chat-input { display: flex; gap: 8px; padding: 10px 0 86px; align-items: stretch; }
 .chat-input input { flex: 1; }
+/* bare text boxes (Aman assistant query, Team Chat) share the themed field
+   styling so they stay visible in night mode: card background, white text,
+   visible border, teal focus ring */
+#ai-user-query, .chat-input input {
+  min-height: 48px; padding: 11px 13px; border-radius: 12px;
+  border: 1.5px solid var(--line); background: var(--card);
+  font-size: 0.95rem; font-family: inherit; color: var(--text);
+}
+#ai-user-query:focus, .chat-input input:focus {
+  outline: none; border-color: var(--teal); box-shadow: 0 0 0 3px rgba(14, 159, 159, 0.15);
+}
+#ai-user-query::placeholder, .chat-input input::placeholder { color: var(--muted); }
+/* night mode: the Aman query box sits on the dark modal card, so give it a
+   deeper inset background; the Team Chat box sits on the page background,
+   so it keeps the raised card colour and stands out that way */
+html[data-theme="dark"] #ai-user-query { background: var(--page-bg); border-color: var(--line); }
 .nav-badge {
   position: absolute; top: 3px; right: 16px; background: #c0392b; color: #fff;
   font-size: 0.58rem; font-weight: 800; border-radius: 9px; padding: 1px 5px; line-height: 1.3;

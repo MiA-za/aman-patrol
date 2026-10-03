@@ -1,7 +1,7 @@
 /* ============================================================
    AMAN PATROL — weather tile (Open-Meteo, free, no API key).
-   Shows current conditions for Greenside/Emmarentia with
-   rain / wind / heat warnings relevant to patrolling.
+   Shows current conditions and 4-day outlook for Greenside
+   and Emmarentia with rain / wind / visibility safety tips.
    ============================================================ */
 (function () {
   "use strict";
@@ -21,7 +21,7 @@
     95: { label: "Thunderstorm", icon: "storm" }, 96: { label: "Storm with hail", icon: "storm" }, 99: { label: "Storm with hail", icon: "storm" }
   };
 
-  var CACHE_KEY = "aman_weather_cache_v1";
+  var CACHE_KEY = "aman_weather_cache_v2";
   var CACHE_MS = 30 * 60 * 1000;
 
   function getCache() {
@@ -31,7 +31,8 @@
     try { localStorage.setItem(CACHE_KEY, JSON.stringify({ at: Date.now(), data: data })); } catch (e) { /* ignore */ }
   }
 
-  function iconSvg(name) {
+  function iconSvg(name, cls) {
+    var c = cls ? "w-icon " + cls : "w-icon";
     var s = "";
     if (name === "sun") {
       s = '<circle cx="22" cy="22" r="9" fill="#ffd166"/><g stroke="#ffd166" stroke-width="3" stroke-linecap="round">' +
@@ -52,7 +53,7 @@
     } else {
       s = '<path d="M14 26a8 8 0 0 1 1-15.9A11 11 0 0 1 36 12a8 8 0 0 1-1 14z" fill="#9fb4d8"/>';
     }
-    return '<svg class="w-icon" viewBox="0 0 44 44" aria-hidden="true">' + s + "</svg>";
+    return '<svg class="' + c + '" viewBox="0 0 44 44" aria-hidden="true">' + s + "</svg>";
   }
 
   function warnings(d) {
@@ -68,35 +69,74 @@
     return w.slice(0, 2);
   }
 
-  function fetchCurrent() {
+  function fetchForecast() {
     var c = (window.AREA && window.AREA.center) || { lat: -26.1509, lng: 28.0043 };
     var url = "https://api.open-meteo.com/v1/forecast?latitude=" + c.lat + "&longitude=" + c.lng +
-      "&current=temperature_2m,apparent_temperature,is_day,precipitation,weather_code,wind_speed_10m,wind_gusts_10m&timezone=Africa%2FJohannesburg";
+      "&current=temperature_2m,apparent_temperature,is_day,precipitation,weather_code,wind_speed_10m,wind_gusts_10m" +
+      "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,wind_speed_10m_max" +
+      "&timezone=Africa%2FJohannesburg&forecast_days=4";
     return fetch(url).then(function (r) { return r.json(); });
   }
 
   window.AmanWeather = {
-    /** Returns a Promise resolving to { temp, label, icon, iconSvg, wind, gusts, rain, warnings[], stale } */
+    /** Returns a Promise resolving to current conditions and 4-day daily outlook */
     current: function () {
       var cached = getCache();
       if (cached && Date.now() - cached.at < CACHE_MS) {
         return Promise.resolve(Object.assign({ stale: false }, cached.data));
       }
-      return fetchCurrent().then(function (j) {
+      return fetchForecast().then(function (j) {
         var cur = j && j.current;
         if (!cur) throw new Error("no data");
-        var wmo = WMO[cur.weather_code] || { label: "Unknown", icon: "cloud" };
+        var wmo = WMO[cur.weather_code] || { label: "Clear sky", icon: "sun" };
         var isDay = cur.is_day === 1 || cur.is_day === true;
         var iconName = (wmo.icon === "sun" && !isDay) ? "moon" : wmo.icon;
+
+        var dailyList = [];
+        if (j.daily && j.daily.time && j.daily.time.length) {
+          var dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+          for (var i = 0; i < j.daily.time.length && i < 4; i++) {
+            var dStr = j.daily.time[i];
+            var dObj = new Date(dStr + "T12:00:00");
+            var dayLabel = i === 0 ? "Today" : (i === 1 ? "Tomorrow" : dayNames[dObj.getDay()]);
+            var dCode = j.daily.weather_code ? j.daily.weather_code[i] : 0;
+            var dWmo = WMO[dCode] || { label: "Fair", icon: "sun" };
+            var dMax = j.daily.temperature_2m_max ? Math.round(j.daily.temperature_2m_max[i]) : "--";
+            var dMin = j.daily.temperature_2m_min ? Math.round(j.daily.temperature_2m_min[i]) : "--";
+            var dRainProb = j.daily.precipitation_probability_max ? Math.round(j.daily.precipitation_probability_max[i]) : 0;
+            var dRainSum = j.daily.precipitation_sum ? j.daily.precipitation_sum[i] : 0;
+            dailyList.push({
+              date: dStr,
+              day: dayLabel,
+              label: dWmo.label,
+              icon: dWmo.icon,
+              iconSvg: iconSvg(dWmo.icon, "w-mini-icon"),
+              max: dMax,
+              min: dMin,
+              rainProb: dRainProb,
+              rain: dRainSum
+            });
+          }
+        }
+
         var data = {
-          temp: Math.round(cur.temperature_2m), feels: Math.round(cur.apparent_temperature),
-          label: wmo.label, icon: iconName, iconSvg: iconSvg(iconName),
-          wind: Math.round(cur.wind_speed_10m), gusts: Math.round(cur.wind_gusts_10m),
-          rain: cur.precipitation, is_day: isDay ? 1 : 0,
+          temp: Math.round(cur.temperature_2m),
+          feels: Math.round(cur.apparent_temperature),
+          label: wmo.label,
+          icon: iconName,
+          iconSvg: iconSvg(iconName),
+          wind: Math.round(cur.wind_speed_10m),
+          gusts: Math.round(cur.wind_gusts_10m),
+          rain: cur.precipitation,
+          is_day: isDay ? 1 : 0,
+          daily: dailyList,
           warnings: warnings({
-            precipitation: cur.precipitation, weather_code: cur.weather_code,
-            wind_speed: cur.wind_speed_10m, wind_gusts: cur.wind_gusts_10m,
-            temperature: cur.temperature_2m, is_day: isDay ? 1 : 0
+            precipitation: cur.precipitation,
+            weather_code: cur.weather_code,
+            wind_speed: cur.wind_speed_10m,
+            wind_gusts: cur.wind_gusts_10m,
+            temperature: cur.temperature_2m,
+            is_day: isDay ? 1 : 0
           })
         };
         setCache(data);
@@ -105,6 +145,7 @@
         if (cached) return Object.assign({ stale: true }, cached.data);
         throw new Error("offline");
       });
-    }
+    },
+    iconSvg: iconSvg
   };
 })();

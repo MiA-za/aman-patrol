@@ -901,14 +901,27 @@ p.page-sub { margin: 0 0 14px; color: var(--muted); font-size: 0.85rem; }
 /* ---------- weather tile ---------- */
 .weather {
   background: linear-gradient(135deg, var(--navy) 0%, var(--navy-2) 100%);
-  border-radius: var(--radius); color: #fff; padding: 14px; margin-bottom: 12px;
+  border-radius: var(--radius); color: #fff; padding: 14px 15px; margin-bottom: 12px;
   box-shadow: var(--shadow); position: relative; overflow: hidden;
 }
 .weather .w-top { display: flex; align-items: center; gap: 12px; }
-.weather .w-temp { font-size: 1.9rem; font-weight: 800; line-height: 1; }
-.weather .w-desc { font-size: 0.82rem; opacity: 0.9; }
-.weather .w-icon { width: 44px; height: 44px; }
-.weather .w-meta { display: flex; gap: 14px; margin-top: 10px; font-size: 0.74rem; opacity: 0.9; }
+.weather .w-temp { font-size: 2rem; font-weight: 800; line-height: 1; letter-spacing: -0.5px; }
+.weather .w-desc { font-size: 0.84rem; opacity: 0.95; font-weight: 600; }
+.weather .w-icon { width: 44px; height: 44px; flex-shrink: 0; }
+.weather .w-mini-icon { width: 26px; height: 26px; margin: 0 auto; display: block; }
+.weather .w-meta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 10px; font-size: 0.74rem; opacity: 0.9; }
+.weather .w-meta span { display: inline-flex; align-items: center; gap: 4px; }
+.weather .w-forecast {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
+  margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+.weather .w-forecast-col {
+  text-align: center; background: rgba(255, 255, 255, 0.08); padding: 7px 3px;
+  border-radius: 8px; font-size: 0.72rem; line-height: 1.25;
+}
+.weather .w-f-day { font-weight: 700; opacity: 0.9; margin-bottom: 3px; font-size: 0.7rem; }
+.weather .w-f-temps { font-weight: 800; margin-top: 3px; font-size: 0.76rem; }
+.weather .w-f-rain { font-size: 0.62rem; color: #7dd3fc; margin-top: 2px; font-weight: 700; }
 .weather .w-note {
   margin-top: 9px; background: rgba(255, 255, 255, 0.14); border-radius: 9px;
   padding: 7px 10px; font-size: 0.74rem; display: flex; gap: 7px; align-items: center;
@@ -994,6 +1007,54 @@ p.page-sub { margin: 0 0 14px; color: var(--muted); font-size: 0.85rem; }
   background: rgba(12, 27, 51, 0.88); color: #fff; font-size: 0.72rem;
   padding: 8px 11px; border-radius: 10px; line-height: 1.45;
 }
+
+
+.map-layers-btn {
+  position: absolute; left: 12px; top: 12px; z-index: 500;
+  background: rgba(12, 27, 51, 0.88); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  color: #fff; border: 1px solid rgba(255, 255, 255, 0.18);
+  padding: 7px 12px; border-radius: 20px; font-size: 0.74rem; font-weight: 700;
+  display: flex; align-items: center; gap: 6px; cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+.map-layers-btn:active { transform: scale(0.96); }
+
+.map-locate-btn {
+  position: absolute; right: 12px; bottom: 44px; z-index: 500;
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--card); color: var(--navy); border: 1.5px solid var(--line);
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+.map-locate-btn:active { transform: scale(0.92); }
+.map-locate-btn.locating { color: var(--teal); animation: pulse-green 1s infinite; }
+
+.zone-label-badge {
+  color: #fff; font-size: 0.64rem; font-weight: 800; padding: 2px 6px;
+  border-radius: 6px; text-align: center; white-space: nowrap;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.4);
+}
+
+.layer-choice-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 14px;
+}
+.layer-card {
+  border: 2px solid var(--line); border-radius: 10px; padding: 10px 4px; text-align: center;
+  cursor: pointer; background: var(--card); font-size: 0.75rem; font-weight: 700;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.layer-card.active { border-color: var(--teal); background: var(--teal-soft); color: var(--teal-dark); }
+
+.map-weather-badge {
+  position: absolute; right: 12px; top: 12px; z-index: 500;
+  background: rgba(12, 27, 51, 0.88); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  color: #fff; border: 1px solid rgba(255, 255, 255, 0.18);
+  padding: 7px 12px; border-radius: 20px; font-size: 0.74rem; font-weight: 700;
+  display: flex; align-items: center; gap: 6px; cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+.map-weather-badge:active { transform: scale(0.96); }
+
 .map-fab {
   position: absolute; top: 12px; right: 12px; z-index: 800;
   background: var(--navy); color: #fff; border: none; border-radius: 999px;
@@ -1348,37 +1409,99 @@ html[data-theme="dark"] .compass-needle::after { border-top-color: #60a5fa; }
 html[data-theme="dark"] .ptt-btn { background: #25477e; }
 html[data-theme="dark"] .on-shift-banner { background: linear-gradient(135deg, #064e3b 0%, #065f46 100%); }
 
+
+/* ---------- switch toggle ---------- */
+.switch-toggle {
+  position: relative; display: inline-block; width: 44px; height: 26px; flex-shrink: 0;
+}
+.switch-toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+.switch-toggle .slider {
+  position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+  background-color: var(--line); transition: .2s; border-radius: 26px;
+}
+.switch-toggle .slider:before {
+  position: absolute; content: ""; height: 20px; width: 20px; left: 3px; bottom: 3px;
+  background-color: white; transition: .2s; border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.switch-toggle input:checked + .slider { background-color: var(--teal); }
+.switch-toggle input:checked + .slider:before { transform: translateX(18px); }
+
 /* ---------- movable Aman assistant robot ---------- */
 .aman-helper {
-  position: fixed; right: 14px; bottom: 92px; width: 72px; height: 96px;
+  position: fixed; right: 14px; bottom: 92px; width: 70px; height: 96px;
   z-index: 850; border: 0; padding: 0; background: transparent; color: var(--text);
-  cursor: grab; touch-action: none; -webkit-tap-highlight-color: transparent;
-  filter: drop-shadow(0 5px 7px rgba(8, 30, 54, 0.24));
+  touch-action: none; -webkit-tap-highlight-color: transparent;
+  user-select: none; -webkit-user-select: none;
+  animation: aman-float 3.5s ease-in-out infinite;
+  transition: opacity 0.25s ease, transform 0.25s ease;
 }
-.aman-helper.dragging { cursor: grabbing; }
+.aman-helper.fade-out { opacity: 0; transform: scale(0.75); pointer-events: none; }
+.aman-helper.dragging { animation: none; }
 .aman-help-label {
-  position: absolute; right: 48px; top: 2px; white-space: nowrap; padding: 5px 8px;
-  border-radius: 10px 10px 2px 10px; background: var(--card); border: 1px solid var(--line);
-  font-size: 0.66rem; font-weight: 800; box-shadow: var(--shadow);
+  position: absolute; right: 54px; top: 4px; white-space: nowrap; padding: 4px 8px;
+  border-radius: 9px 9px 2px 9px; background: var(--card); border: 1px solid var(--line);
+  font-size: 0.64rem; font-weight: 800; box-shadow: var(--shadow); color: var(--navy);
   animation: aman-label 8s ease-in-out infinite;
+  pointer-events: none;
 }
-.aman-bot { position: absolute; left: 12px; top: 21px; width: 52px; height: 71px; animation: aman-float 3s ease-in-out infinite; }
-.aman-bot-antenna { position: absolute; left: 24px; top: 0; width: 4px; height: 12px; background: var(--navy); border-radius: 3px; }
-.aman-bot-antenna i { position: absolute; left: -3px; top: -5px; width: 10px; height: 10px; border-radius: 50%; background: var(--teal); box-shadow: 0 0 0 3px rgba(14,159,159,.18); }
-.aman-bot-head { position: absolute; left: 5px; top: 10px; width: 42px; height: 31px; border: 3px solid var(--navy); border-radius: 13px; background: #f7fbff; }
-.aman-eye { position: absolute; top: 8px; width: 6px; height: 8px; border-radius: 5px; background: var(--teal-dark); animation: aman-blink 4s infinite; }
-.aman-eye.left { left: 9px; } .aman-eye.right { right: 9px; }
-.aman-mouth { position: absolute; left: 15px; bottom: 5px; width: 8px; height: 3px; border-bottom: 2px solid var(--navy); border-radius: 50%; }
-.aman-bot-body { position: absolute; left: 9px; top: 42px; width: 34px; height: 27px; border: 3px solid var(--navy); border-radius: 7px 7px 12px 12px; background: var(--teal); }
-.aman-badge { position: absolute; left: 9px; top: 4px; width: 12px; height: 14px; padding-top: 1px; border-radius: 6px 6px 8px 8px; background: var(--navy); color: #fff; font: 800 8px/12px sans-serif; text-align: center; }
-.aman-bot-arm { position: absolute; top: 47px; width: 7px; height: 21px; border: 3px solid var(--navy); background: #f7fbff; border-radius: 6px; }
-.aman-bot-arm.left { left: 0; transform: rotate(12deg); } .aman-bot-arm.right { right: 0; transform: rotate(-12deg); }
-.aman-helper:focus-visible { outline: 3px solid var(--warn); outline-offset: 3px; border-radius: 16px; }
-html[data-theme="dark"] .aman-bot-head, html[data-theme="dark"] .aman-bot-arm { background: #dbeafe; }
-@keyframes aman-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
-@keyframes aman-blink { 0%,44%,50%,100% { transform: scaleY(1); } 47% { transform: scaleY(.12); } }
-@keyframes aman-label { 0%,65%,100% { opacity: 1; transform: translateY(0); } 72%,92% { opacity: 0; transform: translateY(3px); } }
-@media (prefers-reduced-motion: reduce) { .aman-bot, .aman-help-label, .aman-eye { animation: none; } }
+.aman-bot-dismiss {
+  position: absolute; left: 0px; top: 2px; width: 20px; height: 20px; border-radius: 50%;
+  background: var(--card); border: 1px solid var(--line); color: var(--muted);
+  font-size: 14px; line-height: 18px; text-align: center; cursor: pointer; padding: 0;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15); z-index: 2;
+  transition: background 0.15s, color 0.15s, transform 0.15s;
+}
+.aman-bot-dismiss:hover { background: var(--danger-soft); color: var(--danger); transform: scale(1.1); }
+.aman-bot-avatar {
+  position: absolute; left: 6px; top: 10px; width: 58px; height: 80px;
+  border: 0; padding: 0; background: transparent; cursor: grab;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  filter: drop-shadow(0 6px 12px rgba(12, 27, 51, 0.28));
+  outline: none; -webkit-tap-highlight-color: transparent;
+}
+.aman-bot-avatar:active, .aman-helper.dragging .aman-bot-avatar { cursor: grabbing; transform: scale(0.96); }
+.aman-bot-avatar:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; border-radius: 12px; }
+.aman-bot-img {
+  width: 58px; height: auto; max-height: 78px; object-fit: contain; pointer-events: none;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.12));
+}
+.aman-bot-glow {
+  position: absolute; bottom: 0; left: 16px; right: 16px; height: 6px;
+  background: radial-gradient(ellipse at center, rgba(14, 159, 159, 0.6) 0%, rgba(14, 159, 159, 0) 70%);
+  border-radius: 50%; pointer-events: none;
+  animation: aman-glow-pulse 2.5s ease-in-out infinite;
+}
+html[data-theme="dark"] .aman-help-label { color: var(--teal-soft); }
+html[data-theme="dark"] .aman-bot-dismiss { background: #1a2b47; border-color: #2a3d5e; color: #a0aec0; }
+@keyframes aman-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+@keyframes aman-glow-pulse {
+  0%, 100% { opacity: 0.5; transform: scaleX(0.9); }
+  50% { opacity: 0.9; transform: scaleX(1.15); }
+}
+@keyframes aman-label {
+  0%, 65%, 100% { opacity: 1; transform: translateY(0); }
+  72%, 92% { opacity: 0; transform: translateY(3px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .aman-helper, .aman-help-label, .aman-bot-glow { animation: none; }
+}
+
+/* ---------- Print Stylesheet for Security Reports ---------- */
+@media print {
+  body { background: #fff !important; color: #000 !important; }
+  #app { max-width: 100% !important; box-shadow: none !important; }
+  .app-header, .bottom-nav, .demo-banner, .aman-helper, .print-hide, .m-actions, [data-close] { display: none !important; }
+  .modal-backdrop { background: none !important; position: static !important; }
+  .modal { box-shadow: none !important; border: none !important; padding: 0 !important; max-width: 100% !important; }
+  .print-report-container { width: 100% !important; }
+  .tbl { border-collapse: collapse !important; width: 100% !important; }
+  .tbl th, .tbl td { border: 1px solid #cbd5e1 !important; padding: 6px 8px !important; }
+}
 
 </style>
 </head>
@@ -1911,6 +2034,27 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     }
     return out;
   }
+  function latestHandoverNote() {
+    var d = load();
+    var list = d.claims.filter(function (c) { return c.status === "completed" && c.notes && String(c.notes).trim(); });
+    list.sort(function (a, b) {
+      return new Date(b.end_shift_time || 0) - new Date(a.end_shift_time || 0);
+    });
+    if (!list.length) return null;
+    var c = list[0];
+    var u = userById(c.user_id);
+    var s = null;
+    for (var i = 0; i < d.slots.length; i++) if (d.slots[i].id === c.slot_id) s = d.slots[i];
+    return {
+      id: c.id,
+      notes: c.notes,
+      user_name: u ? (u.first_name + " " + (u.surname ? u.surname[0] + "." : "")) : "Volunteer",
+      end_time: c.end_shift_time,
+      zone: s ? s.zone : "",
+      date: s ? s.date : ""
+    };
+  }
+
   function completedShifts() {
     var d = load();
     return d.claims.filter(function (c) { return c.status === "completed"; }).map(function (c) {
@@ -2191,7 +2335,7 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     users: users, userById: userById, userLabel: userLabel, approveUser: approveUser, declineUser: declineUser,
     // slots & claims
     slots: slots, slotById: slotById, claimSlot: claimSlot, unclaim: unclaim, myClaims: myClaims,
-    myClaimFor: myClaimFor, startShift: startShift, endShift: endShift, completedShifts: completedShifts, updateProfile: updateProfile, updateLiveLocation: updateLiveLocation, listLiveLocations: listLiveLocations,
+    myClaimFor: myClaimFor, startShift: startShift, endShift: endShift, completedShifts: completedShifts, latestHandoverNote: latestHandoverNote, updateProfile: updateProfile, updateLiveLocation: updateLiveLocation, listLiveLocations: listLiveLocations,
     addSlot: addSlot, removeSlot: removeSlot, assignVolunteer: assignVolunteer, removeClaim: removeClaim,
     createSlot: createSlot, deleteOwnSlot: deleteOwnSlot, raiseSOS: raiseSOS,
     getSetting: getSetting, setSetting: setSetting,
@@ -2213,8 +2357,8 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
   <script>
 /* ============================================================
    AMAN PATROL — weather tile (Open-Meteo, free, no API key).
-   Shows current conditions for Greenside/Emmarentia with
-   rain / wind / heat warnings relevant to patrolling.
+   Shows current conditions and 4-day outlook for Greenside
+   and Emmarentia with rain / wind / visibility safety tips.
    ============================================================ */
 (function () {
   "use strict";
@@ -2234,7 +2378,7 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     95: { label: "Thunderstorm", icon: "storm" }, 96: { label: "Storm with hail", icon: "storm" }, 99: { label: "Storm with hail", icon: "storm" }
   };
 
-  var CACHE_KEY = "aman_weather_cache_v1";
+  var CACHE_KEY = "aman_weather_cache_v2";
   var CACHE_MS = 30 * 60 * 1000;
 
   function getCache() {
@@ -2244,7 +2388,8 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     try { localStorage.setItem(CACHE_KEY, JSON.stringify({ at: Date.now(), data: data })); } catch (e) { /* ignore */ }
   }
 
-  function iconSvg(name) {
+  function iconSvg(name, cls) {
+    var c = cls ? "w-icon " + cls : "w-icon";
     var s = "";
     if (name === "sun") {
       s = '<circle cx="22" cy="22" r="9" fill="#ffd166"/><g stroke="#ffd166" stroke-width="3" stroke-linecap="round">' +
@@ -2265,7 +2410,7 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     } else {
       s = '<path d="M14 26a8 8 0 0 1 1-15.9A11 11 0 0 1 36 12a8 8 0 0 1-1 14z" fill="#9fb4d8"/>';
     }
-    return '<svg class="w-icon" viewBox="0 0 44 44" aria-hidden="true">' + s + "</svg>";
+    return '<svg class="' + c + '" viewBox="0 0 44 44" aria-hidden="true">' + s + "</svg>";
   }
 
   function warnings(d) {
@@ -2281,35 +2426,74 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     return w.slice(0, 2);
   }
 
-  function fetchCurrent() {
+  function fetchForecast() {
     var c = (window.AREA && window.AREA.center) || { lat: -26.1509, lng: 28.0043 };
     var url = "https://api.open-meteo.com/v1/forecast?latitude=" + c.lat + "&longitude=" + c.lng +
-      "&current=temperature_2m,apparent_temperature,is_day,precipitation,weather_code,wind_speed_10m,wind_gusts_10m&timezone=Africa%2FJohannesburg";
+      "&current=temperature_2m,apparent_temperature,is_day,precipitation,weather_code,wind_speed_10m,wind_gusts_10m" +
+      "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,wind_speed_10m_max" +
+      "&timezone=Africa%2FJohannesburg&forecast_days=4";
     return fetch(url).then(function (r) { return r.json(); });
   }
 
   window.AmanWeather = {
-    /** Returns a Promise resolving to { temp, label, icon, iconSvg, wind, gusts, rain, warnings[], stale } */
+    /** Returns a Promise resolving to current conditions and 4-day daily outlook */
     current: function () {
       var cached = getCache();
       if (cached && Date.now() - cached.at < CACHE_MS) {
         return Promise.resolve(Object.assign({ stale: false }, cached.data));
       }
-      return fetchCurrent().then(function (j) {
+      return fetchForecast().then(function (j) {
         var cur = j && j.current;
         if (!cur) throw new Error("no data");
-        var wmo = WMO[cur.weather_code] || { label: "Unknown", icon: "cloud" };
+        var wmo = WMO[cur.weather_code] || { label: "Clear sky", icon: "sun" };
         var isDay = cur.is_day === 1 || cur.is_day === true;
         var iconName = (wmo.icon === "sun" && !isDay) ? "moon" : wmo.icon;
+
+        var dailyList = [];
+        if (j.daily && j.daily.time && j.daily.time.length) {
+          var dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+          for (var i = 0; i < j.daily.time.length && i < 4; i++) {
+            var dStr = j.daily.time[i];
+            var dObj = new Date(dStr + "T12:00:00");
+            var dayLabel = i === 0 ? "Today" : (i === 1 ? "Tomorrow" : dayNames[dObj.getDay()]);
+            var dCode = j.daily.weather_code ? j.daily.weather_code[i] : 0;
+            var dWmo = WMO[dCode] || { label: "Fair", icon: "sun" };
+            var dMax = j.daily.temperature_2m_max ? Math.round(j.daily.temperature_2m_max[i]) : "--";
+            var dMin = j.daily.temperature_2m_min ? Math.round(j.daily.temperature_2m_min[i]) : "--";
+            var dRainProb = j.daily.precipitation_probability_max ? Math.round(j.daily.precipitation_probability_max[i]) : 0;
+            var dRainSum = j.daily.precipitation_sum ? j.daily.precipitation_sum[i] : 0;
+            dailyList.push({
+              date: dStr,
+              day: dayLabel,
+              label: dWmo.label,
+              icon: dWmo.icon,
+              iconSvg: iconSvg(dWmo.icon, "w-mini-icon"),
+              max: dMax,
+              min: dMin,
+              rainProb: dRainProb,
+              rain: dRainSum
+            });
+          }
+        }
+
         var data = {
-          temp: Math.round(cur.temperature_2m), feels: Math.round(cur.apparent_temperature),
-          label: wmo.label, icon: iconName, iconSvg: iconSvg(iconName),
-          wind: Math.round(cur.wind_speed_10m), gusts: Math.round(cur.wind_gusts_10m),
-          rain: cur.precipitation, is_day: isDay ? 1 : 0,
+          temp: Math.round(cur.temperature_2m),
+          feels: Math.round(cur.apparent_temperature),
+          label: wmo.label,
+          icon: iconName,
+          iconSvg: iconSvg(iconName),
+          wind: Math.round(cur.wind_speed_10m),
+          gusts: Math.round(cur.wind_gusts_10m),
+          rain: cur.precipitation,
+          is_day: isDay ? 1 : 0,
+          daily: dailyList,
           warnings: warnings({
-            precipitation: cur.precipitation, weather_code: cur.weather_code,
-            wind_speed: cur.wind_speed_10m, wind_gusts: cur.wind_gusts_10m,
-            temperature: cur.temperature_2m, is_day: isDay ? 1 : 0
+            precipitation: cur.precipitation,
+            weather_code: cur.weather_code,
+            wind_speed: cur.wind_speed_10m,
+            wind_gusts: cur.wind_gusts_10m,
+            temperature: cur.temperature_2m,
+            is_day: isDay ? 1 : 0
           })
         };
         setCache(data);
@@ -2318,7 +2502,8 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
         if (cached) return Object.assign({ stale: true }, cached.data);
         throw new Error("offline");
       });
-    }
+    },
+    iconSvg: iconSvg
   };
 })();
 
@@ -2326,6 +2511,9 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
   <script>
 /* ============================================================
    AMAN PATROL — Area Map.
+   - Multi-layer base maps: Streets, Satellite (Aerial), Dark
+   - Zone A (Greenside) & Zone B (Emmarentia) boundary outlines
+   - One-tap "Locate Me" live GPS tracking
    - Real layers from OpenStreetMap (via Overpass snapshot in data.js)
    - Custom coordinator pins (dark spots, risk corners, madrassah corridors…)
    - Recent incidents from the store
@@ -2340,10 +2528,62 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
   }
 
   var map = null;
+  var currentTileLayer = null;
+  var currentBaseMap = "streets";
   var layers = {};       // id -> { group, on, label, accent }
   var tileErrors = 0;
   var addPinMode = false;
   var onAddPinCb = null;
+  var userLocationMarker = null;
+  var userAccuracyCircle = null;
+
+  var BASE_TILES = {
+    streets: {
+      url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+      opts: { maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' },
+      label: "Default Streets"
+    },
+    satellite: {
+      url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+      opts: { maxZoom: 19, attribution: "Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics, GIS User Community" },
+      label: "Satellite Aerial"
+    },
+    dark: {
+      url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+      opts: { maxZoom: 19, subdomains: "abcd", attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; OpenStreetMap' },
+      label: "Night / Dark"
+    }
+  };
+
+  var ZONE_BOUNDARIES = {
+    "Zone A – Greenside": {
+      coords: [
+        [-26.1425, 28.0078],
+        [-26.1438, 28.0210],
+        [-26.1518, 28.0248],
+        [-26.1605, 28.0215],
+        [-26.1578, 28.0089],
+        [-26.1488, 28.0082]
+      ],
+      color: "#0e9f9f",
+      label: "Zone A — Greenside",
+      center: [-26.1515, 28.0150]
+    },
+    "Zone B – Emmarentia": {
+      coords: [
+        [-26.1436, 28.0072],
+        [-26.1492, 28.0078],
+        [-26.1576, 28.0082],
+        [-26.1685, 28.0125],
+        [-26.1668, 27.9942],
+        [-26.1532, 27.9935],
+        [-26.1448, 27.9978]
+      ],
+      color: "#13294b",
+      label: "Zone B — Emmarentia",
+      center: [-26.1550, 28.0020]
+    }
+  };
 
   function pinIcon(color, glyph, letter) {
     var inner = letter
@@ -2355,18 +2595,55 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
       iconSize: [30, 30], iconAnchor: [15, 28], popupAnchor: [0, -26]
     });
   }
+
   function dotIcon(color) {
     return L.divIcon({ className: "", html: '<div class="dot" style="background:' + color + '"></div>', iconSize: [12, 12], iconAnchor: [6, 6] });
   }
 
   function srcTag() { return '<div style="margin-top:6px;font-size:0.66rem;color:#8b98ab">Source: OpenStreetMap contributors</div>'; }
 
+  function setBaseMap(type) {
+    if (!BASE_TILES[type] || !map) return;
+    currentBaseMap = type;
+    try { localStorage.setItem("aman_map_basemap", type); } catch (e) {}
+    if (currentTileLayer) {
+      map.removeLayer(currentTileLayer);
+    }
+    var cfg = BASE_TILES[type];
+    currentTileLayer = L.tileLayer(cfg.url, cfg.opts).addTo(map);
+  }
+
   function buildLayers() {
     var A = window.AREA;
     var S = window.AmanStore;
 
     function mk(id, label, accent, def) {
-      layers[id] = { group: L.layerGroup(), on: !!def, label: label, accent: !!accent };
+      var saved = null;
+      try { saved = localStorage.getItem("aman_layer_" + id); } catch (e) {}
+      var isOn = saved !== null ? saved === "1" : !!def;
+      layers[id] = { group: L.layerGroup(), on: isOn, label: label, accent: !!accent };
+    }
+
+    // sector / zone boundaries
+    mk("zones", "Sector boundaries (Zones A & B)", true, true);
+    for (var zKey in ZONE_BOUNDARIES) {
+      var z = ZONE_BOUNDARIES[zKey];
+      L.polygon(z.coords, {
+        color: z.color,
+        weight: 3.5,
+        opacity: 0.85,
+        fillColor: z.color,
+        fillOpacity: 0.08,
+        dashArray: "6, 6"
+      }).bindPopup("<b>" + esc(z.label) + "</b><br>Official Community Watch Sector Boundary").addTo(layers.zones.group);
+
+      L.marker(z.center, {
+        icon: L.divIcon({
+          className: "",
+          html: '<div class="zone-label-badge" style="background:' + z.color + '">' + esc(z.label.split(" — ")[0]) + '</div>',
+          iconSize: [70, 22], iconAnchor: [35, 11]
+        })
+      }).bindPopup("<b>" + esc(z.label) + "</b><br>Observe and report only — never patrol alone.").addTo(layers.zones.group);
     }
 
     // masjids
@@ -2377,7 +2654,7 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
         .addTo(layers.masjids.group);
     });
 
-    // schools (off by default to avoid clutter)
+    // schools
     mk("schools", "Schools", false, false);
     (A.schools || []).forEach(function (s) {
       L.marker([s.lat, s.lng], { icon: pinIcon("#13294b", "school") })
@@ -2385,7 +2662,7 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
         .addTo(layers.schools.group);
     });
 
-    // parks / green (off by default)
+    // parks / green
     mk("parks", "Parks & green", false, false);
     (A.parks || []).forEach(function (p) {
       L.marker([p.lat, p.lng], { icon: pinIcon("#16a34a", "tree") })
@@ -2401,7 +2678,7 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
         .addTo(layers.police.group);
     });
 
-    // businesses (off by default — keeps the first view calm)
+    // businesses
     mk("businesses", "Businesses", false, false);
     (A.businesses || []).forEach(function (b) {
       L.marker([b.lat, b.lng], { icon: dotIcon("#d97706") })
@@ -2539,12 +2816,130 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
   }
 
   function renderToolbar() {
-    // Only attach uncluttered, essential safety layers
     Object.keys(layers).forEach(function (id) {
       if (layers[id].on) {
         layers[id].group.addTo(map);
+      } else {
+        map.removeLayer(layers[id].group);
       }
     });
+  }
+
+  function locateUser() {
+    if (!map) return;
+    var btn = document.getElementById("map-locate-btn");
+    if (btn) btn.classList.add("locating");
+    setNote("Acquiring high-accuracy GPS position…");
+
+    if (!navigator.geolocation) {
+      if (btn) btn.classList.remove("locating");
+      window.AmanUI.toast("Geolocation is not supported on this device.", "error");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      function (pos) {
+        if (btn) btn.classList.remove("locating");
+        var lat = pos.coords.latitude;
+        var lng = pos.coords.longitude;
+        var acc = Math.round(pos.coords.accuracy || 10);
+
+        if (userLocationMarker) map.removeLayer(userLocationMarker);
+        if (userAccuracyCircle) map.removeLayer(userAccuracyCircle);
+
+        userAccuracyCircle = L.circle([lat, lng], {
+          radius: Math.max(acc, 15),
+          color: "#0e9f9f",
+          weight: 1.5,
+          fillColor: "#0e9f9f",
+          fillOpacity: 0.15
+        }).addTo(map);
+
+        userLocationMarker = L.circleMarker([lat, lng], {
+          radius: 8,
+          color: "#ffffff",
+          weight: 3,
+          fillColor: "#0e9f9f",
+          fillOpacity: 1
+        }).bindPopup("<b>Your Current Position</b><br>Accuracy: ±" + acc + "m").addTo(map);
+
+        map.setView([lat, lng], 17, { animate: true });
+        setNote("Centered on your live GPS position (accuracy ±" + acc + "m).");
+        window.AmanUI.toast("Position located (±" + acc + "m)", "ok");
+      },
+      function (err) {
+        if (btn) btn.classList.remove("locating");
+        setNote("Could not get GPS position: " + err.message);
+        window.AmanUI.toast("Unable to get current GPS location.", "warn");
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  }
+
+  function openLayersModal() {
+    var baseOptions = [
+      { id: "streets", label: "Default Streets", icon: "map" },
+      { id: "satellite", label: "Satellite Aerial", icon: "camera" },
+      { id: "dark", label: "Night / Dark", icon: "moon" }
+    ];
+
+    var overlays = [
+      { id: "zones", label: "Sector Boundaries (Zones A & B)" },
+      { id: "pins", label: "Coordinator Risk Pins & Dark Spots" },
+      { id: "incidents", label: "Active Incident Locations" },
+      { id: "patrollers", label: "On-Duty Patrollers (Live GPS)" },
+      { id: "masjids", label: "Masjids & Places of Worship" },
+      { id: "schools", label: "Schools" },
+      { id: "parks", label: "Parks & Green Areas" },
+      { id: "police", label: "SAPS Police Stations" },
+      { id: "roads", label: "Main Arterial Roads" },
+      { id: "signals", label: "Key Intersections" }
+    ];
+
+    var baseCardsHtml = '<div class="layer-choice-grid">' + baseOptions.map(function (b) {
+      var active = b.id === currentBaseMap ? " active" : "";
+      return '<div class="layer-card' + active + '" data-base-choice="' + b.id + '">' +
+        '<div>' + window.AmanUI.I(b.icon, 20) + '</div>' +
+        '<div style="margin-top:4px">' + esc(b.label) + '</div></div>';
+    }).join("") + '</div>';
+
+    var overlaysHtml = overlays.map(function (o) {
+      var isChecked = layers[o.id] && layers[o.id].on ? " checked" : "";
+      return '<label class="check plain" style="margin-bottom:6px">' +
+        '<input type="checkbox" data-overlay-toggle="' + o.id + '"' + isChecked + '> ' +
+        '<span>' + esc(o.label) + '</span></label>';
+    }).join("");
+
+    window.AmanUI.modal(
+      "<h3>" + window.AmanUI.I("layers", 18) + " Map Layers &amp; Overlays</h3>" +
+      '<p class="m-sub">Switch map styling and choose operational safety overlays.</p>' +
+      '<h4 style="font-size:0.84rem;margin:8px 0 6px">Base Map Style</h4>' +
+      baseCardsHtml +
+      '<h4 style="font-size:0.84rem;margin:12px 0 6px">Operational Overlays</h4>' +
+      '<div style="max-height:220px;overflow-y:auto;padding-right:4px">' + overlaysHtml + '</div>' +
+      '<div class="m-actions"><button class="btn btn-primary" data-close>Done</button></div>',
+      function (root) {
+        root.querySelectorAll("[data-base-choice]").forEach(function (card) {
+          card.onclick = function () {
+            var choice = card.getAttribute("data-base-choice");
+            setBaseMap(choice);
+            root.querySelectorAll("[data-base-choice]").forEach(function (c) { c.classList.remove("active"); });
+            card.classList.add("active");
+          };
+        });
+
+        root.querySelectorAll("[data-overlay-toggle]").forEach(function (chk) {
+          chk.onchange = function () {
+            var lid = chk.getAttribute("data-overlay-toggle");
+            if (layers[lid]) {
+              layers[lid].on = chk.checked;
+              try { localStorage.setItem("aman_layer_" + lid, chk.checked ? "1" : "0"); } catch (e) {}
+              renderToolbar();
+            }
+          };
+        });
+      }
+    );
   }
 
   function startAddPin() {
@@ -2570,11 +2965,17 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     opts = opts || {};
     var el = document.getElementById("map");
     if (!el || !window.L) return;
-    map = L.map(el, { zoomControl: true, attributionControl: true });
-    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 19,
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(map);
+    map = L.map(el, { zoomControl: false, attributionControl: true });
+
+    L.control.zoom({ position: "bottomright" }).addTo(map);
+
+    try {
+      var savedBase = localStorage.getItem("aman_map_basemap");
+      if (savedBase && BASE_TILES[savedBase]) currentBaseMap = savedBase;
+    } catch (e) {}
+
+    setBaseMap(currentBaseMap);
+
     map.on("tileerror", function () {
       tileErrors++;
       if (tileErrors === 3) setNote("Map tiles can't load right now (no internet connection). Marker data still shown. Open this app with internet access to see the street map.");
@@ -2597,7 +2998,6 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
       }
     });
 
-    // pending focus (e.g. "view on map" from an incident)
     if (window.__amanMapFocus) {
       var f = window.__amanMapFocus;
       window.__amanMapFocus = null;
@@ -2615,6 +3015,9 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     layers = {};
     addPinMode = false;
     tileErrors = 0;
+    userLocationMarker = null;
+    userAccuracyCircle = null;
+    currentTileLayer = null;
   }
 
   window.AmanMap = {
@@ -2626,6 +3029,9 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     routeTo: routeTo,
     setAddPinHandler: function (fn) { onAddPinCb = fn; },
     startAddPin: startAddPin,
+    locateUser: locateUser,
+    openLayersModal: openLayersModal,
+    setBaseMap: setBaseMap,
     focus: function (lat, lng, marker) {
       window.__amanMapFocus = { lat: lat, lng: lng, marker: !!marker };
       if (map) { map.setView([lat, lng], 17); window.__amanMapFocus = null; }
@@ -3352,6 +3758,105 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
   }
 
   /* ---------------- reports ---------------- */
+  function printSecurityReport(from, to, cat, status) {
+    var S = window.AmanStore;
+    var list = S.incidents().filter(function (i) {
+      var d = i.created_at.slice(0, 10);
+      if (from && d < from) return false;
+      if (to && d > to) return false;
+      if (cat && i.category !== cat) return false;
+      if (status && i.status !== status) return false;
+      return true;
+    });
+    var shifts = S.completedShifts().filter(function (c) {
+      if (!c.slot) return true;
+      if (from && c.slot.date < from) return false;
+      if (to && c.slot.date > to) return false;
+      return true;
+    });
+
+    var counts = { "Suspicious Vehicle (VOI)": 0, "Suspicious Person (POI)": 0, "Incident (SOI)": 0 };
+    list.forEach(function (i) { counts[i.category] = (counts[i.category] || 0) + 1; });
+
+    var totalShiftMinutes = 0;
+    shifts.forEach(function (c) {
+      if (c.start_shift_time && c.end_shift_time) {
+        totalShiftMinutes += Math.round((new Date(c.end_shift_time) - new Date(c.start_shift_time)) / 60000);
+      }
+    });
+    var patrolHours = (totalShiftMinutes / 60).toFixed(1);
+
+    var rowsInc = list.map(function (i, idx) {
+      var reporter = S.userById(i.user_id);
+      var rName = reporter ? (reporter.first_name + " " + reporter.surname[0] + ".") : "Volunteer";
+      return '<tr>' +
+        '<td>' + (idx + 1) + '</td>' +
+        '<td>' + esc(S.fmtDateTime(i.created_at)) + '</td>' +
+        '<td><b>' + esc(i.category) + '</b><br><span style="font-size:0.75rem;color:#475569">' + esc(i.location_address || (i.zone || "Greenside/Emmarentia")) + '</span></td>' +
+        '<td><span class="chip ' + (i.status === "verified" ? "ok" : (i.status === "escalated_saps" ? "danger" : "info")) + '">' + esc(i.status) + '</span></td>' +
+        '<td>' + esc(rName) + '</td>' +
+        '<td>' + esc(i.notes || i.description || "—") + '</td>' +
+        '</tr>';
+    }).join("") || '<tr><td colspan="6" style="text-align:center;padding:14px">No incidents recorded in this date range.</td></tr>';
+
+    var rowsShifts = shifts.map(function (c, idx) {
+      var dur = "";
+      if (c.start_shift_time && c.end_shift_time) {
+        var mins = Math.round((new Date(c.end_shift_time) - new Date(c.start_shift_time)) / 60000);
+        dur = (mins >= 60 ? Math.floor(mins / 60) + "h " : "") + (mins % 60) + "m";
+      }
+      return '<tr>' +
+        '<td>' + (idx + 1) + '</td>' +
+        '<td>' + esc(c.user.first_name + " " + c.user.surname) + '</td>' +
+        '<td>' + esc(c.slot ? c.slot.zone + " · " + c.slot.activity_window + " (" + c.slot.time_window + ")" : "Patrol shift") + '</td>' +
+        '<td>' + esc(S.fmtDateTime(c.start_shift_time)) + '</td>' +
+        '<td>' + dur + '</td>' +
+        '<td>' + esc(c.notes || "No notes") + '</td>' +
+        '</tr>';
+    }).join("") || '<tr><td colspan="6" style="text-align:center;padding:14px">No completed patrol shifts in this range.</td></tr>';
+
+    window.AmanUI.modal(
+      '<div id="printable-security-report" class="print-report-container">' +
+      '<div class="print-header" style="border-bottom:2px solid #0c1b33;padding-bottom:10px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:flex-start">' +
+      '<div><h2 style="margin:0;font-size:1.2rem;color:#0c1b33">AMAN PATROL — SECURITY &amp; OPERATIONS REPORT</h2>' +
+      '<div style="font-size:0.82rem;color:#475569">Greenside &amp; Emmarentia Community Watch · Johannesburg</div>' +
+      '<div style="font-size:0.75rem;color:#64748b;margin-top:4px">Reporting Period: <b>' + esc(from) + '</b> to <b>' + esc(to) + '</b> · Generated: ' + esc(S.fmtDateTime(Date.now())) + '</div></div>' +
+      '<div style="text-align:right"><span class="chip navy" style="font-size:0.75rem">Official Report</span></div>' +
+      '</div>' +
+
+      '<div class="stat-grid" style="margin-bottom:14px">' +
+      '<div class="stat"><div class="s-num">' + list.length + '</div><div class="s-label">Total Incidents</div></div>' +
+      '<div class="stat"><div class="s-num">' + counts["Suspicious Vehicle (VOI)"] + '</div><div class="s-label">Vehicles (VOI)</div></div>' +
+      '<div class="stat"><div class="s-num">' + counts["Suspicious Person (POI)"] + '</div><div class="s-label">Persons (POI)</div></div>' +
+      '<div class="stat"><div class="s-num">' + shifts.length + '</div><div class="s-label">Patrol Shifts (' + patrolHours + 'h)</div></div>' +
+      '</div>' +
+
+      '<h3 style="font-size:0.95rem;margin:12px 0 6px">1. Incident Log (' + list.length + ')</h3>' +
+      '<div class="tbl-wrap" style="margin-bottom:16px"><table class="tbl" style="font-size:0.78rem">' +
+      '<thead><tr><th>#</th><th>Date/Time</th><th>Category &amp; Location</th><th>Status</th><th>Reporter</th><th>Details / Outcome</th></tr></thead>' +
+      '<tbody>' + rowsInc + '</tbody></table></div>' +
+
+      '<h3 style="font-size:0.95rem;margin:12px 0 6px">2. Patrol Shift Log (' + shifts.length + ')</h3>' +
+      '<div class="tbl-wrap" style="margin-bottom:16px"><table class="tbl" style="font-size:0.78rem">' +
+      '<thead><tr><th>#</th><th>Volunteer</th><th>Sector &amp; Window</th><th>Start Time</th><th>Duration</th><th>Handover / Debrief Note</th></tr></thead>' +
+      '<tbody>' + rowsShifts + '</tbody></table></div>' +
+
+      '<div style="border-top:1px solid #cbd5e1;padding-top:8px;font-size:0.7rem;color:#64748b;display:flex;justify-content:space-between">' +
+      '<span>Aman Patrol · Observe and report only · Never patrol alone</span>' +
+      '<span>Coordinator Review Copy</span>' +
+      '</div>' +
+      '</div>' +
+      '<div class="m-actions print-hide">' +
+      '<button class="btn btn-ghost" data-close>Close</button>' +
+      '<button class="btn btn-primary" id="do-print-report">' + window.AmanUI.I("printer", 16) + ' Print / Save as PDF</button>' +
+      '</div>',
+      function (root) {
+        var pb = root.querySelector("#do-print-report");
+        if (pb) pb.onclick = function () { window.print(); };
+      }
+    );
+  }
+
   function renderReports(el) {
     var S = window.AmanStore;
     var f = REPORT_FILTER;
@@ -3400,7 +3905,10 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
         return '<div><span class="dl-k">' + s + '</span><span class="dl-v">' + byStatus[s] + "</span></div>";
       }).join("") + "</div></div>" : "") +
 
-      '<button class="btn btn-teal block" id="csv-btn" style="margin-bottom:12px">' + window.AmanUI.I("download",16) + ' Export incidents as CSV</button>' +
+      '<div class="row" style="gap:8px;margin-bottom:12px">' +
+      '<button class="btn btn-teal grow" id="csv-btn">' + window.AmanUI.I("download",16) + ' Export CSV</button>' +
+      '<button class="btn btn-primary grow" id="pdf-btn">' + window.AmanUI.I("printer",16) + ' Print / PDF Report</button>' +
+      '</div>' +
 
       '<h3 style="font-size:0.95rem;margin:4px 0 8px">Incidents (' + list.length + ")</h3>" +
       '<div class="card tight tbl-wrap"><table class="tbl"><tr><th>When</th><th>Category</th><th>Zone</th><th>Status</th></tr>' +
@@ -3438,6 +3946,9 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
       a.download = "aman-patrol-incidents-" + S.todayISO() + ".csv";
       document.body.appendChild(a); a.click(); a.remove();
       window.AmanUI.toast("CSV downloaded.", "ok");
+    };
+    document.getElementById("pdf-btn").onclick = function () {
+      printSecurityReport(f.from, f.to, f.category, f.status);
     };
   }
 
@@ -4031,6 +4542,28 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     return out;
   }
 
+  function latestHandoverNote() {
+    var out = [];
+    for (var i = 0; i < claims.length; i++) {
+      if (claims[i].status === "completed" && claims[i].notes && String(claims[i].notes).trim()) {
+        var c = claimView(claims[i]);
+        var s = rawSlot(c.slot_id);
+        var u = userById(c.user_id);
+        out.push({
+          id: c.id,
+          notes: claims[i].notes,
+          user_name: u ? (u.first_name + " " + (u.surname ? u.surname[0] + "." : "")) : "Volunteer",
+          end_time: claims[i].end_shift_time,
+          zone: s ? s.zone : "",
+          date: s ? s.date : ""
+        });
+      }
+    }
+    if (!out.length) return null;
+    out.sort(function (a, b) { return new Date(b.end_time || 0) - new Date(a.end_time || 0); });
+    return out[0];
+  }
+
   function completedShifts() {
     var out = [];
     for (var i = 0; i < claims.length; i++) {
@@ -4384,7 +4917,7 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     users: listUsers, userById: userById, userLabel: userLabel, approveUser: approveUser, declineUser: declineUser,
     // slots & claims
     slots: listSlots, slotById: slotById, claimSlot: claimSlot, unclaim: unclaim, myClaims: myClaims,
-    myClaimFor: myClaimFor, startShift: startShift, endShift: endShift, completedShifts: completedShifts, updateProfile: updateProfile, updateLiveLocation: updateLiveLocation, listLiveLocations: listLiveLocations,
+    myClaimFor: myClaimFor, startShift: startShift, endShift: endShift, completedShifts: completedShifts, latestHandoverNote: latestHandoverNote, updateProfile: updateProfile, updateLiveLocation: updateLiveLocation, listLiveLocations: listLiveLocations,
     addSlot: addSlot, removeSlot: removeSlot, assignVolunteer: assignVolunteer, removeClaim: removeClaim,
     createSlot: createSlot, deleteOwnSlot: deleteOwnSlot, raiseSOS: raiseSOS,
     getSetting: getSetting, setSetting: setSetting,
@@ -4476,7 +5009,11 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     mosque: '<path d="M5 21h14"/><path d="M7 21v-7a5 5 0 0 1 10 0v7"/><circle cx="12" cy="7.5" r="1"/><path d="M3.5 21v-6"/><path d="M20.5 21v-6"/>',
     school: '<path d="M2 9l10-5 10 5-10 5L2 9z"/><path d="M6 11.5V16c0 1.5 2.7 3 6 3s6-1.5 6-3v-4.5"/><path d="M22 9v6"/>',
     tree: '<path d="M12 2l4.5 7h-2.6l4.1 6H6l4.1-6H7.5L12 2z"/><path d="M12 15v6"/><path d="M9 21h6"/>',
-    book: '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>'
+    book: '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',
+    phone: '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>',
+    crosshair: '<circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/>',
+    layers: '<polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>',
+    printer: '<polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>'
   };
   function I(name, s, cls) {
     return '<svg class="ico' + (cls ? " " + cls : "") + '" width="' + (s || 18) + '" height="' + (s || 18) +
@@ -4964,20 +5501,20 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     var slots = S.slots ? S.slots() : [];
 
     modal(
-      "<h3>" + I("shield_star", 18) + " Aman AI Patrol Assistant</h3>" +
-      '<p class="m-sub">Instant AI assistant for patrol routes, emergency dispatch, safety protocols, and neighborhood intelligence.</p>' +
+      "<h3>" + I("shield_star", 18) + " Aman Patrol Assistant</h3>" +
+      '<p class="m-sub">Instant guide for patrol routes, emergency contacts, safety SOPs, and live patrol status.</p>' +
       '<div class="ai-prompts-wrap" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">' +
       '<button class="chip teal ai-prompt-btn" data-q="fastest_route">Fastest Routes &amp; Corridors</button>' +
       '<button class="chip navy ai-prompt-btn" data-q="emergency_dispatch">Emergency EMS &amp; SAPS Contacts</button>' +
       '<button class="chip warn ai-prompt-btn" data-q="voi_protocol">Suspicious Vehicle Protocol</button>' +
-      '<button class="chip ok ai-prompt-btn" data-q="active_intel">Current Patrol Intelligence</button>' +
+      '<button class="chip ok ai-prompt-btn" data-q="active_intel">Current Patrol Status</button>' +
       "</div>" +
       '<div id="ai-chat-history" class="card tight" style="min-height:160px;max-height:260px;overflow-y:auto;background:var(--bg);font-size:0.84rem;line-height:1.55;padding:12px;margin-bottom:12px">' +
       '<div style="color:var(--teal-dark);font-weight:700;margin-bottom:4px">Aman AI Assistant:</div>' +
-      '<div>Assalamu alaykum ' + esc(user.first_name) + '. I am your patrol assistant. Ask me for fastest routes, emergency responder protocols, sector boundaries, or live neighborhood intelligence.</div>' +
+      '<div>Assalamu alaykum ' + esc(user.first_name) + '. I am your patrol assistant. Ask me for fastest routes, emergency responder protocols, sector boundaries, or active patrol status.</div>' +
       "</div>" +
       '<div class="row" style="gap:8px">' +
-      '<input type="text" id="ai-user-query" placeholder="Ask about routes, SOPs, contacts, or patrol..." style="flex:1" autocomplete="off">' +
+      '<input type="text" id="ai-user-query" placeholder="Ask about routes, SOPs, contacts, or patrol status..." style="flex:1" autocomplete="off">' +
       '<button class="btn btn-teal" id="ai-query-send">Ask</button>' +
       "</div>" +
       '<div class="m-actions"><button class="btn btn-ghost" data-close>Close</button></div>',
@@ -5018,7 +5555,7 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
           } else if (q.indexOf("intel") !== -1 || q.indexOf("incident") !== -1 || q.indexOf("status") !== -1 || q.indexOf("active") !== -1) {
             var incCount = incidents.length;
             var openSlots = slots.filter(function(s){return s.understaffed;}).length;
-            reply = "<b>Live Patrol Intelligence:</b><br>" +
+            reply = "<b>Current Patrol Status & Activity:</b><br>" +
               "• <b>Total incidents logged:</b> " + incCount + " on record.<br>" +
               "• <b>Roster status:</b> " + openSlots + " upcoming slots need a partner.<br>" +
               "• <b>Priority watch areas:</b> Madrassah walking corridor on Greenside Road, Tana Road park edge, and Barry Hertzog robots.";
@@ -5053,7 +5590,7 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
             if (qType === "fastest_route") answerQuery("What are the fastest routes and corridors in Greenside and Emmarentia?");
             else if (qType === "emergency_dispatch") answerQuery("What are the emergency numbers for EMS, ambulance, and SAPS?");
             else if (qType === "voi_protocol") answerQuery("What is the protocol for suspicious vehicles (VOI)?");
-            else if (qType === "active_intel") answerQuery("What is the current patrol intelligence and active incidents?");
+            else if (qType === "active_intel") answerQuery("What is the current patrol status and active incidents?");
           };
         });
 
@@ -5254,18 +5791,118 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     );
   }
 
+  function weatherForecastModal() {
+    AmanWeather.current().then(function (w) {
+      var forecastCols = (w.daily || []).map(function (d) {
+        return '<div class="card tight center" style="flex:1;min-width:70px;padding:8px 4px;text-align:center">' +
+          '<div style="font-weight:700;font-size:0.75rem">' + esc(d.day) + '</div>' +
+          '<div style="margin:4px 0">' + d.iconSvg + '</div>' +
+          '<div style="font-weight:800;font-size:0.82rem">' + d.max + '° / ' + d.min + '°</div>' +
+          '<div style="font-size:0.68rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(d.label) + '</div>' +
+          (d.rainProb > 0 ? '<div style="font-size:0.64rem;color:var(--teal-dark);font-weight:700;margin-top:2px">' + d.rainProb + '% rain</div>' : '') +
+          '</div>';
+      }).join("");
+
+      modal(
+        "<h3>" + I("sun", 18) + " Patrol Weather &amp; Outlook</h3>" +
+        '<p class="m-sub">Live conditions and 4-day forecast for Greenside &amp; Emmarentia.</p>' +
+        '<div class="card" style="background:linear-gradient(135deg,var(--navy),var(--navy-2));color:#fff;margin-bottom:12px">' +
+        '<div class="row" style="align-items:center;gap:12px">' +
+        w.iconSvg +
+        '<div><div style="font-size:1.8rem;font-weight:800;line-height:1">' + w.temp + '°C</div>' +
+        '<div style="font-size:0.85rem;opacity:0.9">' + esc(w.label) + ' · feels like ' + w.feels + '°</div></div></div>' +
+        '<div class="w-meta" style="margin-top:10px;font-size:0.75rem;opacity:0.9"><span>' + I("wind",13) + ' Wind: ' + w.wind + ' km/h (gusts ' + (w.gusts || w.wind) + ' km/h)</span> · <span>' + I("rain",13) + ' Rain: ' + (w.rain || 0) + ' mm</span></div>' +
+        '</div>' +
+        (w.warnings.length ? '<div style="margin-bottom:12px">' + w.warnings.map(function(x){ return '<div class="w-note" style="margin-top:4px;background:var(--warn-soft);color:var(--warn);border-radius:8px;padding:7px 10px;font-size:0.76rem;display:flex;gap:6px;align-items:center">' + I("alert",13) + ' ' + esc(x) + '</div>'; }).join("") + '</div>' : '') +
+        '<h4 style="font-size:0.85rem;margin:8px 0 6px">4-Day Outlook</h4>' +
+        '<div class="row" style="gap:6px;overflow-x:auto;padding-bottom:4px">' + forecastCols + '</div>' +
+        '<div class="m-actions"><button class="btn btn-primary" data-close>Close</button></div>'
+      );
+    }).catch(function () {
+      toast("Weather information unavailable offline.", "warn");
+    });
+  }
+
+  function emergencySpeedDialModal() {
+    modal(
+      "<h3>" + I("phone", 18) + " Emergency Speed-Dial</h3>" +
+      '<p class="m-sub">Direct call centre numbers for neighbourhood armed response, SAPS, and medical services.</p>' +
+      '<div style="margin-bottom:12px">' +
+      '<h4 style="font-size:0.84rem;margin:6px 0 6px;color:var(--navy)">Armed Response &amp; Security Providers</h4>' +
+      '<div class="row wrap" style="gap:8px">' +
+      '<a class="btn btn-ghost block" href="tel:0116781972" style="justify-content:space-between;padding:10px 14px;border-left:4px solid var(--navy)">' +
+      '<div><b>Beagle Watch Armed Response</b><br><span style="font-size:0.75rem;color:var(--muted)">24/7 Control Room</span></div>' +
+      '<span class="chip navy">' + I("phone", 13) + ' 011 678 1972</span></a>' +
+
+      '<a class="btn btn-ghost block" href="tel:0861227227" style="justify-content:space-between;padding:10px 14px;border-left:4px solid var(--teal)">' +
+      '<div><b>CAP Security (Community Active Protection)</b><br><span style="font-size:0.75rem;color:var(--muted)">24/7 Emergency</span></div>' +
+      '<span class="chip teal">' + I("phone", 13) + ' 0861 227 227</span></a>' +
+
+      '<a class="btn btn-ghost block" href="tel:0114771222" style="justify-content:space-between;padding:10px 14px;border-left:4px solid var(--warn)">' +
+      '<div><b>SCP Security</b><br><span style="font-size:0.75rem;color:var(--muted)">24/7 Call Centre</span></div>' +
+      '<span class="chip warn">' + I("phone", 13) + ' 011 477 1222</span></a>' +
+
+      '<a class="btn btn-ghost block" href="tel:0861212400" style="justify-content:space-between;padding:10px 14px;border-left:4px solid #475569">' +
+      '<div><b>Fidelity ADT</b><br><span style="font-size:0.75rem;color:var(--muted)">Inland Emergency Control</span></div>' +
+      '<span class="chip grey">' + I("phone", 13) + ' 086 12 12 400</span></a>' +
+      '</div></div>' +
+
+      '<div style="margin-bottom:12px">' +
+      '<h4 style="font-size:0.84rem;margin:10px 0 6px;color:var(--danger)">Police &amp; Medical Emergencies</h4>' +
+      '<div class="row wrap" style="gap:8px">' +
+      '<a class="btn btn-danger block" href="tel:10111" style="justify-content:space-between;padding:10px 14px">' +
+      '<div><b>SAPS Flying Squad (National Police)</b><br><span style="font-size:0.75rem;opacity:0.85">Life-threatening emergencies</span></div>' +
+      '<span class="chip" style="background:#fff;color:var(--danger)">' + I("phone", 13) + ' 10111</span></a>' +
+
+      '<a class="btn btn-ghost block" href="tel:0110676000" style="justify-content:space-between;padding:10px 14px;border-left:4px solid #2563eb">' +
+      '<div><b>SAPS Parkview Police Station</b><br><span style="font-size:0.75rem;color:var(--muted)">Local Station · Greenside &amp; Emmarentia</span></div>' +
+      '<span class="chip info">' + I("phone", 13) + ' 011 067 6000</span></a>' +
+
+      '<a class="btn btn-ghost block" href="tel:082911" style="justify-content:space-between;padding:10px 14px;border-left:4px solid var(--ok)">' +
+      '<div><b>Netcare 911 Ambulance</b><br><span style="font-size:0.75rem;color:var(--muted)">Emergency Medical Response</span></div>' +
+      '<span class="chip ok">' + I("phone", 13) + ' 082 911</span></a>' +
+
+      '<a class="btn btn-ghost block" href="tel:084124" style="justify-content:space-between;padding:10px 14px;border-left:4px solid var(--ok)">' +
+      '<div><b>ER24 Emergency Medical</b><br><span style="font-size:0.75rem;color:var(--muted)">24/7 Medical Response</span></div>' +
+      '<span class="chip ok">' + I("phone", 13) + ' 084 124</span></a>' +
+
+      '<a class="btn btn-ghost block" href="tel:0113755911" style="justify-content:space-between;padding:10px 14px;border-left:4px solid var(--danger)">' +
+      '<div><b>City of Joburg EMS (Fire / Rescue)</b><br><span style="font-size:0.75rem;color:var(--muted)">10177 / 011 375 5911</span></div>' +
+      '<span class="chip danger">' + I("phone", 13) + ' 011 375 5911</span></a>' +
+      '</div></div>' +
+      '<div class="m-actions"><button class="btn btn-primary" data-close>Close</button></div>'
+    );
+  }
+
   function renderDashboard() {
     var user = S().sessionUser();
     setShell(true);
     setActiveNav("dashboard");
     screenEl.className = "screen";
     var coord = user.role === "coordinator";
+    var handover = S().latestHandoverNote ? S().latestHandoverNote() : null;
+
+    var handoverHtml = "";
+    if (handover) {
+      handoverHtml =
+        '<div class="card tight handover-card" style="border-left:4px solid var(--teal);margin-bottom:12px;background:var(--teal-soft)">' +
+        '<div class="row spread"><span style="font-weight:800;font-size:0.78rem;color:var(--teal-dark)">' + I("shield", 13) + ' Latest Patrol Handover Note</span>' +
+        '<span style="font-size:0.7rem;color:var(--muted)">' + esc(S().timeAgo(handover.end_time)) + '</span></div>' +
+        '<div style="font-size:0.84rem;margin:5px 0 3px;line-height:1.4">"' + esc(handover.notes) + '"</div>' +
+        '<div style="font-size:0.72rem;color:var(--muted)">By <b>' + esc(handover.user_name) + '</b>' + (handover.zone ? ' · ' + esc(handover.zone) : '') + '</div>' +
+        '</div>';
+    }
+
     screenEl.innerHTML =
       onShiftBannerHtml() +
       '<div class="row spread" style="align-items:flex-start">' +
       '<div><h1 class="page-title" style="margin-bottom:2px">As-salamu alaykum, ' + esc(user.first_name) + "</h1>" +
       '<p class="page-sub" style="margin:0">' + esc(user.street + ", " + user.suburb) + "</p></div>" +
-      '<span class="chip ' + (coord ? "teal" : "ok") + '">' + (coord ? "Coordinator" : "Approved volunteer") + "</span></div>" +
+      '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">' +
+      '<span class="chip ' + (coord ? "teal" : "ok") + '">' + (coord ? "Coordinator" : "Approved volunteer") + "</span>" +
+      '<span class="chip grey" style="font-size:0.6rem;padding:2px 6px">Power: Stage 0 (Normal)</span></div></div>' +
+
+      handoverHtml +
 
       '<div class="weather" id="weather-tile">' +
       '<div class="w-top"><div class="w-icon" style="width:44px;height:44px"><div style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.15);margin:5px"></div></div>' +
@@ -5284,12 +5921,13 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
 
       '<div class="action-grid">' +
       '<a class="action" href="#/roster"><div class="a-icon navy">' + I("calendar",20) + '</div><div class="a-label">Create or join a patrol</div><div class="a-sub">Pick any date &amp; time · pairs only · ' + S().slots().filter(function (s) { return s.understaffed; }).length + ' need a partner</div></a>' +
-      '<a class="action" href="#/map"><div class="a-icon teal">' + I("map",20) + '</div><div class="a-label">View area map</div><div class="a-sub">Real area data + risk pins</div></a>' +
-      '<a class="action" href="#/notifications"><div class="a-icon warn">' + I("bell",20) + '</div><div class="a-label">Notifications</div><div class="a-sub" id="dash-notif-sub">' + S().unreadCount(user) + ' unread</div></a>' +
+      '<a class="action" href="#/map"><div class="a-icon teal">' + I("map",20) + '</div><div class="a-label">View area map</div><div class="a-sub">Satellite, streets &amp; risk pins</div></a>' +
+      '<button class="action" id="dash-emerg-btn" style="text-align:left;cursor:pointer"><div class="a-icon danger" style="background:var(--danger-soft);color:var(--danger)">' + I("phone",20) + '</div><div class="a-label">Emergency Speed-Dial</div><div class="a-sub">Beagle · CAP · SCP · SAPS</div></button>' +
       '<a class="action" href="#/chat"><div class="a-icon info">' + I("chat",20) + '</div><div class="a-label">Team chat</div><div class="a-sub">Operational team coordination</div></a>' +
-      '<button class="action" id="dash-ai-btn" style="text-align:left;cursor:pointer"><div class="a-icon navy">' + I("shield_star",20) + '</div><div class="a-label">Aman AI Assistant</div><div class="a-sub">Routes · dispatch · live intel</div></button>' +
+      '<button class="action" id="dash-ai-btn" style="text-align:left;cursor:pointer"><div class="a-icon navy">' + I("shield_star",20) + '</div><div class="a-label">Aman Patrol Assistant</div><div class="a-sub">Routes · dispatch · patrol status</div></button>' +
       '<button class="action" id="dash-compass-btn" style="text-align:left;cursor:pointer"><div class="a-icon teal">' + I("compass",20) + '</div><div class="a-label">Compass &amp; Camera</div><div class="a-sub">Bearing · GPS · Stamped photos</div></button>' +
       '<button class="action" id="radio-btn" style="text-align:left;cursor:pointer"><div class="a-icon warn">' + I("radio",20) + '</div><div class="a-label">Patrol comms and voice</div><div class="a-sub">How the team talks on shift</div></button>' +
+      '<a class="action" href="#/notifications"><div class="a-icon warn">' + I("bell",20) + '</div><div class="a-label">Notifications</div><div class="a-sub" id="dash-notif-sub">' + S().unreadCount(user) + ' unread</div></a>' +
       "</div>" +
       (coord ? '<a class="action full" href="#/admin/approvals"><div class="a-icon navy">' + I("shield",20) + '</div><div class="grow"><div class="a-label">Coordinator dashboard</div><div class="a-sub">Approvals · volunteers · incidents · reports</div></div></a>' : "");
 
@@ -5298,12 +5936,26 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     AmanWeather.current().then(function (w) {
       var tile = $("#weather-tile");
       if (!tile) return;
+      var forecastHtml = "";
+      if (w.daily && w.daily.length) {
+        forecastHtml = '<div class="w-forecast">' + w.daily.map(function (d) {
+          return '<div class="w-forecast-col">' +
+            '<div class="w-f-day">' + esc(d.day) + '</div>' +
+            d.iconSvg +
+            '<div class="w-f-temps">' + d.max + '° <span style="opacity:0.65;font-weight:500">' + d.min + '°</span></div>' +
+            (d.rainProb > 20 ? '<div class="w-f-rain">' + d.rainProb + '% rain</div>' : '') +
+            '</div>';
+        }).join("") + '</div>';
+      }
       tile.innerHTML =
         '<div class="w-top">' + w.iconSvg +
         '<div><div class="w-temp">' + w.temp + "°C</div><div class=\"w-desc\">" + esc(w.label) + " · feels like " + w.feels + "°</div></div></div>" +
         '<div class="w-meta"><span>' + I("wind",13) + ' Wind ' + w.wind + " km/h</span><span>" + I("rain",13) + " Rain " + (w.rain || 0) + ' mm</span><span>' + (w.is_day ? I("sun",13) + " Day" : I("moon",13) + " Night") + "</span></div>" +
         (w.warnings.length ? w.warnings.map(function (x) { return '<div class="w-note">' + I("alert",13) + ' ' + esc(x) + "</div>"; }).join("") : "") +
-        '<div class="w-src">Live data · Open-Meteo' + (w.stale ? " (cached)" : "") + "</div>";
+        forecastHtml +
+        '<div class="w-src">Live data &amp; 4-day outlook · Open-Meteo' + (w.stale ? " (cached)" : "") + "</div>";
+      tile.style.cursor = "pointer";
+      tile.onclick = weatherForecastModal;
     }).catch(function () {
       var tile = $("#weather-tile");
       if (tile) tile.innerHTML =
@@ -5311,6 +5963,7 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
         '<div class="w-note">' + I("alert",13) + ' Check conditions before you patrol — dress for the weather and stay visible.</div>';
     });
 
+    var deb = $("#dash-emerg-btn"); if (deb) deb.onclick = emergencySpeedDialModal;
     $("#radio-btn").onclick = radioModal;
     var dab = $("#dash-ai-btn"); if (dab) dab.onclick = amanAiModal;
     var dcb = $("#dash-compass-btn"); if (dcb) dcb.onclick = compassModal;
@@ -5656,10 +6309,28 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     screenEl.className = "screen map-screen";
     screenEl.innerHTML =
       '<div class="map-wrap"><div id="map"></div>' +
+      '<button class="map-layers-btn" id="map-layers-btn" title="Map layers &amp; styles">' + I("layers",14) + ' <span>Layers</span></button>' +
+      '<button class="map-weather-badge" id="map-weather-btn" title="View weather conditions &amp; forecast">' + I("sun",14) + ' <span id="map-weather-text">Weather</span></button>' +
+      '<button class="map-locate-btn" id="map-locate-btn" title="Center on my location" aria-label="Center on my location">' + I("crosshair",20) + '</button>' +
       '<button class="map-fab hidden" id="add-pin-btn" title="Add a coordinator pin">' + I("pin",18) + ' Add pin</button>' +
       '<div class="map-note" id="map-note"></div></div>';
     window.AmanMap.setAddPinHandler(addPinModal);
     window.AmanMap.mount();
+
+    var lb = $("#map-layers-btn");
+    if (lb) lb.onclick = function () { window.AmanMap.openLayersModal(); };
+
+    var locb = $("#map-locate-btn");
+    if (locb) locb.onclick = function () { window.AmanMap.locateUser(); };
+
+    var wb = $("#map-weather-btn");
+    if (wb) {
+      wb.onclick = weatherForecastModal;
+      AmanWeather.current().then(function (w) {
+        var wt = $("#map-weather-text");
+        if (wt) wt.textContent = w.temp + "°C " + (w.label.length > 10 ? w.label.slice(0, 9) + "…" : w.label);
+      }).catch(function () {});
+    }
     if (user.role === "coordinator") {
       var pb = $("#add-pin-btn");
       pb.classList.remove("hidden");
@@ -5903,6 +6574,7 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
 
   function renderMore() {
     var user = S().sessionUser();
+    var botHidden = isAmanBotHidden();
     setShell(true);
     setActiveNav("more");
     screenEl.className = "screen";
@@ -5945,7 +6617,16 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
       }).join("") || '<div class="muted" style="font-size:0.8rem">No reports yet.</div>') +
       "</div>" +
 
+      '<button class="action full" id="more-emerg-btn" style="border-left:5px solid var(--danger);margin-bottom:12px">' +
+      '<div class="a-icon danger" style="background:var(--danger-soft);color:var(--danger)">' + I("phone",20) + '</div>' +
+      '<div class="grow"><div class="a-label">Emergency Speed-Dial</div><div class="a-sub">Beagle · CAP · SCP · ADT · SAPS · EMS</div></div></button>' +
+
       '<div class="card">' +
+      '<div class="row spread" style="align-items:center;margin-bottom:12px">' +
+      '<div><div style="font-weight:700;font-size:0.88rem">Floating Aman Assistant</div>' +
+      '<div style="font-size:0.74rem;color:var(--muted)">Show the movable 3D Aman guide on patrol screens</div></div>' +
+      '<label class="switch-toggle"><input type="checkbox" id="toggle-aman-bot"' + (botHidden ? "" : " checked") + '><span class="slider"></span></label>' +
+      '</div>' +
       '<button class="btn btn-ghost block" id="coc-btn" style="margin-bottom:10px">' + I("doc",15) + ' Code of Conduct &amp; values</button>' +
       '<button class="btn btn-ghost block" id="radio-btn2" style="margin-bottom:10px">' + I("radio",15) + ' Patrol comms and voice</button>' +
       (S().live ? "" : '<button class="btn btn-ghost danger block" id="reset-btn" style="margin-bottom:10px">' + I("refresh",15) + ' Reset demo data</button>') +
@@ -5953,7 +6634,20 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
       '<p class="center" style="font-size:0.66rem;color:var(--muted);line-height:1.6">Aman Patrol · Greenside &amp; Emmarentia<br>Observe and report only · Never patrol alone · Map data © OpenStreetMap</p>';
 
     $all("[data-inc]").forEach(function (r) { r.onclick = function () { window.AmanAdmin.incidentModal(r.getAttribute("data-inc"), null); }; });
+    var meb = $("#more-emerg-btn"); if (meb) meb.onclick = emergencySpeedDialModal;
     var epb = $("#edit-prof-btn"); if (epb) epb.onclick = function () { editProfileModal(user); };
+    var toggleBot = $("#toggle-aman-bot");
+    if (toggleBot) {
+      toggleBot.onchange = function () {
+        setAmanBotHidden(!toggleBot.checked);
+        if (toggleBot.checked) {
+          toast("Aman assistant enabled.", "ok");
+        } else {
+          removeAmanBot();
+          toast("Aman assistant hidden.", "ok");
+        }
+      };
+    }
     $("#coc-btn").onclick = codeOfConductModal;
     $("#radio-btn2").onclick = radioModal;
     $("#logout-btn").onclick = doLogout;
@@ -5984,6 +6678,21 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
      ============================================================ */
   var amanBotDrag = null;
 
+  function isAmanBotHidden() {
+    try {
+      return localStorage.getItem("aman_bot_hidden") === "true";
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function setAmanBotHidden(hidden) {
+    try {
+      if (hidden) localStorage.setItem("aman_bot_hidden", "true");
+      else localStorage.removeItem("aman_bot_hidden");
+    } catch (e) {}
+  }
+
   function removeAmanBot() {
     var old = document.getElementById("aman-helper");
     if (old) old.remove();
@@ -5992,20 +6701,20 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
   function showAmanBot(page) {
     removeAmanBot();
     if (["dashboard", "roster", "incident", "map"].indexOf(page) === -1) return;
+    if (isAmanBotHidden()) return;
 
-    var bot = document.createElement("button");
-    bot.type = "button";
+    var bot = document.createElement("div");
     bot.id = "aman-helper";
     bot.className = "aman-helper";
-    bot.setAttribute("aria-label", "Open Aman patrol assistant. Drag to move.");
+    bot.setAttribute("role", "region");
+    bot.setAttribute("aria-label", "Aman patrol assistant");
     bot.innerHTML =
       '<span class="aman-help-label">Need help?</span>' +
-      '<span class="aman-bot" aria-hidden="true">' +
-        '<span class="aman-bot-antenna"><i></i></span>' +
-        '<span class="aman-bot-head"><i class="aman-eye left"></i><i class="aman-eye right"></i><i class="aman-mouth"></i></span>' +
-        '<span class="aman-bot-body"><i class="aman-badge">A</i></span>' +
-        '<span class="aman-bot-arm left"></span><span class="aman-bot-arm right"></span>' +
-      '</span>';
+      '<button type="button" class="aman-bot-dismiss" id="aman-bot-dismiss" title="Hide Aman assistant" aria-label="Hide Aman assistant">&times;</button>' +
+      '<button type="button" class="aman-bot-avatar" id="aman-bot-avatar" aria-label="Open Aman patrol assistant. Drag to move.">' +
+        '<img src="images/aman_robot.png" alt="Aman patrol assistant" class="aman-bot-img" draggable="false" />' +
+        '<span class="aman-bot-glow" aria-hidden="true"></span>' +
+      '</button>';
     document.body.appendChild(bot);
 
     try {
@@ -6018,33 +6727,49 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
       }
     } catch (err) {}
 
-    bot.addEventListener("pointerdown", function (e) {
-      amanBotDrag = { x: e.clientX, y: e.clientY, left: bot.offsetLeft, top: bot.offsetTop, moved: false };
-      bot.setPointerCapture(e.pointerId);
-      bot.classList.add("dragging");
-    });
-    bot.addEventListener("pointermove", function (e) {
-      if (!amanBotDrag) return;
-      var dx = e.clientX - amanBotDrag.x;
-      var dy = e.clientY - amanBotDrag.y;
-      if (Math.abs(dx) + Math.abs(dy) > 6) amanBotDrag.moved = true;
-      bot.style.left = Math.max(8, Math.min(window.innerWidth - bot.offsetWidth - 8, amanBotDrag.left + dx)) + "px";
-      bot.style.top = Math.max(70, Math.min(window.innerHeight - bot.offsetHeight - 82, amanBotDrag.top + dy)) + "px";
-      bot.style.right = "auto";
-      bot.style.bottom = "auto";
-    });
-    bot.addEventListener("pointerup", function () {
-      if (!amanBotDrag) return;
-      var moved = amanBotDrag.moved;
-      amanBotDrag = null;
-      bot.classList.remove("dragging");
-      if (moved) {
-        try { localStorage.setItem("aman_bot_position", JSON.stringify({ x: bot.offsetLeft, y: bot.offsetTop })); } catch (err) {}
-      } else {
-        amanAiModal();
-      }
-    });
-    bot.addEventListener("pointercancel", function () { amanBotDrag = null; bot.classList.remove("dragging"); });
+    var avatarBtn = bot.querySelector("#aman-bot-avatar");
+    var dismissBtn = bot.querySelector("#aman-bot-dismiss");
+
+    if (dismissBtn) {
+      dismissBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        e.preventDefault();
+        setAmanBotHidden(true);
+        bot.classList.add("fade-out");
+        setTimeout(function () { removeAmanBot(); }, 250);
+        toast("Aman assistant hidden. Enable it anytime in More > Settings.", "ok");
+      });
+    }
+
+    if (avatarBtn) {
+      avatarBtn.addEventListener("pointerdown", function (e) {
+        amanBotDrag = { x: e.clientX, y: e.clientY, left: bot.offsetLeft, top: bot.offsetTop, moved: false };
+        avatarBtn.setPointerCapture(e.pointerId);
+        bot.classList.add("dragging");
+      });
+      avatarBtn.addEventListener("pointermove", function (e) {
+        if (!amanBotDrag) return;
+        var dx = e.clientX - amanBotDrag.x;
+        var dy = e.clientY - amanBotDrag.y;
+        if (Math.abs(dx) + Math.abs(dy) > 6) amanBotDrag.moved = true;
+        bot.style.left = Math.max(8, Math.min(window.innerWidth - bot.offsetWidth - 8, amanBotDrag.left + dx)) + "px";
+        bot.style.top = Math.max(70, Math.min(window.innerHeight - bot.offsetHeight - 82, amanBotDrag.top + dy)) + "px";
+        bot.style.right = "auto";
+        bot.style.bottom = "auto";
+      });
+      avatarBtn.addEventListener("pointerup", function () {
+        if (!amanBotDrag) return;
+        var moved = amanBotDrag.moved;
+        amanBotDrag = null;
+        bot.classList.remove("dragging");
+        if (moved) {
+          try { localStorage.setItem("aman_bot_position", JSON.stringify({ x: bot.offsetLeft, y: bot.offsetTop })); } catch (err) {}
+        } else {
+          amanAiModal();
+        }
+      });
+      avatarBtn.addEventListener("pointercancel", function () { amanBotDrag = null; bot.classList.remove("dragging"); });
+    }
   }
 
   function route() {

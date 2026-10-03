@@ -350,6 +350,105 @@
   }
 
   /* ---------------- reports ---------------- */
+  function printSecurityReport(from, to, cat, status) {
+    var S = window.AmanStore;
+    var list = S.incidents().filter(function (i) {
+      var d = i.created_at.slice(0, 10);
+      if (from && d < from) return false;
+      if (to && d > to) return false;
+      if (cat && i.category !== cat) return false;
+      if (status && i.status !== status) return false;
+      return true;
+    });
+    var shifts = S.completedShifts().filter(function (c) {
+      if (!c.slot) return true;
+      if (from && c.slot.date < from) return false;
+      if (to && c.slot.date > to) return false;
+      return true;
+    });
+
+    var counts = { "Suspicious Vehicle (VOI)": 0, "Suspicious Person (POI)": 0, "Incident (SOI)": 0 };
+    list.forEach(function (i) { counts[i.category] = (counts[i.category] || 0) + 1; });
+
+    var totalShiftMinutes = 0;
+    shifts.forEach(function (c) {
+      if (c.start_shift_time && c.end_shift_time) {
+        totalShiftMinutes += Math.round((new Date(c.end_shift_time) - new Date(c.start_shift_time)) / 60000);
+      }
+    });
+    var patrolHours = (totalShiftMinutes / 60).toFixed(1);
+
+    var rowsInc = list.map(function (i, idx) {
+      var reporter = S.userById(i.user_id);
+      var rName = reporter ? (reporter.first_name + " " + reporter.surname[0] + ".") : "Volunteer";
+      return '<tr>' +
+        '<td>' + (idx + 1) + '</td>' +
+        '<td>' + esc(S.fmtDateTime(i.created_at)) + '</td>' +
+        '<td><b>' + esc(i.category) + '</b><br><span style="font-size:0.75rem;color:#475569">' + esc(i.location_address || (i.zone || "Greenside/Emmarentia")) + '</span></td>' +
+        '<td><span class="chip ' + (i.status === "verified" ? "ok" : (i.status === "escalated_saps" ? "danger" : "info")) + '">' + esc(i.status) + '</span></td>' +
+        '<td>' + esc(rName) + '</td>' +
+        '<td>' + esc(i.notes || i.description || "—") + '</td>' +
+        '</tr>';
+    }).join("") || '<tr><td colspan="6" style="text-align:center;padding:14px">No incidents recorded in this date range.</td></tr>';
+
+    var rowsShifts = shifts.map(function (c, idx) {
+      var dur = "";
+      if (c.start_shift_time && c.end_shift_time) {
+        var mins = Math.round((new Date(c.end_shift_time) - new Date(c.start_shift_time)) / 60000);
+        dur = (mins >= 60 ? Math.floor(mins / 60) + "h " : "") + (mins % 60) + "m";
+      }
+      return '<tr>' +
+        '<td>' + (idx + 1) + '</td>' +
+        '<td>' + esc(c.user.first_name + " " + c.user.surname) + '</td>' +
+        '<td>' + esc(c.slot ? c.slot.zone + " · " + c.slot.activity_window + " (" + c.slot.time_window + ")" : "Patrol shift") + '</td>' +
+        '<td>' + esc(S.fmtDateTime(c.start_shift_time)) + '</td>' +
+        '<td>' + dur + '</td>' +
+        '<td>' + esc(c.notes || "No notes") + '</td>' +
+        '</tr>';
+    }).join("") || '<tr><td colspan="6" style="text-align:center;padding:14px">No completed patrol shifts in this range.</td></tr>';
+
+    window.AmanUI.modal(
+      '<div id="printable-security-report" class="print-report-container">' +
+      '<div class="print-header" style="border-bottom:2px solid #0c1b33;padding-bottom:10px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:flex-start">' +
+      '<div><h2 style="margin:0;font-size:1.2rem;color:#0c1b33">AMAN PATROL — SECURITY &amp; OPERATIONS REPORT</h2>' +
+      '<div style="font-size:0.82rem;color:#475569">Greenside &amp; Emmarentia Community Watch · Johannesburg</div>' +
+      '<div style="font-size:0.75rem;color:#64748b;margin-top:4px">Reporting Period: <b>' + esc(from) + '</b> to <b>' + esc(to) + '</b> · Generated: ' + esc(S.fmtDateTime(Date.now())) + '</div></div>' +
+      '<div style="text-align:right"><span class="chip navy" style="font-size:0.75rem">Official Report</span></div>' +
+      '</div>' +
+
+      '<div class="stat-grid" style="margin-bottom:14px">' +
+      '<div class="stat"><div class="s-num">' + list.length + '</div><div class="s-label">Total Incidents</div></div>' +
+      '<div class="stat"><div class="s-num">' + counts["Suspicious Vehicle (VOI)"] + '</div><div class="s-label">Vehicles (VOI)</div></div>' +
+      '<div class="stat"><div class="s-num">' + counts["Suspicious Person (POI)"] + '</div><div class="s-label">Persons (POI)</div></div>' +
+      '<div class="stat"><div class="s-num">' + shifts.length + '</div><div class="s-label">Patrol Shifts (' + patrolHours + 'h)</div></div>' +
+      '</div>' +
+
+      '<h3 style="font-size:0.95rem;margin:12px 0 6px">1. Incident Log (' + list.length + ')</h3>' +
+      '<div class="tbl-wrap" style="margin-bottom:16px"><table class="tbl" style="font-size:0.78rem">' +
+      '<thead><tr><th>#</th><th>Date/Time</th><th>Category &amp; Location</th><th>Status</th><th>Reporter</th><th>Details / Outcome</th></tr></thead>' +
+      '<tbody>' + rowsInc + '</tbody></table></div>' +
+
+      '<h3 style="font-size:0.95rem;margin:12px 0 6px">2. Patrol Shift Log (' + shifts.length + ')</h3>' +
+      '<div class="tbl-wrap" style="margin-bottom:16px"><table class="tbl" style="font-size:0.78rem">' +
+      '<thead><tr><th>#</th><th>Volunteer</th><th>Sector &amp; Window</th><th>Start Time</th><th>Duration</th><th>Handover / Debrief Note</th></tr></thead>' +
+      '<tbody>' + rowsShifts + '</tbody></table></div>' +
+
+      '<div style="border-top:1px solid #cbd5e1;padding-top:8px;font-size:0.7rem;color:#64748b;display:flex;justify-content:space-between">' +
+      '<span>Aman Patrol · Observe and report only · Never patrol alone</span>' +
+      '<span>Coordinator Review Copy</span>' +
+      '</div>' +
+      '</div>' +
+      '<div class="m-actions print-hide">' +
+      '<button class="btn btn-ghost" data-close>Close</button>' +
+      '<button class="btn btn-primary" id="do-print-report">' + window.AmanUI.I("printer", 16) + ' Print / Save as PDF</button>' +
+      '</div>',
+      function (root) {
+        var pb = root.querySelector("#do-print-report");
+        if (pb) pb.onclick = function () { window.print(); };
+      }
+    );
+  }
+
   function renderReports(el) {
     var S = window.AmanStore;
     var f = REPORT_FILTER;
@@ -398,7 +497,10 @@
         return '<div><span class="dl-k">' + s + '</span><span class="dl-v">' + byStatus[s] + "</span></div>";
       }).join("") + "</div></div>" : "") +
 
-      '<button class="btn btn-teal block" id="csv-btn" style="margin-bottom:12px">' + window.AmanUI.I("download",16) + ' Export incidents as CSV</button>' +
+      '<div class="row" style="gap:8px;margin-bottom:12px">' +
+      '<button class="btn btn-teal grow" id="csv-btn">' + window.AmanUI.I("download",16) + ' Export CSV</button>' +
+      '<button class="btn btn-primary grow" id="pdf-btn">' + window.AmanUI.I("printer",16) + ' Print / PDF Report</button>' +
+      '</div>' +
 
       '<h3 style="font-size:0.95rem;margin:4px 0 8px">Incidents (' + list.length + ")</h3>" +
       '<div class="card tight tbl-wrap"><table class="tbl"><tr><th>When</th><th>Category</th><th>Zone</th><th>Status</th></tr>' +
@@ -436,6 +538,9 @@
       a.download = "aman-patrol-incidents-" + S.todayISO() + ".csv";
       document.body.appendChild(a); a.click(); a.remove();
       window.AmanUI.toast("CSV downloaded.", "ok");
+    };
+    document.getElementById("pdf-btn").onclick = function () {
+      printSecurityReport(f.from, f.to, f.category, f.status);
     };
   }
 

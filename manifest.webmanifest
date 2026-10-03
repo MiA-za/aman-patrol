@@ -1,12 +1,14 @@
 {
   "name": "Aman Patrol — Greenside & Emmarentia",
   "short_name": "Aman Patrol",
-  "description": "Neighbourhood watch coordination: patrol roster, incident reporting and SOS. Observe and report only.",
+  "description": "Neighbourhood watch operations app for Greenside and Emmarentia, Johannesburg. Roster, incidents, and safety coordination.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#0c1b33",
   "theme_color": "#0c1b33",
+  "categories": ["utilities", "safety", "social"],
   "icons": [
     { "src": "images/icon-192.png", "sizes": "192x192", "type": "image/png" },
     { "src": "images/icon-512.png", "sizes": "512x512", "type": "image/png" },

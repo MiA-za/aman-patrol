@@ -438,6 +438,27 @@
     }
     return out;
   }
+  function latestHandoverNote() {
+    var d = load();
+    var list = d.claims.filter(function (c) { return c.status === "completed" && c.notes && String(c.notes).trim(); });
+    list.sort(function (a, b) {
+      return new Date(b.end_shift_time || 0) - new Date(a.end_shift_time || 0);
+    });
+    if (!list.length) return null;
+    var c = list[0];
+    var u = userById(c.user_id);
+    var s = null;
+    for (var i = 0; i < d.slots.length; i++) if (d.slots[i].id === c.slot_id) s = d.slots[i];
+    return {
+      id: c.id,
+      notes: c.notes,
+      user_name: u ? (u.first_name + " " + (u.surname ? u.surname[0] + "." : "")) : "Volunteer",
+      end_time: c.end_shift_time,
+      zone: s ? s.zone : "",
+      date: s ? s.date : ""
+    };
+  }
+
   function completedShifts() {
     var d = load();
     return d.claims.filter(function (c) { return c.status === "completed"; }).map(function (c) {
@@ -718,7 +739,7 @@
     users: users, userById: userById, userLabel: userLabel, approveUser: approveUser, declineUser: declineUser,
     // slots & claims
     slots: slots, slotById: slotById, claimSlot: claimSlot, unclaim: unclaim, myClaims: myClaims,
-    myClaimFor: myClaimFor, startShift: startShift, endShift: endShift, completedShifts: completedShifts, updateProfile: updateProfile, updateLiveLocation: updateLiveLocation, listLiveLocations: listLiveLocations,
+    myClaimFor: myClaimFor, startShift: startShift, endShift: endShift, completedShifts: completedShifts, latestHandoverNote: latestHandoverNote, updateProfile: updateProfile, updateLiveLocation: updateLiveLocation, listLiveLocations: listLiveLocations,
     addSlot: addSlot, removeSlot: removeSlot, assignVolunteer: assignVolunteer, removeClaim: removeClaim,
     createSlot: createSlot, deleteOwnSlot: deleteOwnSlot, raiseSOS: raiseSOS,
     getSetting: getSetting, setSetting: setSetting,

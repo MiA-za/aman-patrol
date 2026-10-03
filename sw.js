@@ -5,14 +5,15 @@
    requests (Supabase, OpenStreetMap, Open-Meteo) are never
    touched. Bump CACHE when the shell assets change.
    ============================================================ */
-var CACHE = "aman-shell-v2";
+var CACHE = "aman-shell-v3";
 var SHELL = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
   "./images/icon-192.png",
   "./images/icon-512.png",
-  "./images/apple-touch-icon.png"
+  "./images/apple-touch-icon.png",
+  "./images/aman_robot.png"
 ];
 
 self.addEventListener("install", function (e) {

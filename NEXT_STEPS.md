@@ -190,3 +190,21 @@ rest.
    the extra SQL to run after schema.sql.
 4. **Together:** pilot Mumble only if the team still wants voice radio after
    using the WhatsApp group with the new link.
+
+---
+
+## 8. Parked Enhancements & Open Source Tools Review
+
+### A. Pre-Shift 15-Second Safety Checklist (Parked for next release)
+When starting a shift, display a quick 4-point verification modal:
+1. Hi-vis reflective vest on.
+2. Torch / flashlight charged and working.
+3. Partner is physically present (never patrol alone).
+4. WhatsApp check-in sent to the patrol group.
+
+### B. Open Source Tools in Use (Lightweight & High-Value)
+- Leaflet.js: Open-source interactive map engine (no Google Maps API fees, runs entirely client-side).
+- OpenStreetMap & CartoDB: Community street map data and high-contrast dark night tiles.
+- Esri World Imagery: Free, high-resolution satellite aerial imagery overlay for neighbourhood context.
+- Open-Meteo API: Zero-key, open-source meteorological and rain forecast service.
+- Web Print API & CSS Print Layout: Instant client-side PDF export for coordinator security reports without heavy server dependencies.

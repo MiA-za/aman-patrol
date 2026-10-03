@@ -68,7 +68,11 @@
     mosque: '<path d="M5 21h14"/><path d="M7 21v-7a5 5 0 0 1 10 0v7"/><circle cx="12" cy="7.5" r="1"/><path d="M3.5 21v-6"/><path d="M20.5 21v-6"/>',
     school: '<path d="M2 9l10-5 10 5-10 5L2 9z"/><path d="M6 11.5V16c0 1.5 2.7 3 6 3s6-1.5 6-3v-4.5"/><path d="M22 9v6"/>',
     tree: '<path d="M12 2l4.5 7h-2.6l4.1 6H6l4.1-6H7.5L12 2z"/><path d="M12 15v6"/><path d="M9 21h6"/>',
-    book: '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>'
+    book: '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',
+    phone: '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>',
+    crosshair: '<circle cx="12" cy="12" r="10"/><line x1="22" y1="12" x2="18" y2="12"/><line x1="6" y1="12" x2="2" y2="12"/><line x1="12" y1="6" x2="12" y2="2"/><line x1="12" y1="22" x2="12" y2="18"/>',
+    layers: '<polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/>',
+    printer: '<polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>'
   };
   function I(name, s, cls) {
     return '<svg class="ico' + (cls ? " " + cls : "") + '" width="' + (s || 18) + '" height="' + (s || 18) +
@@ -878,18 +882,86 @@
     });
   }
 
+  function emergencySpeedDialModal() {
+    modal(
+      "<h3>" + I("phone", 18) + " Emergency Speed-Dial</h3>" +
+      '<p class="m-sub">Direct call centre numbers for neighbourhood armed response, SAPS, and medical services.</p>' +
+      '<div style="margin-bottom:12px">' +
+      '<h4 style="font-size:0.84rem;margin:6px 0 6px;color:var(--navy)">Armed Response &amp; Security Providers</h4>' +
+      '<div class="row wrap" style="gap:8px">' +
+      '<a class="btn btn-ghost block" href="tel:0116781972" style="justify-content:space-between;padding:10px 14px;border-left:4px solid var(--navy)">' +
+      '<div><b>Beagle Watch Armed Response</b><br><span style="font-size:0.75rem;color:var(--muted)">24/7 Control Room</span></div>' +
+      '<span class="chip navy">' + I("phone", 13) + ' 011 678 1972</span></a>' +
+
+      '<a class="btn btn-ghost block" href="tel:0861227227" style="justify-content:space-between;padding:10px 14px;border-left:4px solid var(--teal)">' +
+      '<div><b>CAP Security (Community Active Protection)</b><br><span style="font-size:0.75rem;color:var(--muted)">24/7 Emergency</span></div>' +
+      '<span class="chip teal">' + I("phone", 13) + ' 0861 227 227</span></a>' +
+
+      '<a class="btn btn-ghost block" href="tel:0114771222" style="justify-content:space-between;padding:10px 14px;border-left:4px solid var(--warn)">' +
+      '<div><b>SCP Security</b><br><span style="font-size:0.75rem;color:var(--muted)">24/7 Call Centre</span></div>' +
+      '<span class="chip warn">' + I("phone", 13) + ' 011 477 1222</span></a>' +
+
+      '<a class="btn btn-ghost block" href="tel:0861212400" style="justify-content:space-between;padding:10px 14px;border-left:4px solid #475569">' +
+      '<div><b>Fidelity ADT</b><br><span style="font-size:0.75rem;color:var(--muted)">Inland Emergency Control</span></div>' +
+      '<span class="chip grey">' + I("phone", 13) + ' 086 12 12 400</span></a>' +
+      '</div></div>' +
+
+      '<div style="margin-bottom:12px">' +
+      '<h4 style="font-size:0.84rem;margin:10px 0 6px;color:var(--danger)">Police &amp; Medical Emergencies</h4>' +
+      '<div class="row wrap" style="gap:8px">' +
+      '<a class="btn btn-danger block" href="tel:10111" style="justify-content:space-between;padding:10px 14px">' +
+      '<div><b>SAPS Flying Squad (National Police)</b><br><span style="font-size:0.75rem;opacity:0.85">Life-threatening emergencies</span></div>' +
+      '<span class="chip" style="background:#fff;color:var(--danger)">' + I("phone", 13) + ' 10111</span></a>' +
+
+      '<a class="btn btn-ghost block" href="tel:0110676000" style="justify-content:space-between;padding:10px 14px;border-left:4px solid #2563eb">' +
+      '<div><b>SAPS Parkview Police Station</b><br><span style="font-size:0.75rem;color:var(--muted)">Local Station · Greenside &amp; Emmarentia</span></div>' +
+      '<span class="chip info">' + I("phone", 13) + ' 011 067 6000</span></a>' +
+
+      '<a class="btn btn-ghost block" href="tel:082911" style="justify-content:space-between;padding:10px 14px;border-left:4px solid var(--ok)">' +
+      '<div><b>Netcare 911 Ambulance</b><br><span style="font-size:0.75rem;color:var(--muted)">Emergency Medical Response</span></div>' +
+      '<span class="chip ok">' + I("phone", 13) + ' 082 911</span></a>' +
+
+      '<a class="btn btn-ghost block" href="tel:084124" style="justify-content:space-between;padding:10px 14px;border-left:4px solid var(--ok)">' +
+      '<div><b>ER24 Emergency Medical</b><br><span style="font-size:0.75rem;color:var(--muted)">24/7 Medical Response</span></div>' +
+      '<span class="chip ok">' + I("phone", 13) + ' 084 124</span></a>' +
+
+      '<a class="btn btn-ghost block" href="tel:0113755911" style="justify-content:space-between;padding:10px 14px;border-left:4px solid var(--danger)">' +
+      '<div><b>City of Joburg EMS (Fire / Rescue)</b><br><span style="font-size:0.75rem;color:var(--muted)">10177 / 011 375 5911</span></div>' +
+      '<span class="chip danger">' + I("phone", 13) + ' 011 375 5911</span></a>' +
+      '</div></div>' +
+      '<div class="m-actions"><button class="btn btn-primary" data-close>Close</button></div>'
+    );
+  }
+
   function renderDashboard() {
     var user = S().sessionUser();
     setShell(true);
     setActiveNav("dashboard");
     screenEl.className = "screen";
     var coord = user.role === "coordinator";
+    var handover = S().latestHandoverNote ? S().latestHandoverNote() : null;
+
+    var handoverHtml = "";
+    if (handover) {
+      handoverHtml =
+        '<div class="card tight handover-card" style="border-left:4px solid var(--teal);margin-bottom:12px;background:var(--teal-soft)">' +
+        '<div class="row spread"><span style="font-weight:800;font-size:0.78rem;color:var(--teal-dark)">' + I("shield", 13) + ' Latest Patrol Handover Note</span>' +
+        '<span style="font-size:0.7rem;color:var(--muted)">' + esc(S().timeAgo(handover.end_time)) + '</span></div>' +
+        '<div style="font-size:0.84rem;margin:5px 0 3px;line-height:1.4">"' + esc(handover.notes) + '"</div>' +
+        '<div style="font-size:0.72rem;color:var(--muted)">By <b>' + esc(handover.user_name) + '</b>' + (handover.zone ? ' · ' + esc(handover.zone) : '') + '</div>' +
+        '</div>';
+    }
+
     screenEl.innerHTML =
       onShiftBannerHtml() +
       '<div class="row spread" style="align-items:flex-start">' +
       '<div><h1 class="page-title" style="margin-bottom:2px">As-salamu alaykum, ' + esc(user.first_name) + "</h1>" +
       '<p class="page-sub" style="margin:0">' + esc(user.street + ", " + user.suburb) + "</p></div>" +
-      '<span class="chip ' + (coord ? "teal" : "ok") + '">' + (coord ? "Coordinator" : "Approved volunteer") + "</span></div>" +
+      '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">' +
+      '<span class="chip ' + (coord ? "teal" : "ok") + '">' + (coord ? "Coordinator" : "Approved volunteer") + "</span>" +
+      '<span class="chip grey" style="font-size:0.6rem;padding:2px 6px">Power: Stage 0 (Normal)</span></div></div>' +
+
+      handoverHtml +
 
       '<div class="weather" id="weather-tile">' +
       '<div class="w-top"><div class="w-icon" style="width:44px;height:44px"><div style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.15);margin:5px"></div></div>' +
@@ -908,12 +980,13 @@
 
       '<div class="action-grid">' +
       '<a class="action" href="#/roster"><div class="a-icon navy">' + I("calendar",20) + '</div><div class="a-label">Create or join a patrol</div><div class="a-sub">Pick any date &amp; time · pairs only · ' + S().slots().filter(function (s) { return s.understaffed; }).length + ' need a partner</div></a>' +
-      '<a class="action" href="#/map"><div class="a-icon teal">' + I("map",20) + '</div><div class="a-label">View area map</div><div class="a-sub">Real area data + risk pins</div></a>' +
-      '<a class="action" href="#/notifications"><div class="a-icon warn">' + I("bell",20) + '</div><div class="a-label">Notifications</div><div class="a-sub" id="dash-notif-sub">' + S().unreadCount(user) + ' unread</div></a>' +
+      '<a class="action" href="#/map"><div class="a-icon teal">' + I("map",20) + '</div><div class="a-label">View area map</div><div class="a-sub">Satellite, streets &amp; risk pins</div></a>' +
+      '<button class="action" id="dash-emerg-btn" style="text-align:left;cursor:pointer"><div class="a-icon danger" style="background:var(--danger-soft);color:var(--danger)">' + I("phone",20) + '</div><div class="a-label">Emergency Speed-Dial</div><div class="a-sub">Beagle · CAP · SCP · SAPS</div></button>' +
       '<a class="action" href="#/chat"><div class="a-icon info">' + I("chat",20) + '</div><div class="a-label">Team chat</div><div class="a-sub">Operational team coordination</div></a>' +
       '<button class="action" id="dash-ai-btn" style="text-align:left;cursor:pointer"><div class="a-icon navy">' + I("shield_star",20) + '</div><div class="a-label">Aman Patrol Assistant</div><div class="a-sub">Routes · dispatch · patrol status</div></button>' +
       '<button class="action" id="dash-compass-btn" style="text-align:left;cursor:pointer"><div class="a-icon teal">' + I("compass",20) + '</div><div class="a-label">Compass &amp; Camera</div><div class="a-sub">Bearing · GPS · Stamped photos</div></button>' +
       '<button class="action" id="radio-btn" style="text-align:left;cursor:pointer"><div class="a-icon warn">' + I("radio",20) + '</div><div class="a-label">Patrol comms and voice</div><div class="a-sub">How the team talks on shift</div></button>' +
+      '<a class="action" href="#/notifications"><div class="a-icon warn">' + I("bell",20) + '</div><div class="a-label">Notifications</div><div class="a-sub" id="dash-notif-sub">' + S().unreadCount(user) + ' unread</div></a>' +
       "</div>" +
       (coord ? '<a class="action full" href="#/admin/approvals"><div class="a-icon navy">' + I("shield",20) + '</div><div class="grow"><div class="a-label">Coordinator dashboard</div><div class="a-sub">Approvals · volunteers · incidents · reports</div></div></a>' : "");
 
@@ -949,6 +1022,7 @@
         '<div class="w-note">' + I("alert",13) + ' Check conditions before you patrol — dress for the weather and stay visible.</div>';
     });
 
+    var deb = $("#dash-emerg-btn"); if (deb) deb.onclick = emergencySpeedDialModal;
     $("#radio-btn").onclick = radioModal;
     var dab = $("#dash-ai-btn"); if (dab) dab.onclick = amanAiModal;
     var dcb = $("#dash-compass-btn"); if (dcb) dcb.onclick = compassModal;
@@ -1294,11 +1368,20 @@
     screenEl.className = "screen map-screen";
     screenEl.innerHTML =
       '<div class="map-wrap"><div id="map"></div>' +
+      '<button class="map-layers-btn" id="map-layers-btn" title="Map layers &amp; styles">' + I("layers",14) + ' <span>Layers</span></button>' +
       '<button class="map-weather-badge" id="map-weather-btn" title="View weather conditions &amp; forecast">' + I("sun",14) + ' <span id="map-weather-text">Weather</span></button>' +
+      '<button class="map-locate-btn" id="map-locate-btn" title="Center on my location" aria-label="Center on my location">' + I("crosshair",20) + '</button>' +
       '<button class="map-fab hidden" id="add-pin-btn" title="Add a coordinator pin">' + I("pin",18) + ' Add pin</button>' +
       '<div class="map-note" id="map-note"></div></div>';
     window.AmanMap.setAddPinHandler(addPinModal);
     window.AmanMap.mount();
+
+    var lb = $("#map-layers-btn");
+    if (lb) lb.onclick = function () { window.AmanMap.openLayersModal(); };
+
+    var locb = $("#map-locate-btn");
+    if (locb) locb.onclick = function () { window.AmanMap.locateUser(); };
+
     var wb = $("#map-weather-btn");
     if (wb) {
       wb.onclick = weatherForecastModal;
@@ -1593,6 +1676,10 @@
       }).join("") || '<div class="muted" style="font-size:0.8rem">No reports yet.</div>') +
       "</div>" +
 
+      '<button class="action full" id="more-emerg-btn" style="border-left:5px solid var(--danger);margin-bottom:12px">' +
+      '<div class="a-icon danger" style="background:var(--danger-soft);color:var(--danger)">' + I("phone",20) + '</div>' +
+      '<div class="grow"><div class="a-label">Emergency Speed-Dial</div><div class="a-sub">Beagle · CAP · SCP · ADT · SAPS · EMS</div></div></button>' +
+
       '<div class="card">' +
       '<div class="row spread" style="align-items:center;margin-bottom:12px">' +
       '<div><div style="font-weight:700;font-size:0.88rem">Floating Aman Assistant</div>' +
@@ -1606,6 +1693,7 @@
       '<p class="center" style="font-size:0.66rem;color:var(--muted);line-height:1.6">Aman Patrol · Greenside &amp; Emmarentia<br>Observe and report only · Never patrol alone · Map data © OpenStreetMap</p>';
 
     $all("[data-inc]").forEach(function (r) { r.onclick = function () { window.AmanAdmin.incidentModal(r.getAttribute("data-inc"), null); }; });
+    var meb = $("#more-emerg-btn"); if (meb) meb.onclick = emergencySpeedDialModal;
     var epb = $("#edit-prof-btn"); if (epb) epb.onclick = function () { editProfileModal(user); };
     var toggleBot = $("#toggle-aman-bot");
     if (toggleBot) {

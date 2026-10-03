@@ -583,6 +583,28 @@
     return out;
   }
 
+  function latestHandoverNote() {
+    var out = [];
+    for (var i = 0; i < claims.length; i++) {
+      if (claims[i].status === "completed" && claims[i].notes && String(claims[i].notes).trim()) {
+        var c = claimView(claims[i]);
+        var s = rawSlot(c.slot_id);
+        var u = userById(c.user_id);
+        out.push({
+          id: c.id,
+          notes: claims[i].notes,
+          user_name: u ? (u.first_name + " " + (u.surname ? u.surname[0] + "." : "")) : "Volunteer",
+          end_time: claims[i].end_shift_time,
+          zone: s ? s.zone : "",
+          date: s ? s.date : ""
+        });
+      }
+    }
+    if (!out.length) return null;
+    out.sort(function (a, b) { return new Date(b.end_time || 0) - new Date(a.end_time || 0); });
+    return out[0];
+  }
+
   function completedShifts() {
     var out = [];
     for (var i = 0; i < claims.length; i++) {
@@ -936,7 +958,7 @@
     users: listUsers, userById: userById, userLabel: userLabel, approveUser: approveUser, declineUser: declineUser,
     // slots & claims
     slots: listSlots, slotById: slotById, claimSlot: claimSlot, unclaim: unclaim, myClaims: myClaims,
-    myClaimFor: myClaimFor, startShift: startShift, endShift: endShift, completedShifts: completedShifts, updateProfile: updateProfile, updateLiveLocation: updateLiveLocation, listLiveLocations: listLiveLocations,
+    myClaimFor: myClaimFor, startShift: startShift, endShift: endShift, completedShifts: completedShifts, latestHandoverNote: latestHandoverNote, updateProfile: updateProfile, updateLiveLocation: updateLiveLocation, listLiveLocations: listLiveLocations,
     addSlot: addSlot, removeSlot: removeSlot, assignVolunteer: assignVolunteer, removeClaim: removeClaim,
     createSlot: createSlot, deleteOwnSlot: deleteOwnSlot, raiseSOS: raiseSOS,
     getSetting: getSetting, setSetting: setSetting,

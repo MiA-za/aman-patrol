@@ -1,5 +1,8 @@
 /* ============================================================
    AMAN PATROL — Area Map.
+   - Multi-layer base maps: Streets, Satellite (Aerial), Dark
+   - Zone A (Greenside) & Zone B (Emmarentia) boundary outlines
+   - One-tap "Locate Me" live GPS tracking
    - Real layers from OpenStreetMap (via Overpass snapshot in data.js)
    - Custom coordinator pins (dark spots, risk corners, madrassah corridors…)
    - Recent incidents from the store
@@ -14,10 +17,62 @@
   }
 
   var map = null;
+  var currentTileLayer = null;
+  var currentBaseMap = "streets";
   var layers = {};       // id -> { group, on, label, accent }
   var tileErrors = 0;
   var addPinMode = false;
   var onAddPinCb = null;
+  var userLocationMarker = null;
+  var userAccuracyCircle = null;
+
+  var BASE_TILES = {
+    streets: {
+      url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+      opts: { maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' },
+      label: "Default Streets"
+    },
+    satellite: {
+      url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+      opts: { maxZoom: 19, attribution: "Tiles &copy; Esri &mdash; Source: Esri, Maxar, Earthstar Geographics, GIS User Community" },
+      label: "Satellite Aerial"
+    },
+    dark: {
+      url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+      opts: { maxZoom: 19, subdomains: "abcd", attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; OpenStreetMap' },
+      label: "Night / Dark"
+    }
+  };
+
+  var ZONE_BOUNDARIES = {
+    "Zone A – Greenside": {
+      coords: [
+        [-26.1425, 28.0078],
+        [-26.1438, 28.0210],
+        [-26.1518, 28.0248],
+        [-26.1605, 28.0215],
+        [-26.1578, 28.0089],
+        [-26.1488, 28.0082]
+      ],
+      color: "#0e9f9f",
+      label: "Zone A — Greenside",
+      center: [-26.1515, 28.0150]
+    },
+    "Zone B – Emmarentia": {
+      coords: [
+        [-26.1436, 28.0072],
+        [-26.1492, 28.0078],
+        [-26.1576, 28.0082],
+        [-26.1685, 28.0125],
+        [-26.1668, 27.9942],
+        [-26.1532, 27.9935],
+        [-26.1448, 27.9978]
+      ],
+      color: "#13294b",
+      label: "Zone B — Emmarentia",
+      center: [-26.1550, 28.0020]
+    }
+  };
 
   function pinIcon(color, glyph, letter) {
     var inner = letter
@@ -29,18 +84,55 @@
       iconSize: [30, 30], iconAnchor: [15, 28], popupAnchor: [0, -26]
     });
   }
+
   function dotIcon(color) {
     return L.divIcon({ className: "", html: '<div class="dot" style="background:' + color + '"></div>', iconSize: [12, 12], iconAnchor: [6, 6] });
   }
 
   function srcTag() { return '<div style="margin-top:6px;font-size:0.66rem;color:#8b98ab">Source: OpenStreetMap contributors</div>'; }
 
+  function setBaseMap(type) {
+    if (!BASE_TILES[type] || !map) return;
+    currentBaseMap = type;
+    try { localStorage.setItem("aman_map_basemap", type); } catch (e) {}
+    if (currentTileLayer) {
+      map.removeLayer(currentTileLayer);
+    }
+    var cfg = BASE_TILES[type];
+    currentTileLayer = L.tileLayer(cfg.url, cfg.opts).addTo(map);
+  }
+
   function buildLayers() {
     var A = window.AREA;
     var S = window.AmanStore;
 
     function mk(id, label, accent, def) {
-      layers[id] = { group: L.layerGroup(), on: !!def, label: label, accent: !!accent };
+      var saved = null;
+      try { saved = localStorage.getItem("aman_layer_" + id); } catch (e) {}
+      var isOn = saved !== null ? saved === "1" : !!def;
+      layers[id] = { group: L.layerGroup(), on: isOn, label: label, accent: !!accent };
+    }
+
+    // sector / zone boundaries
+    mk("zones", "Sector boundaries (Zones A & B)", true, true);
+    for (var zKey in ZONE_BOUNDARIES) {
+      var z = ZONE_BOUNDARIES[zKey];
+      L.polygon(z.coords, {
+        color: z.color,
+        weight: 3.5,
+        opacity: 0.85,
+        fillColor: z.color,
+        fillOpacity: 0.08,
+        dashArray: "6, 6"
+      }).bindPopup("<b>" + esc(z.label) + "</b><br>Official Community Watch Sector Boundary").addTo(layers.zones.group);
+
+      L.marker(z.center, {
+        icon: L.divIcon({
+          className: "",
+          html: '<div class="zone-label-badge" style="background:' + z.color + '">' + esc(z.label.split(" — ")[0]) + '</div>',
+          iconSize: [70, 22], iconAnchor: [35, 11]
+        })
+      }).bindPopup("<b>" + esc(z.label) + "</b><br>Observe and report only — never patrol alone.").addTo(layers.zones.group);
     }
 
     // masjids
@@ -51,7 +143,7 @@
         .addTo(layers.masjids.group);
     });
 
-    // schools (off by default to avoid clutter)
+    // schools
     mk("schools", "Schools", false, false);
     (A.schools || []).forEach(function (s) {
       L.marker([s.lat, s.lng], { icon: pinIcon("#13294b", "school") })
@@ -59,7 +151,7 @@
         .addTo(layers.schools.group);
     });
 
-    // parks / green (off by default)
+    // parks / green
     mk("parks", "Parks & green", false, false);
     (A.parks || []).forEach(function (p) {
       L.marker([p.lat, p.lng], { icon: pinIcon("#16a34a", "tree") })
@@ -75,7 +167,7 @@
         .addTo(layers.police.group);
     });
 
-    // businesses (off by default — keeps the first view calm)
+    // businesses
     mk("businesses", "Businesses", false, false);
     (A.businesses || []).forEach(function (b) {
       L.marker([b.lat, b.lng], { icon: dotIcon("#d97706") })
@@ -213,12 +305,130 @@
   }
 
   function renderToolbar() {
-    // Only attach uncluttered, essential safety layers
     Object.keys(layers).forEach(function (id) {
       if (layers[id].on) {
         layers[id].group.addTo(map);
+      } else {
+        map.removeLayer(layers[id].group);
       }
     });
+  }
+
+  function locateUser() {
+    if (!map) return;
+    var btn = document.getElementById("map-locate-btn");
+    if (btn) btn.classList.add("locating");
+    setNote("Acquiring high-accuracy GPS position…");
+
+    if (!navigator.geolocation) {
+      if (btn) btn.classList.remove("locating");
+      window.AmanUI.toast("Geolocation is not supported on this device.", "error");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      function (pos) {
+        if (btn) btn.classList.remove("locating");
+        var lat = pos.coords.latitude;
+        var lng = pos.coords.longitude;
+        var acc = Math.round(pos.coords.accuracy || 10);
+
+        if (userLocationMarker) map.removeLayer(userLocationMarker);
+        if (userAccuracyCircle) map.removeLayer(userAccuracyCircle);
+
+        userAccuracyCircle = L.circle([lat, lng], {
+          radius: Math.max(acc, 15),
+          color: "#0e9f9f",
+          weight: 1.5,
+          fillColor: "#0e9f9f",
+          fillOpacity: 0.15
+        }).addTo(map);
+
+        userLocationMarker = L.circleMarker([lat, lng], {
+          radius: 8,
+          color: "#ffffff",
+          weight: 3,
+          fillColor: "#0e9f9f",
+          fillOpacity: 1
+        }).bindPopup("<b>Your Current Position</b><br>Accuracy: ±" + acc + "m").addTo(map);
+
+        map.setView([lat, lng], 17, { animate: true });
+        setNote("Centered on your live GPS position (accuracy ±" + acc + "m).");
+        window.AmanUI.toast("Position located (±" + acc + "m)", "ok");
+      },
+      function (err) {
+        if (btn) btn.classList.remove("locating");
+        setNote("Could not get GPS position: " + err.message);
+        window.AmanUI.toast("Unable to get current GPS location.", "warn");
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+  }
+
+  function openLayersModal() {
+    var baseOptions = [
+      { id: "streets", label: "Default Streets", icon: "map" },
+      { id: "satellite", label: "Satellite Aerial", icon: "camera" },
+      { id: "dark", label: "Night / Dark", icon: "moon" }
+    ];
+
+    var overlays = [
+      { id: "zones", label: "Sector Boundaries (Zones A & B)" },
+      { id: "pins", label: "Coordinator Risk Pins & Dark Spots" },
+      { id: "incidents", label: "Active Incident Locations" },
+      { id: "patrollers", label: "On-Duty Patrollers (Live GPS)" },
+      { id: "masjids", label: "Masjids & Places of Worship" },
+      { id: "schools", label: "Schools" },
+      { id: "parks", label: "Parks & Green Areas" },
+      { id: "police", label: "SAPS Police Stations" },
+      { id: "roads", label: "Main Arterial Roads" },
+      { id: "signals", label: "Key Intersections" }
+    ];
+
+    var baseCardsHtml = '<div class="layer-choice-grid">' + baseOptions.map(function (b) {
+      var active = b.id === currentBaseMap ? " active" : "";
+      return '<div class="layer-card' + active + '" data-base-choice="' + b.id + '">' +
+        '<div>' + window.AmanUI.I(b.icon, 20) + '</div>' +
+        '<div style="margin-top:4px">' + esc(b.label) + '</div></div>';
+    }).join("") + '</div>';
+
+    var overlaysHtml = overlays.map(function (o) {
+      var isChecked = layers[o.id] && layers[o.id].on ? " checked" : "";
+      return '<label class="check plain" style="margin-bottom:6px">' +
+        '<input type="checkbox" data-overlay-toggle="' + o.id + '"' + isChecked + '> ' +
+        '<span>' + esc(o.label) + '</span></label>';
+    }).join("");
+
+    window.AmanUI.modal(
+      "<h3>" + window.AmanUI.I("layers", 18) + " Map Layers &amp; Overlays</h3>" +
+      '<p class="m-sub">Switch map styling and choose operational safety overlays.</p>' +
+      '<h4 style="font-size:0.84rem;margin:8px 0 6px">Base Map Style</h4>' +
+      baseCardsHtml +
+      '<h4 style="font-size:0.84rem;margin:12px 0 6px">Operational Overlays</h4>' +
+      '<div style="max-height:220px;overflow-y:auto;padding-right:4px">' + overlaysHtml + '</div>' +
+      '<div class="m-actions"><button class="btn btn-primary" data-close>Done</button></div>',
+      function (root) {
+        root.querySelectorAll("[data-base-choice]").forEach(function (card) {
+          card.onclick = function () {
+            var choice = card.getAttribute("data-base-choice");
+            setBaseMap(choice);
+            root.querySelectorAll("[data-base-choice]").forEach(function (c) { c.classList.remove("active"); });
+            card.classList.add("active");
+          };
+        });
+
+        root.querySelectorAll("[data-overlay-toggle]").forEach(function (chk) {
+          chk.onchange = function () {
+            var lid = chk.getAttribute("data-overlay-toggle");
+            if (layers[lid]) {
+              layers[lid].on = chk.checked;
+              try { localStorage.setItem("aman_layer_" + lid, chk.checked ? "1" : "0"); } catch (e) {}
+              renderToolbar();
+            }
+          };
+        });
+      }
+    );
   }
 
   function startAddPin() {
@@ -244,11 +454,17 @@
     opts = opts || {};
     var el = document.getElementById("map");
     if (!el || !window.L) return;
-    map = L.map(el, { zoomControl: true, attributionControl: true });
-    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 19,
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    }).addTo(map);
+    map = L.map(el, { zoomControl: false, attributionControl: true });
+
+    L.control.zoom({ position: "bottomright" }).addTo(map);
+
+    try {
+      var savedBase = localStorage.getItem("aman_map_basemap");
+      if (savedBase && BASE_TILES[savedBase]) currentBaseMap = savedBase;
+    } catch (e) {}
+
+    setBaseMap(currentBaseMap);
+
     map.on("tileerror", function () {
       tileErrors++;
       if (tileErrors === 3) setNote("Map tiles can't load right now (no internet connection). Marker data still shown. Open this app with internet access to see the street map.");
@@ -271,7 +487,6 @@
       }
     });
 
-    // pending focus (e.g. "view on map" from an incident)
     if (window.__amanMapFocus) {
       var f = window.__amanMapFocus;
       window.__amanMapFocus = null;
@@ -289,6 +504,9 @@
     layers = {};
     addPinMode = false;
     tileErrors = 0;
+    userLocationMarker = null;
+    userAccuracyCircle = null;
+    currentTileLayer = null;
   }
 
   window.AmanMap = {
@@ -300,6 +518,9 @@
     routeTo: routeTo,
     setAddPinHandler: function (fn) { onAddPinCb = fn; },
     startAddPin: startAddPin,
+    locateUser: locateUser,
+    openLayersModal: openLayersModal,
+    setBaseMap: setBaseMap,
     focus: function (lat, lng, marker) {
       window.__amanMapFocus = { lat: lat, lng: lng, marker: !!marker };
       if (map) { map.setView([lat, lng], 17); window.__amanMapFocus = null; }

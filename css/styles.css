@@ -223,7 +223,6 @@ p.page-sub { margin: 0 0 14px; color: var(--muted); font-size: 0.85rem; }
 .install-card .a-icon { color: #fff; background: rgba(255,255,255,0.16); }
 .action.full.install-card .a-sub { color: rgba(255,255,255,0.82); }
 .install-card .install-arrow { display: flex; color: #fff; flex-shrink: 0; }
-.install-card.is-installed { background: linear-gradient(135deg, #065f46, #047857); }
 .install-card:focus-visible { outline: 3px solid var(--teal); outline-offset: 2px; }
 .install-steps { display: grid; gap: 10px; margin: 12px 0; }
 .install-step {
@@ -241,6 +240,23 @@ p.page-sub { margin: 0 0 14px; color: var(--muted); font-size: 0.85rem; }
   padding: 12px; border-radius: 12px; background: var(--teal-soft);
   color: var(--teal-dark); font-size: 0.84rem; font-weight: 800;
 }
+
+/* ---------- collapsible profile section (More) ---------- */
+.profile-toggle {
+  display: block; width: 100%; padding: 0; margin: 0;
+  background: none; border: 0; text-align: left; cursor: pointer;
+  font: inherit; color: inherit;
+}
+.profile-toggle .vrow { align-items: center; }
+.profile-toggle:focus-visible { outline: 3px solid var(--teal); outline-offset: 3px; border-radius: 12px; }
+.profile-caret {
+  display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0;
+  color: var(--teal-dark); font-size: 0.66rem; font-weight: 800;
+  letter-spacing: 0.03em; text-transform: uppercase;
+}
+.profile-caret .ico { transition: transform 0.18s ease; }
+.profile-card.open .profile-caret .ico { transform: rotate(180deg); }
+.profile-details .divider { margin: 10px 0; }
 
 /* ---------- weather tile ---------- */
 .weather {
@@ -653,6 +669,22 @@ html[data-theme="dark"] .cal-cell.selected { background: #25477e; border-color: 
 .msg-time { font-size: 0.64rem; color: var(--muted); margin-top: 3px; }
 .chat-input { display: flex; gap: 8px; padding: 10px 0 86px; align-items: stretch; }
 .chat-input input { flex: 1; }
+/* bare text boxes (Aman assistant query, Team Chat) share the themed field
+   styling so they stay visible in night mode: card background, white text,
+   visible border, teal focus ring */
+#ai-user-query, .chat-input input {
+  min-height: 48px; padding: 11px 13px; border-radius: 12px;
+  border: 1.5px solid var(--line); background: var(--card);
+  font-size: 0.95rem; font-family: inherit; color: var(--text);
+}
+#ai-user-query:focus, .chat-input input:focus {
+  outline: none; border-color: var(--teal); box-shadow: 0 0 0 3px rgba(14, 159, 159, 0.15);
+}
+#ai-user-query::placeholder, .chat-input input::placeholder { color: var(--muted); }
+/* night mode: the Aman query box sits on the dark modal card, so give it a
+   deeper inset background; the Team Chat box sits on the page background,
+   so it keeps the raised card colour and stands out that way */
+html[data-theme="dark"] #ai-user-query { background: var(--page-bg); border-color: var(--line); }
 .nav-badge {
   position: absolute; top: 3px; right: 16px; background: #c0392b; color: #fff;
   font-size: 0.58rem; font-weight: 800; border-radius: 9px; padding: 1px 5px; line-height: 1.3;

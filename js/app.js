@@ -58,6 +58,7 @@
     moon: '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>',
     chev_l: '<polyline points="15 18 9 12 15 6"/>',
     chev_r: '<polyline points="9 18 15 12 9 6"/>',
+    chev_d: '<polyline points="6 9 12 15 18 9"/>',
     wind: '<path d="M9.59 4.59A2 2 0 1 1 11 8H2"/><path d="M12.59 19.41A2 2 0 1 0 14 16H2"/><path d="M17.73 7.73A2.5 2.5 0 1 1 19.5 12H2"/>',
     rain: '<line x1="16" y1="13" x2="16" y2="21"/><line x1="8" y1="13" x2="8" y2="21"/><line x1="12" y1="15" x2="12" y2="23"/><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"/>',
     camera: '<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
@@ -156,10 +157,14 @@
 
   var screenEl, lastNotifId = null;
   var deferredInstallPrompt = null;
+  var installDoneThisVisit = false;
   function S() { return window.AmanStore; }
 
-  /* ---------- install Aman Patrol on a phone ---------- */
+  /* ---------- install Aman Patrol on a phone (More screen only) ---------- */
   function appIsInstalled() {
+    // appinstalled fires in the browser tab that did the installing; the tab
+    // itself is still display-mode "browser", so remember it for this visit.
+    if (installDoneThisVisit) return true;
     return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) ||
       window.navigator.standalone === true;
   }
@@ -168,27 +173,35 @@
     return /iphone|ipad|ipod/i.test(ua) ||
       (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   }
+  function installActionSub() {
+    if (isIOSDevice()) return "Tap Share, then Add to Home Screen";
+    return deferredInstallPrompt ? "Ready to install now" : "Add Aman Patrol to this phone";
+  }
   function installCardHtml() {
-    if (appIsInstalled() || (!deferredInstallPrompt && !isIOSDevice())) return "";
+    // One install action, only on More. Shown whenever the app is not
+    // installed yet (available to install or still needed). Never shown as
+    // an "installed" tile, and never rendered on the Home dashboard.
+    if (appIsInstalled()) return "";
+    var ios = isIOSDevice();
     return '<button type="button" class="action full install-card" data-install-app>' +
       '<div class="a-icon" data-install-icon>' + I("download", 24) + '</div>' +
-      '<div class="grow"><div class="a-label" data-install-title>Install Aman Patrol</div>' +
-      '<div class="a-sub" data-install-sub>' + (isIOSDevice() ? "Tap Share, then Add to Home Screen" : "Install the app on this phone") + '</div></div>' +
-      '<span class="install-arrow" aria-hidden="true">' + I("chev_r", 20) + '</span></button>';
+      '<div class="grow"><div class="a-label" data-install-title>' + (ios ? "Add Aman Patrol to Phone" : "Install Aman Patrol") + "</div>" +
+      '<div class="a-sub" data-install-sub>' + installActionSub() + "</div></div>" +
+      '<span class="install-arrow" aria-hidden="true">' + I("chev_r", 20) + "</span></button>";
   }
   function refreshInstallCards() {
-    var installed = appIsInstalled();
+    // Installed (or install completed this visit): remove the action entirely.
+    if (appIsInstalled()) {
+      $all("[data-install-app]").forEach(function (card) { card.remove(); });
+      return;
+    }
     $all("[data-install-app]").forEach(function (card) {
-      if (installed) { card.remove(); return; }
-      card.classList.toggle("is-installed", false);
       var icon = card.querySelector("[data-install-icon]");
       var title = card.querySelector("[data-install-title]");
       var sub = card.querySelector("[data-install-sub]");
-      if (icon) icon.innerHTML = I(installed ? "check_circle" : "download", 24);
-      if (title) title.textContent = installed ? "Aman Patrol is installed" : "Download / Install App to Phone";
-      if (sub) sub.textContent = installed
-        ? "Open it anytime from your phone home screen"
-        : (deferredInstallPrompt ? "Ready to install now" : "Add Aman Patrol to your home screen for quick access");
+      if (icon) icon.innerHTML = I("download", 24);
+      if (title) title.textContent = isIOSDevice() ? "Add Aman Patrol to Phone" : "Install Aman Patrol";
+      if (sub) sub.textContent = installActionSub();
     });
   }
   function showIOSInstallInstructions() {
@@ -247,6 +260,8 @@
     refreshInstallCards();
   });
   window.addEventListener("appinstalled", function () {
+    // Real install confirmed by the browser: hide the action for this visit.
+    installDoneThisVisit = true;
     deferredInstallPrompt = null;
     refreshInstallCards();
     toast("Aman Patrol was installed successfully.", "ok");
@@ -1863,6 +1878,46 @@
     setTimeout(function () { window.scrollTo(0, document.body.scrollHeight); }, 30);
   }
 
+  /* ============================================================
+     MORE SCREEN — helpers
+     ============================================================ */
+  var PROFILE_EXPANDED_KEY = "aman_profile_expanded";
+
+  function profileSectionDefaultExpanded() {
+    // start collapsed on small mobile screens; open on larger screens
+    try {
+      return !(window.matchMedia && window.matchMedia("(max-width: 640px)").matches);
+    } catch (err) {
+      return false;
+    }
+  }
+  function profileSectionExpanded() {
+    var saved = null;
+    try { saved = localStorage.getItem(PROFILE_EXPANDED_KEY); } catch (err) {}
+    if (saved === "true") return true;
+    if (saved === "false") return false;
+    return profileSectionDefaultExpanded();
+  }
+  function setProfileSectionExpanded(open) {
+    try { localStorage.setItem(PROFILE_EXPANDED_KEY, open ? "true" : "false"); } catch (err) {}
+  }
+
+  /* Completed patrol time: only completed shifts with valid start AND end
+     times count. Invalid pairs (missing, unparsable, or end not after start)
+     add nothing and are never shown as a duration. */
+  function shiftDurationMs(claim) {
+    if (!claim || claim.status !== "completed" || !claim.start_shift_time || !claim.end_shift_time) return null;
+    var start = new Date(claim.start_shift_time).getTime();
+    var end = new Date(claim.end_shift_time).getTime();
+    if (!isFinite(start) || !isFinite(end) || end <= start) return null;
+    return end - start;
+  }
+  function shiftHoursText(ms) {
+    var hours = Math.round((Math.max(0, ms || 0) / 3600000) * 10) / 10;
+    var text = hours % 1 ? hours.toFixed(1) : String(Math.round(hours));
+    return text + " " + (hours === 1 ? "hour" : "hours");
+  }
+
   function renderMore() {
     var user = S().sessionUser();
     var botHidden = isAmanBotHidden();
@@ -1871,28 +1926,28 @@
     screenEl.className = "screen";
     var claims = S().myClaims(user.id).sort(function (a, b) { return S().slotStartISO(b.slot || a.slot) - S().slotStartISO(a.slot || b.slot); });
     var completedShiftMs = claims.reduce(function (total, claim) {
-      if (claim.status !== "completed" || !claim.start_shift_time || !claim.end_shift_time) return total;
-      var start = new Date(claim.start_shift_time).getTime();
-      var end = new Date(claim.end_shift_time).getTime();
-      return total + (isFinite(start) && isFinite(end) && end > start ? end - start : 0);
+      var ms = shiftDurationMs(claim);
+      return total + (ms || 0);
     }, 0);
-    function shiftHours(ms) {
-      var hours = ms / 3600000;
-      return (Math.round(hours * 10) / 10).toFixed(hours % 1 ? 1 : 0) + " " + (hours === 1 ? "hour" : "hours");
-    }
+    var profileOpen = profileSectionExpanded();
     var myIncidents = S().incidents().filter(function (i) { return i.user_id === user.id; });
 
     screenEl.innerHTML =
-      '<div class="card"><div class="vrow">' +
+      '<div class="card profile-card' + (profileOpen ? " open" : "") + '">' +
+      '<button type="button" class="profile-toggle" id="profile-toggle" aria-expanded="' + (profileOpen ? "true" : "false") + '" aria-controls="profile-details" aria-label="Contact details for ' + esc(user.first_name + " " + user.surname) + ', show or hide">' +
+      '<div class="vrow">' +
       '<div class="avatar' + (user.role === "coordinator" ? " teal" : "") + '">' + esc(user.first_name[0] + user.surname[0]) + "</div>" +
-      '<div class="grow"><div class="name">' + esc(user.first_name + " " + user.surname) + "</div>" +
-      '<div class="sub">' + esc(user.email) + "</div></div>" +
-      '<span class="chip ' + (user.role === "coordinator" ? "teal" : "ok") + '">' + (user.role === "coordinator" ? "Coordinator" : "Volunteer") + "</span></div>" +
+      '<div class="grow"><div class="name">' + esc(user.first_name + " " + user.surname) + "</div></div>" +
+      '<span class="chip ' + (user.role === "coordinator" ? "teal" : "ok") + '">' + (user.role === "coordinator" ? "Coordinator" : "Volunteer") + "</span>" +
+      '<span class="profile-caret" aria-hidden="true">' + I("chev_d", 18) + '<span class="profile-caret-txt">Contact details</span></span>' +
+      "</div></button>" +
+      '<div class="profile-details' + (profileOpen ? "" : " hidden") + '" id="profile-details">' +
       '<div class="divider"></div>' +
-      '<dl class="kv"><dt>Cell Number</dt><dd>' + esc(user.whatsapp) + "</dd>" +
+      '<dl class="kv"><dt>Email</dt><dd>' + esc(user.email) + "</dd>" +
+      "<dt>Cell Number</dt><dd>" + esc(user.whatsapp) + "</dd>" +
       "<dt>Address</dt><dd>" + esc(user.street + ", " + user.suburb) + "</dd>" +
       '<dt>Emergency</dt><dd>' + esc((user.emergency_contact_name || "") + " " + (user.emergency_contact_number || "")) + "</dd></dl>" +
-      '<button class="btn btn-ghost btn-sm block mt-12" id="edit-prof-btn">' + I("user", 13) + ' Edit Contact Details</button></div>' +
+      '<button class="btn btn-ghost btn-sm block mt-12" id="edit-prof-btn">' + I("user", 13) + ' Edit Contact Details</button></div></div>' +
 
       installCardHtml() +
 
@@ -1901,13 +1956,17 @@
       (user.role === "coordinator" ? '<a class="action full" href="#/admin/approvals" style="margin-bottom:12px"><div class="a-icon navy">' + I("shield",20) + '</div><div class="grow"><div class="a-label">Coordinator dashboard</div></div></a>' : "") +
 
       '<h3 style="font-size:0.95rem;margin:10px 0 8px">My shifts (' + claims.length + ")</h3>" +
-      '<div class="card tight" style="margin-bottom:10px"><div class="row spread"><div><div style="font-weight:800;font-size:0.86rem">Completed patrol time</div><div style="font-size:0.72rem;color:var(--muted)">Calculated from finished shifts</div></div><span class="chip teal">' + shiftHours(completedShiftMs) + '</span></div></div>' +
+      '<div class="card tight" style="margin-bottom:10px"><div class="row spread"><div><div style="font-weight:800;font-size:0.86rem">Completed patrol time</div><div style="font-size:0.72rem;color:var(--muted)">Calculated from finished shifts</div></div><span class="chip teal">' + shiftHoursText(completedShiftMs) + '</span></div></div>' +
       '<div class="card tight">' +
       (claims.map(function (c) {
         if (!c.slot) return "";
+        var durMs = shiftDurationMs(c);
+        var startMs = c.start_shift_time ? new Date(c.start_shift_time).getTime() : NaN;
+        var endMs = c.end_shift_time ? new Date(c.end_shift_time).getTime() : NaN;
+        var showTimes = c.status === "completed" && isFinite(startMs) && isFinite(endMs);
         return '<div class="detail-list"><div><span class="dl-k">' + esc(S().fmtDate(c.slot.date)) + " · " + esc(c.slot.time_window) + "</span>" +
           '<span class="dl-v">' + (c.slot.zone ? esc(c.slot.zone.replace("Zone ", "")) + " · " : "") + esc(c.slot.activity_window) +
-          (c.status === "completed" && c.start_shift_time && c.end_shift_time ? " · " + esc(S().fmtTime(c.start_shift_time) + "–" + S().fmtTime(c.end_shift_time)) + " · " + shiftHours(Math.max(0, new Date(c.end_shift_time).getTime() - new Date(c.start_shift_time).getTime())) : "") +
+          (showTimes ? " · " + esc(S().fmtTime(c.start_shift_time) + "–" + S().fmtTime(c.end_shift_time)) + (durMs ? " · " + shiftHoursText(durMs) : "") : "") +
           ' <span class="chip ' + (c.status === "completed" ? "ok" : c.status === "started" ? "info" : "grey") + '" style="margin-left:4px">' + c.status + "</span></span></div></div>";
       }).join("") || '<div class="muted" style="font-size:0.8rem">No shifts yet — claim one from the roster.</div>') +
       "</div>" +
@@ -1939,6 +1998,18 @@
 
     $all("[data-inc]").forEach(function (r) { r.onclick = function () { window.AmanAdmin.incidentModal(r.getAttribute("data-inc"), null); }; });
     var meb = $("#more-emerg-btn"); if (meb) meb.onclick = emergencySpeedDialModal;
+    var profToggle = $("#profile-toggle");
+    if (profToggle) {
+      profToggle.onclick = function () {
+        var open = profToggle.getAttribute("aria-expanded") !== "true";
+        profToggle.setAttribute("aria-expanded", open ? "true" : "false");
+        var details = $("#profile-details");
+        if (details) details.classList.toggle("hidden", !open);
+        var card = profToggle.closest(".profile-card");
+        if (card) card.classList.toggle("open", open);
+        setProfileSectionExpanded(open);
+      };
+    }
     var epb = $("#edit-prof-btn"); if (epb) epb.onclick = function () { editProfileModal(user); };
     var toggleBot = $("#toggle-aman-bot");
     if (toggleBot) {
@@ -2192,7 +2263,15 @@
 
     // PWA: register the service worker (offline shell + install support)
     if ("serviceWorker" in navigator) {
-      try { navigator.serviceWorker.register("./sw.js"); } catch (err) {}
+      try {
+        navigator.serviceWorker.register("./sw.js").then(function (reg) {
+          // Check for a new service worker version on every load, so an
+          // updated app never leaves users on the previous version.
+          if (reg && typeof reg.update === "function") {
+            try { reg.update(); } catch (err) {}
+          }
+        });
+      } catch (err) {}
     }
   }
 

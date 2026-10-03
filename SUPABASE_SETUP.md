@@ -108,6 +108,12 @@ Now you can approve everyone else from inside the app itself — no more SQL.
 > it creates your login AND makes you the approved coordinator,
 > skipping the registration form entirely.
 
+> **Recommended extra — Addendum C:** run **`supabase/addendum_c.sql`**
+> once. It schedules a daily cleanup that automatically deletes
+> registrations still pending (or declined) after 30 days — their
+> details don't linger if nobody reviews them. Approved patrollers
+> are never deleted.
+
 ## Step 7 — Send me the two keys
 
 Come back to the chat and paste:

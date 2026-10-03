@@ -14,6 +14,18 @@
   ];
   var STATUSES = ["Logged", "Acknowledged", "SAPS/Security Notified", "Resolved"];
   var REPORT_FILTER = { from: "", to: "", category: "", status: "" };
+  var lastApproved = null; // set after Approve: drives the "send good news" banner
+
+  function waLink(phone, first) {
+    var n = String(phone || "").replace(/[^0-9+]/g, "");
+    if (n.indexOf("+") === 0) n = n.slice(1);
+    else if (n.charAt(0) === "0") n = "27" + n.slice(1);
+    var msg = "Assalamu alaikum " + (first || "") + "! Your Aman Patrol registration is approved. " +
+      "Open the app and log in with the email you registered. " +
+      "Remember: observe and report only, never patrol alone, emergencies 10111. " +
+      "App: https://mia-za.github.io/aman-patrol/";
+    return "https://wa.me/" + n + "?text=" + encodeURIComponent(msg);
+  }
 
   function esc(s) { return window.AmanUI.esc(s); }
 
@@ -64,20 +76,31 @@
   function renderApprovals(el) {
     var S = window.AmanStore;
     var pending = S.users().filter(function (u) { return u.status === "pending"; });
+    var banner = lastApproved ?
+      '<div class="approve-banner">' +
+      '<div class="ab-text">' + esc(lastApproved.first_name) + ' is approved — a welcome notification and chat message are waiting in the app. Send the good news:</div>' +
+      '<a class="btn btn-ok block mt-12" href="' + waLink(lastApproved.whatsapp, lastApproved.first_name) + '" target="_blank" rel="noopener">' + window.AmanUI.I("chat",15) + ' WhatsApp ' + esc(lastApproved.first_name) + '</a>' +
+      '<button class="btn btn-ghost block mt-8" data-wa-dismiss>Close</button>' +
+      '</div>' : "";
     if (!pending.length) {
-      el.innerHTML = '<div class="empty"><div class="big">' + window.AmanUI.I("check_circle",36) + '</div>No registrations waiting.<br>All applications have been reviewed.</div>';
+      el.innerHTML = banner + '<div class="empty"><div class="big">' + window.AmanUI.I("check_circle",36) + '</div>No registrations waiting.<br>All applications have been reviewed.</div>';
+      bindApproveBanner(el);
       return;
     }
-    el.innerHTML = pending.map(function (u) {
+    el.innerHTML = banner + pending.map(function (u) {
       return userCard(u,
         '<div class="row mt-12">' +
         '<button class="btn btn-ok grow" data-approve="' + u.id + '">' + window.AmanUI.I("check",15) + ' Approve</button>' +
         '<button class="btn btn-ghost danger grow" data-decline="' + u.id + '">' + window.AmanUI.I("x",15) + ' Decline</button></div>');
     }).join("");
+    bindApproveBanner(el);
     el.querySelectorAll("[data-approve]").forEach(function (b) {
       b.onclick = function () {
-        S.approveUser(b.getAttribute("data-approve"));
-        window.AmanUI.toast("Volunteer approved and notified.", "ok");
+        var id = b.getAttribute("data-approve");
+        var u = S.users().filter(function (x) { return x.id === id; })[0];
+        S.approveUser(id);
+        if (u) lastApproved = u;
+        window.AmanUI.toast("Volunteer approved — welcome sent in the app and team chat.", "ok");
         window.AmanUI.refreshBell();
         render(el);
       };
@@ -91,6 +114,11 @@
         }
       };
     });
+  }
+
+  function bindApproveBanner(el) {
+    var b = el.querySelector("[data-wa-dismiss]");
+    if (b) b.onclick = function () { lastApproved = null; render(el); };
   }
 
   /* ---------------- volunteers ---------------- */

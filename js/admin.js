@@ -20,7 +20,7 @@
     var n = String(phone || "").replace(/[^0-9+]/g, "");
     if (n.indexOf("+") === 0) n = n.slice(1);
     else if (n.charAt(0) === "0") n = "27" + n.slice(1);
-    var msg = "Assalamu alaikum " + (first || "") + "! Your Aman Patrol registration is approved. " +
+    var msg = "السلام عليكم " + (first || "") + "! Your Aman Patrol registration is approved. " +
       "Open the app and log in with the email you registered. " +
       "Remember: observe and report only, never patrol alone, emergencies 10111. " +
       "App: https://mia-za.github.io/aman-patrol/";
@@ -65,7 +65,7 @@
       '<span class="chip ' + (u.status === "approved" ? "ok" : u.status === "pending" ? "warn" : "danger") + '">' + u.status + "</span></div>" +
       '<div class="divider"></div>' +
       '<dl class="kv">' +
-      "<dt>WhatsApp</dt><dd>" + esc(u.whatsapp) + "</dd>" +
+      "<dt>Cell Number</dt><dd>" + esc(u.whatsapp) + "</dd>" +
       "<dt>Email</dt><dd>" + esc(u.email) + "</dd>" +
       "<dt>Address</dt><dd>" + esc(u.street + ", " + u.suburb) + "</dd>" +
       "<dt>Date of birth</dt><dd>" + esc(u.dob) + " (" + Math.floor(window.AmanStore.ageFromDob(u.dob)) + ")</dd>" +

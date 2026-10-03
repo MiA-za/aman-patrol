@@ -1057,6 +1057,7 @@ p.page-sub { margin: 0 0 14px; color: var(--muted); font-size: 0.85rem; }
 .auth-hero .logo-lg { width: 84px; height: 84px; margin: 0 auto 12px; }
 .auth-hero h1 { font-size: 1.5rem; font-weight: 900; margin: 0; color: var(--navy); letter-spacing: 0.5px; }
 .auth-hero .tagline { color: var(--muted); font-size: 0.82rem; margin-top: 6px; line-height: 1.5; }
+.auth-hero .salam { font-size: 1.08rem; font-weight: 700; margin-top: 7px; }
 .privacy-line {
   display: flex; gap: 8px; align-items: center; font-size: 0.72rem; color: var(--muted);
   background: var(--panel); border-radius: 10px; padding: 9px 11px; margin: 4px 0 14px; line-height: 1.45;
@@ -1652,7 +1653,7 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     pushNotif({ audience: { type: "user", id: id }, kind: "ok", title: "Your registration was approved", body: "Welcome to Aman Patrol, " + u.first_name + ". You can now claim patrol slots. Remember: observe and report only — never patrol alone." });
     save();
     var su = sessionUser();
-    if (su) sendMessage(su.id, "Welcome to Aman Patrol, " + u.first_name + "! You are approved — log in with the email you registered. Observe and report only, never patrol alone. Emergencies: call 10111.");
+    if (su) sendMessage(su.id, "السلام عليكم — Welcome to Aman Patrol, " + u.first_name + "! You are approved — log in with the email you registered. Observe and report only, never patrol alone. Emergencies: call 10111.");
   }
   function declineUser(id) {
     var u = userById(id);
@@ -2766,7 +2767,7 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     var n = String(phone || "").replace(/[^0-9+]/g, "");
     if (n.indexOf("+") === 0) n = n.slice(1);
     else if (n.charAt(0) === "0") n = "27" + n.slice(1);
-    var msg = "Assalamu alaikum " + (first || "") + "! Your Aman Patrol registration is approved. " +
+    var msg = "السلام عليكم " + (first || "") + "! Your Aman Patrol registration is approved. " +
       "Open the app and log in with the email you registered. " +
       "Remember: observe and report only, never patrol alone, emergencies 10111. " +
       "App: https://mia-za.github.io/aman-patrol/";
@@ -2811,7 +2812,7 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
       '<span class="chip ' + (u.status === "approved" ? "ok" : u.status === "pending" ? "warn" : "danger") + '">' + u.status + "</span></div>" +
       '<div class="divider"></div>' +
       '<dl class="kv">' +
-      "<dt>WhatsApp</dt><dd>" + esc(u.whatsapp) + "</dd>" +
+      "<dt>Cell Number</dt><dd>" + esc(u.whatsapp) + "</dd>" +
       "<dt>Email</dt><dd>" + esc(u.email) + "</dd>" +
       "<dt>Address</dt><dd>" + esc(u.street + ", " + u.suburb) + "</dd>" +
       "<dt>Date of birth</dt><dd>" + esc(u.dob) + " (" + Math.floor(window.AmanStore.ageFromDob(u.dob)) + ")</dd>" +
@@ -3536,7 +3537,7 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
         audience: { type: "user", id: id }, kind: "ok", title: "Your registration was approved",
         body: "Welcome to Aman Patrol, " + (u ? u.first_name : "volunteer") + ". You can now claim patrol slots. Remember: observe and report only — never patrol alone."
       });
-      sendMessage(me.id, "Welcome to Aman Patrol, " + (u ? u.first_name : "volunteer") + "! You are approved — log in with the email you registered. Observe and report only, never patrol alone. Emergencies: call 10111.");
+      sendMessage(me.id, "السلام عليكم — Welcome to Aman Patrol, " + (u ? u.first_name : "volunteer") + "! You are approved — log in with the email you registered. Observe and report only, never patrol alone. Emergencies: call 10111.");
       refreshSoon("users"); refreshSoon("roster");
     });
   }
@@ -4317,6 +4318,7 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     screenEl.innerHTML =
       '<div class="auth-hero">' + LOGO.replace(/\{s\}/g, "84") +
       "<h1>AMAN PATROL</h1>" +
+      '<div class="salam">السلام عليكم ورحمة الله</div>' +
       '<div class="tagline">Community neighbourhood watch — Greenside &amp; Emmarentia<br>Observe and report · patrol in pairs · never alone</div></div>' +
       persistNote +
       '<div class="card">' +
@@ -4326,7 +4328,7 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
       '<div class="field"><label>First Name <span class="req">*</span></label><input id="r-first" autocomplete="given-name"></div>' +
       '<div class="field"><label>Surname <span class="req">*</span></label><input id="r-surname" autocomplete="family-name"></div></div>' +
       '<div class="grid-2">' +
-      '<div class="field"><label>WhatsApp Number <span class="req">*</span></label><input id="r-whatsapp" placeholder="+27 82 000 0000" inputmode="tel"></div>' +
+      '<div class="field"><label>Cell Number <span class="req">*</span></label><input id="r-whatsapp" placeholder="+27 82 000 0000" inputmode="tel"></div>' +
       '<div class="field"><label>Date of Birth <span class="req">*</span></label><input type="date" id="r-dob"></div></div>' +
       '<div class="field"><label>Email <span class="req">*</span></label><input id="r-email" type="email" autocomplete="email" placeholder="you@example.com"></div>' +
       '<div class="grid-2">' +
@@ -4390,7 +4392,7 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     };
     var errs = [];
     if (!d.first_name || !d.surname) errs.push("your name");
-    if (!d.whatsapp || d.whatsapp.replace(/\D/g, "").length < 9) errs.push("a valid WhatsApp number");
+    if (!d.whatsapp || d.whatsapp.replace(/\D/g, "").length < 9) errs.push("a valid cell number");
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.email)) errs.push("a valid email");
     if (!d.street) errs.push("your street");
     if (!d.suburb) errs.push("your suburb");
@@ -4452,6 +4454,7 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     screenEl.innerHTML =
       '<div class="auth-hero">' + LOGO.replace(/\{s\}/g, "84") +
       "<h1>AMAN PATROL</h1>" +
+      '<div class="salam">السلام عليكم ورحمة الله</div>' +
       '<div class="tagline">Welcome back — log in to continue serving the community.</div></div>' +
       '<div class="card">' +
       '<div class="field"><label>Email</label><input id="l-email" type="email" autocomplete="email" placeholder="you@example.com" value="' + esc(lastEmail) + '"></div>' +
@@ -5091,7 +5094,7 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
       '<div class="sub">' + esc(user.email) + "</div></div>" +
       '<span class="chip ' + (user.role === "coordinator" ? "teal" : "ok") + '">' + (user.role === "coordinator" ? "Coordinator" : "Volunteer") + "</span></div>" +
       '<div class="divider"></div>' +
-      '<dl class="kv"><dt>WhatsApp</dt><dd>' + esc(user.whatsapp) + "</dd>" +
+      '<dl class="kv"><dt>Cell Number</dt><dd>' + esc(user.whatsapp) + "</dd>" +
       "<dt>Address</dt><dd>" + esc(user.street + ", " + user.suburb) + "</dd></dl></div>" +
 
       (S().getSetting("whatsapp_group_url") ? '<a class="action full" href="' + esc(S().getSetting("whatsapp_group_url")) + '" target="_blank" rel="noopener" style="margin-bottom:12px"><div class="a-icon" style="background:var(--ok);color:#fff">' + I("megaphone",20) + '</div><div class="grow"><div class="a-label">Community WhatsApp group</div><div class="a-sub">Open the Aman Patrol group chat</div></div></a>' : "") +

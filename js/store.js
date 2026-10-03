@@ -296,7 +296,7 @@
     pushNotif({ audience: { type: "user", id: id }, kind: "ok", title: "Your registration was approved", body: "Welcome to Aman Patrol, " + u.first_name + ". You can now claim patrol slots. Remember: observe and report only — never patrol alone." });
     save();
     var su = sessionUser();
-    if (su) sendMessage(su.id, "Welcome to Aman Patrol, " + u.first_name + "! You are approved — log in with the email you registered. Observe and report only, never patrol alone. Emergencies: call 10111.");
+    if (su) sendMessage(su.id, "السلام عليكم — Welcome to Aman Patrol, " + u.first_name + "! You are approved — log in with the email you registered. Observe and report only, never patrol alone. Emergencies: call 10111.");
   }
   function declineUser(id) {
     var u = userById(id);

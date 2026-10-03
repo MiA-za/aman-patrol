@@ -236,6 +236,7 @@
     screenEl.innerHTML =
       '<div class="auth-hero">' + LOGO.replace(/\{s\}/g, "84") +
       "<h1>AMAN PATROL</h1>" +
+      '<div class="salam">السلام عليكم ورحمة الله</div>' +
       '<div class="tagline">Community neighbourhood watch — Greenside &amp; Emmarentia<br>Observe and report · patrol in pairs · never alone</div></div>' +
       persistNote +
       '<div class="card">' +
@@ -245,7 +246,7 @@
       '<div class="field"><label>First Name <span class="req">*</span></label><input id="r-first" autocomplete="given-name"></div>' +
       '<div class="field"><label>Surname <span class="req">*</span></label><input id="r-surname" autocomplete="family-name"></div></div>' +
       '<div class="grid-2">' +
-      '<div class="field"><label>WhatsApp Number <span class="req">*</span></label><input id="r-whatsapp" placeholder="+27 82 000 0000" inputmode="tel"></div>' +
+      '<div class="field"><label>Cell Number <span class="req">*</span></label><input id="r-whatsapp" placeholder="+27 82 000 0000" inputmode="tel"></div>' +
       '<div class="field"><label>Date of Birth <span class="req">*</span></label><input type="date" id="r-dob"></div></div>' +
       '<div class="field"><label>Email <span class="req">*</span></label><input id="r-email" type="email" autocomplete="email" placeholder="you@example.com"></div>' +
       '<div class="grid-2">' +
@@ -309,7 +310,7 @@
     };
     var errs = [];
     if (!d.first_name || !d.surname) errs.push("your name");
-    if (!d.whatsapp || d.whatsapp.replace(/\D/g, "").length < 9) errs.push("a valid WhatsApp number");
+    if (!d.whatsapp || d.whatsapp.replace(/\D/g, "").length < 9) errs.push("a valid cell number");
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(d.email)) errs.push("a valid email");
     if (!d.street) errs.push("your street");
     if (!d.suburb) errs.push("your suburb");
@@ -371,6 +372,7 @@
     screenEl.innerHTML =
       '<div class="auth-hero">' + LOGO.replace(/\{s\}/g, "84") +
       "<h1>AMAN PATROL</h1>" +
+      '<div class="salam">السلام عليكم ورحمة الله</div>' +
       '<div class="tagline">Welcome back — log in to continue serving the community.</div></div>' +
       '<div class="card">' +
       '<div class="field"><label>Email</label><input id="l-email" type="email" autocomplete="email" placeholder="you@example.com" value="' + esc(lastEmail) + '"></div>' +
@@ -1010,7 +1012,7 @@
       '<div class="sub">' + esc(user.email) + "</div></div>" +
       '<span class="chip ' + (user.role === "coordinator" ? "teal" : "ok") + '">' + (user.role === "coordinator" ? "Coordinator" : "Volunteer") + "</span></div>" +
       '<div class="divider"></div>' +
-      '<dl class="kv"><dt>WhatsApp</dt><dd>' + esc(user.whatsapp) + "</dd>" +
+      '<dl class="kv"><dt>Cell Number</dt><dd>' + esc(user.whatsapp) + "</dd>" +
       "<dt>Address</dt><dd>" + esc(user.street + ", " + user.suburb) + "</dd></dl></div>" +
 
       (S().getSetting("whatsapp_group_url") ? '<a class="action full" href="' + esc(S().getSetting("whatsapp_group_url")) + '" target="_blank" rel="noopener" style="margin-bottom:12px"><div class="a-icon" style="background:var(--ok);color:#fff">' + I("megaphone",20) + '</div><div class="grow"><div class="a-label">Community WhatsApp group</div><div class="a-sub">Open the Aman Patrol group chat</div></div></a>' : "") +

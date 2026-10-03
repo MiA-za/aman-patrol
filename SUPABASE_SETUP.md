@@ -45,7 +45,7 @@ see mentioned. You don't have to configure it by hand — the file I gave you
      Europe, e.g. **Frankfurt** or **West EU (London)**.
 4. Click **Create new project** and wait ~2 minutes while it builds.
 
-## Step 3 — Load the Aman Patrol tables (one paste)
+## Step 3A — Load the main Aman Patrol tables (first paste)
 
 1. In the left sidebar, click **SQL Editor** (it looks like a terminal icon).
 2. Click **New query**.
@@ -59,6 +59,25 @@ see mentioned. You don't have to configure it by hand — the file I gave you
 
 You have just created the volunteers table, shifts, incidents, map pins, the
 security rules, and a private photo store.
+
+## Step 3B — Add live operations and Team Chat (two more pastes)
+
+Keep the **SQL Editor** open. These two files must be run in this order:
+
+1. Open **`supabase/addendum_a.sql`**, copy everything, paste it into a new
+   query, and click **Run**. Wait for the green success message.
+2. Open **`supabase/addendum_b.sql`**, copy everything, paste it into another
+   new query, and click **Run**. Wait for the green success message.
+
+Addendum B creates the **`public.messages`** table used by Team Chat, allows
+approved volunteers to read and send operational messages, and switches on
+live delivery between phones. It also lets approved volunteers view shared
+incident photos. The file is safe to run again if you are unsure whether it
+was completed.
+
+If Team Chat says a message could not be delivered, return to this step and
+run **`supabase/addendum_b.sql`** again. Do not paste these lines into
+`supabase/schema.sql`; always run each addendum as its own new query.
 
 ## Step 4 — Make sign-up friendlier (one toggle)
 

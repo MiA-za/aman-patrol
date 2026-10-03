@@ -21,6 +21,8 @@ create table if not exists public.messages (
 );
 alter table public.messages enable row level security;
 
+drop policy if exists "approved read messages" on public.messages;
+drop policy if exists "approved send messages" on public.messages;
 create policy "approved read messages"
   on public.messages for select using (public.is_approved_volunteer());
 create policy "approved send messages"

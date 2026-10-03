@@ -25,6 +25,7 @@
     roster: '<rect x="3" y="5" width="18" height="16" rx="2"/><line x1="16" y1="3" x2="16" y2="7"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="3" y1="11" x2="21" y2="11"/>',
     calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><line x1="16" y1="3" x2="16" y2="7"/><line x1="8" y1="3" x2="8" y2="7"/><line x1="3" y1="11" x2="21" y2="11"/>',
     map: '<path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4-7 4z"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/>',
+    chat: '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>',
     more: '<circle cx="12" cy="5" r="2" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/><circle cx="12" cy="19" r="2" fill="currentColor" stroke="none"/>',
     bell: '<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>',
     bell_off: '<path d="M13.73 21a2 2 0 0 1-3.46 0"/><path d="M18.63 13A17.89 17.89 0 0 1 18 8"/><path d="M6.26 6.26A5.86 5.86 0 0 0 6 8c0 7-3 9-3 9h14"/><path d="M18 8a6 6 0 0 0-9.33-5"/><line x1="1" y1="1" x2="23" y2="23"/>',
@@ -204,6 +205,11 @@
       if (lastNotifId) browserNotify(list[0].title, list[0].body);
       lastNotifId = list[0].id;
     }
+    var chatNav = $("#nav-chat");
+    if (chatNav) {
+      var c = S().unreadChatCount ? S().unreadChatCount(user) : 0;
+      chatNav.innerHTML = I("chat", 22) + "<span>Chat</span>" + (c > 0 ? '<span class="nav-badge">' + (c > 9 ? "9+" : c) + "</span>" : "");
+    }
   }
   function setShell(loggedIn) {
     $("#app-header").classList.toggle("hidden", !loggedIn);
@@ -211,7 +217,7 @@
     $("#demo-banner").classList.toggle("hidden", !loggedIn || !!S().live);
   }
   function setActiveNav(page) {
-    ["dashboard", "roster", "map", "more"].forEach(function (p) {
+    ["dashboard", "roster", "map", "chat", "more"].forEach(function (p) {
       var el = $("#nav-" + p);
       if (el) el.classList.toggle("active", p === page);
     });
@@ -469,7 +475,8 @@
       '<a class="action" href="#/roster"><div class="a-icon navy">' + I("calendar",20) + '</div><div class="a-label">Create or join a patrol</div><div class="a-sub">Pick any date &amp; time · pairs only · ' + S().slots().filter(function (s) { return s.understaffed; }).length + ' need a partner</div></a>' +
       '<a class="action" href="#/map"><div class="a-icon teal">' + I("map",20) + '</div><div class="a-label">View area map</div><div class="a-sub">Real area data + risk pins</div></a>' +
       '<a class="action" href="#/notifications"><div class="a-icon warn">' + I("bell",20) + '</div><div class="a-label">Notifications</div><div class="a-sub" id="dash-notif-sub">' + S().unreadCount(user) + ' unread</div></a>' +
-      '<button class="action" id="radio-btn" style="text-align:left;cursor:pointer"><div class="a-icon info">' + I("radio",20) + '</div><div class="a-label">Patrol radio</div><div class="a-sub">Zello channel (placeholder)</div></button>' +
+      '<a class="action" href="#/chat"><div class="a-icon info">' + I("chat",20) + '</div><div class="a-label">Team chat</div><div class="a-sub">Message volunteers in the app</div></a>' +
+      '<button class="action" id="radio-btn" style="text-align:left;cursor:pointer"><div class="a-icon warn">' + I("radio",20) + '</div><div class="a-label">Patrol comms and voice</div><div class="a-sub">How the team talks on shift</div></button>' +
       "</div>" +
       (coord ? '<a class="action full" href="#/admin/approvals"><div class="a-icon navy">' + I("shield",20) + '</div><div class="grow"><div class="a-label">Coordinator dashboard</div><div class="a-sub">Approvals · volunteers · incidents · reports</div></div></a>' : "");
 
@@ -497,10 +504,12 @@
 
   function radioModal() {
     modal(
-      "<h3>" + I("radio",18) + " Patrol radio</h3>" +
-      '<p class="m-sub">Aman Patrol uses Zello push-to-talk for live patrol comms.</p>' +
+      "<h3>" + I("radio",18) + " Patrol comms</h3>" +
+      '<p class="m-sub">Three channels, in order of use:</p>' +
       '<div class="detail-list" style="font-size:0.84rem">' +
-      '<div><span class="dl-k">Channel</span><span class="dl-v">Aman Patrol GDE <i>(to be configured by coordinator)</i></span></div>' +
+      '<div><span class="dl-k">1 · Team chat</span><span class="dl-v">In the app (Chat tab) — text messages, live between phones</span></div>' +
+      '<div><span class="dl-k">2 · Voice on shift</span><span class="dl-v">The WhatsApp group — voice notes work push-to-talk style</span></div>' +
+      '<div><span class="dl-k">3 · Radio (optional)</span><span class="dl-v">True push-to-talk radio (Mumble, open source) can be added later — needs its own small server</span></div>' +
       '<div><span class="dl-k">Radio check</span><span class="dl-v">At shift start, radio "Aman [name], radio check"</span></div>' +
       '<div><span class="dl-k">Etiquette</span><span class="dl-v">Short, calm, factual. No names of persons of interest over the air.</span></div>' +
       "</div>" +
@@ -945,6 +954,45 @@
   /* ============================================================
      SCREEN: MORE (profile · my shifts · my reports · about)
      ============================================================ */
+  /* ============================================================
+     SCREEN: TEAM CHAT
+     ============================================================ */
+  function renderChat() {
+    var user = S().sessionUser();
+    setShell(true);
+    setActiveNav("chat");
+    screenEl.className = "screen";
+    var list = S().messages();
+    var items = list.map(function (m) {
+      var mine = m.user_id === user.id;
+      return '<div class="msg' + (mine ? " mine" : "") + '">' +
+        (mine ? "" : '<div class="msg-name">' + esc(S().userLabel(m.user_id)) + "</div>") +
+        '<div class="msg-bubble">' + esc(m.body) + "</div>" +
+        '<div class="msg-time">' + esc(S().fmtTime(m.created_at)) + "</div></div>";
+    }).join("");
+    screenEl.innerHTML =
+      "<h1 class=\"page-title\">Team chat</h1>" +
+      '<p class="page-sub">Operational messages only — observe and report. Never post personal details of residents or persons of interest (Sitr). For voice, use the WhatsApp group.</p>' +
+      '<div class="chat-wrap" id="chat-list">' +
+      (items || '<p class="muted center" style="font-size:0.82rem;padding:18px 0">No messages yet — say as-salamu alaykum.</p>') +
+      "</div>" +
+      '<div class="chat-input">' +
+      '<input id="chat-box" maxlength="500" placeholder="Message the team..." autocomplete="off">' +
+      '<button class="btn btn-teal" id="chat-send">Send</button></div>';
+    var box = $("#chat-box");
+    function sendNow() {
+      var res = S().sendMessage(user.id, box.value);
+      if (!res.ok) { toast(res.error, "error"); return; }
+      box.value = "";
+      renderChat();
+    }
+    $("#chat-send").onclick = sendNow;
+    box.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); sendNow(); } });
+    S().markChatSeen();
+    refreshBell();
+    setTimeout(function () { window.scrollTo(0, document.body.scrollHeight); }, 30);
+  }
+
   function renderMore() {
     var user = S().sessionUser();
     setShell(true);
@@ -989,7 +1037,7 @@
 
       '<div class="card">' +
       '<button class="btn btn-ghost block" id="coc-btn" style="margin-bottom:10px">' + I("doc",15) + ' Code of Conduct &amp; values</button>' +
-      '<button class="btn btn-ghost block" id="radio-btn2" style="margin-bottom:10px">' + I("radio",15) + ' Patrol radio (Zello)</button>' +
+      '<button class="btn btn-ghost block" id="radio-btn2" style="margin-bottom:10px">' + I("radio",15) + ' Patrol comms and voice</button>' +
       (S().live ? "" : '<button class="btn btn-ghost danger block" id="reset-btn" style="margin-bottom:10px">' + I("refresh",15) + ' Reset demo data</button>') +
       '<button class="btn btn-primary block" id="logout-btn">Log out</button></div>' +
       '<p class="center" style="font-size:0.66rem;color:var(--muted);line-height:1.6">Aman Patrol · observe &amp; report only · map data © OpenStreetMap contributors · weather by Open-Meteo<br>' + (S().live ? "Live build — data syncs securely between all volunteers." : "Demo build — data stays on this device until Supabase is connected.") + "</p>";
@@ -1042,6 +1090,7 @@
       case "map": renderMap(); break;
       case "notifications": renderNotifications(); break;
       case "more": renderMore(); break;
+      case "chat": renderChat(); break;
       case "admin": window.AmanAdmin.render(screenEl, parts[1] || "approvals"); setActiveNav(""); break;
       default: renderDashboard();
     }
@@ -1085,6 +1134,7 @@
     $("#nav-roster").innerHTML = I("roster", 22) + "<span>Roster</span>";
     $("#nav-map").innerHTML = I("map", 22) + "<span>Map</span>";
     $("#nav-more").innerHTML = I("more", 22) + "<span>More</span>";
+    $("#nav-chat").innerHTML = I("chat", 22) + "<span>Chat</span>";
     $("#fab-incident").addEventListener("click", function () { location.hash = "#/incident"; });
     document.addEventListener("click", function (e) {
       var t = e.target && e.target.closest ? e.target.closest("[data-theme-toggle]") : null;
@@ -1101,6 +1151,8 @@
         // live data changed on the server: re-render the current screen,
         // unless a modal is open (would close it) - then just refresh the bell
         if (document.querySelector("#modal-root .modal-overlay")) { refreshBell(); return; }
+        var typing = document.activeElement && document.activeElement.id === "chat-box";
+        if (typing) { refreshBell(); return; }
         route();
       });
     }

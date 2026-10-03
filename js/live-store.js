@@ -43,6 +43,7 @@
   var readIds = {};              // notification_id -> true (mine)
   var incidents = [];
   var pins = [];
+  var msgRows = [];
   var settings = {};
   var sosLog = [];
   var listeners = [];
@@ -84,6 +85,7 @@
     else if (tag === "users") loadUsers().then(notify, notify);
     else if (tag === "settings") loadSettings().then(notify, notify);
     else if (tag === "pins") loadPins().then(notify, notify);
+    else if (tag === "messages") loadMessages().then(notify, notify);
   }
 
   function dbError(r, fallback) {
@@ -191,6 +193,13 @@
     });
   }
 
+  function loadMessages() {
+    if (!me || me.status !== "approved") { msgRows = []; return Promise.resolve(); }
+    return sb.from("messages").select("*").order("created_at", { ascending: true }).limit(200).then(function (r) {
+      if (!r.error && r.data) msgRows = r.data;
+    });
+  }
+
   function loadSosLog() {
     if (!me || me.status !== "approved") { sosLog = []; return Promise.resolve(); }
     return sb.from("sos_log").select("*").order("created_at", { ascending: false }).limit(50).then(function (r) {
@@ -201,7 +210,7 @@
   function loadAll() {
     var jobs = [loadUsers(), loadVolMap(), loadNotifs()];
     if (me && me.status === "approved") {
-      jobs = jobs.concat([loadSlots(), loadClaims(), loadIncidents(), loadPins(), loadSettings(), loadSosLog()]);
+      jobs = jobs.concat([loadSlots(), loadClaims(), loadIncidents(), loadPins(), loadSettings(), loadSosLog(), loadMessages()]);
     }
     return Promise.all(jobs);
   }
@@ -765,6 +774,41 @@
     }
   }
 
+  /* ---------------- team chat ---------------- */
+  var CHAT_SEEN_KEY = "aman-chat-seen";
+  function chatSeenAt() {
+    try {
+      var v = window.localStorage.getItem(CHAT_SEEN_KEY);
+      var t = v ? new Date(v).getTime() : 0;
+      return isNaN(t) ? 0 : t;
+    } catch (e) { return 0; }
+  }
+  function markChatSeen() {
+    try { window.localStorage.setItem(CHAT_SEEN_KEY, new Date().toISOString()); } catch (e) {}
+  }
+  function listMessages() { return msgRows.slice(); }
+  function unreadChatCount(user) {
+    if (!user) return 0;
+    var seen = chatSeenAt();
+    var n = 0;
+    for (var i = 0; i < msgRows.length; i++) {
+      if (msgRows[i].user_id !== user.id && new Date(msgRows[i].created_at).getTime() > seen) n++;
+    }
+    return n;
+  }
+  function sendMessage(userId, body) {
+    if (!me) return { ok: false, error: "You are not signed in." };
+    body = String(body || "").trim().slice(0, 500);
+    if (!body) return { ok: false, error: "Type a message first." };
+    msgRows.push({ id: "tmp-m-" + (++tmpId), user_id: userId, body: body, created_at: new Date().toISOString() });
+    notify();
+    sb.from("messages").insert({ user_id: userId, body: body }).then(function (r) {
+      if (r.error) { toastUI("Message not delivered: " + dbError(r)); refreshSoon("messages"); }
+      else refreshSoon("messages");
+    });
+    return { ok: true };
+  }
+
   /* ---------------- CSV export ---------------- */
   function csvEscape(v) {
     if (v === null || v === undefined) return "";
@@ -807,6 +851,7 @@
         .on("postgres_changes", { event: "*", schema: "public", table: "notifications" }, function () { refreshSoon("notifications"); })
         .on("postgres_changes", { event: "*", schema: "public", table: "patrol_slots" }, function () { refreshSoon("roster"); })
         .on("postgres_changes", { event: "*", schema: "public", table: "slot_claims" }, function () { refreshSoon("roster"); })
+        .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, function () { refreshSoon("messages"); })
         .subscribe(function (status) {
           if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
             // realtime failed; fall back to periodic polling
@@ -844,6 +889,7 @@
     pins: listPins, addPin: addPin, removePin: removePin,
     // notifications
     pushNotif: pushNotif, notificationsFor: notificationsFor, unreadCount: unreadCount, markAllRead: markAllRead,
+    messages: listMessages, sendMessage: sendMessage, unreadChatCount: unreadChatCount, markChatSeen: markChatSeen,
     // misc
     zoneOfCoords: Demo.zoneOfCoords, incidentsCSV: incidentsCSV, resetDemo: function () {},
     // helpers

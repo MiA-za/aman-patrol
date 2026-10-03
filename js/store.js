@@ -194,6 +194,11 @@
         { id: "n3", audience: { type: "all" }, kind: "warn", title: "A patrol slot is understaffed", body: "Tomorrow 12:00 — Afternoon patrol (Zone B – Emmarentia) needs one more volunteer.", created_at: new Date(now - 5 * H).toISOString(), read_by: [] },
         { id: "n4", audience: { type: "user", id: "u-mo" }, kind: "danger", title: "New incident logged in your zone", body: "Suspicious Vehicle (VOI) reported on Gleneagles Road, Greenside.", created_at: new Date(now - 26 * H).toISOString(), read_by: [] },
         { id: "n5", audience: { type: "all" }, kind: "info", title: "Coordinator announcement", body: "Jumu'ah patrol this week: please be at the masjid by 11:15. As-salamu alaykum — thank you for serving the community.", created_at: new Date(now - 2 * H).toISOString(), read_by: [] }
+      ],
+      messages: [
+        { id: "m1", user_id: "u-coord", body: "As-salamu alaykum team. This chat is for patrol coordination. Observe and report only — never confront or chase.", created_at: new Date(now - 2 * H).toISOString() },
+        { id: "m2", user_id: "u-aisha", body: "Noted, shukran. I am on the Madrassah drop-off tomorrow — I will check in here when I start my shift.", created_at: new Date(now - 90 * 60000).toISOString() },
+        { id: "m3", user_id: "u-mo", body: "Radio check from my side. WhatsApp group still works well for voice notes while walking.", created_at: new Date(now - 35 * 60000).toISOString() }
       ]
     };
   }
@@ -605,6 +610,39 @@
     save();
   }
 
+  /* ---------- team chat ---------- */
+  var CHAT_SEEN_KEY = "aman-chat-seen";
+  function chatSeenAt() {
+    var v = storage.getItem(CHAT_SEEN_KEY);
+    var t = v ? new Date(v).getTime() : 0;
+    return isNaN(t) ? 0 : t;
+  }
+  function markChatSeen() {
+    storage.setItem(CHAT_SEEN_KEY, new Date().toISOString());
+  }
+  function messages() {
+    var d = load();
+    if (!d.messages) d.messages = [];
+    return d.messages.slice().sort(function (a, b) { return new Date(a.created_at) - new Date(b.created_at); });
+  }
+  function unreadChatCount(user) {
+    if (!user) return 0;
+    var seen = chatSeenAt();
+    return messages().filter(function (m) {
+      return m.user_id !== user.id && new Date(m.created_at).getTime() > seen;
+    }).length;
+  }
+  function sendMessage(userId, body) {
+    body = String(body || "").trim().slice(0, 500);
+    if (!body) return { ok: false, error: "Type a message first." };
+    var d = load();
+    if (!d.messages) d.messages = [];
+    d.messages.push({ id: uid("m"), user_id: userId, body: body, created_at: new Date().toISOString() });
+    if (d.messages.length > 500) d.messages.splice(0, d.messages.length - 500);
+    save();
+    return { ok: true };
+  }
+
   /* ---------- CSV export ---------- */
   function csvEscape(v) {
     if (v === null || v === undefined) return "";
@@ -654,6 +692,7 @@
     pins: pins, addPin: addPin, removePin: removePin,
     // notifications
     pushNotif: pushNotif, notificationsFor: notificationsFor, unreadCount: unreadCount, markAllRead: markAllRead,
+    messages: messages, sendMessage: sendMessage, unreadChatCount: unreadChatCount, markChatSeen: markChatSeen,
     // misc
     zoneOfCoords: zoneOfCoords, incidentsCSV: incidentsCSV, resetDemo: resetDemo,
     // helpers

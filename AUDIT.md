@@ -243,7 +243,10 @@ create trigger sos_notify after insert on public.sos_log
 photos are shared operational data, so approved volunteers need read
 access to the photo bucket (the audit-time policy allowed owner and
 coordinator only, which would hide teammates' photos in the shared
-incident view). Paste once in the SQL Editor, after Addendum A:
+incident view). Addendum B was later extended with the team-chat table
+(messages) and its realtime publication — both parts are consolidated
+in `supabase/addendum_b.sql` (paste once in the SQL Editor, after
+Addendum A):
 
 ```sql
 create policy "approved read incident photos" on storage.objects

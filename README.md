@@ -134,6 +134,8 @@ sw.js                 service worker — the app opens even with no signal
 images/favicon.png    app icon file (also embedded inline)
 images/designarena_image_cbaeo2tp.png   original full-size logo artwork
 supabase/schema.sql   paste-once SQL for the live backend
+supabase/addendum_a.sql  paste after schema.sql (roster/SOS/settings)
+supabase/addendum_b.sql  paste after addendum A (photos + team chat)
 SUPABASE_SETUP.md     layman's step-by-step Supabase guide
 AUDIT.md              pre-Supabase gap audit: findings + Addendum A migration SQL
 PUT_ON_GITHUB.md      how this site was put on GitHub Pages (already done)

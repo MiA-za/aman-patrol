@@ -106,6 +106,14 @@ Supabase project — not with us, not with a third-party app.
 
 ## 5. Push-to-talk (PTT) radio — free and open source
 
+> Update 3 October 2026: in-app TEAM CHAT (text) is now built — a Chat
+> tab in the app, live between phones via Supabase Realtime
+> (supabase/addendum_b.sql adds the messages table). Voice on shift
+> stays on the WhatsApp group. Mumble remains the open-source radio
+> upgrade if the team still wants it after the pilot, but it needs its
+> own always-on server that Supabase cannot host (see
+> OPEN_SOURCE_NOTES.md).
+
 **Asked for:** a free PTT app on GitHub instead of the Zello placeholder.
 
 **What exists (full notes in OPEN_SOURCE_NOTES.md):**

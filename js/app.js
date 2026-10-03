@@ -36,6 +36,8 @@
     users: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
     hourglass: '<path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.17a2 2 0 0 0-.59-1.42L12 12l-4.41 4.41a2 2 0 0 0-.59 1.42V22"/><path d="M7 2v4.17a2 2 0 0 0 .59 1.42L12 12l4.41-4.41A2 2 0 0 0 17 6.17V2"/>',
     lock: '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
+    eye: '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>',
+    eyeoff: '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>',
     siren: '<path d="M7 12a5 5 0 0 1 10 0v6H7v-6"/><path d="M5 20a10 10 0 0 1 14 0"/><path d="M12 2v2"/><path d="M4.93 4.93l1.41 1.41"/><path d="M19.07 4.93l-1.41 1.41"/>',
     radio: '<circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49"/><path d="M7.76 16.24a6 6 0 0 1 0-8.49"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M4.93 19.07a10 10 0 0 1 0-14.14"/>',
     megaphone: '<path d="M3 11l18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>',
@@ -253,8 +255,8 @@
       '<div class="field"><label>Emergency Contact Name <span class="req">*</span></label><input id="r-ecname"></div>' +
       '<div class="field"><label>Emergency Contact Number <span class="req">*</span></label><input id="r-ecnum" inputmode="tel" placeholder="+27 …"></div></div>' +
       '<div class="grid-2">' +
-      '<div class="field"><label>Password <span class="req">*</span></label><input id="r-pass" type="password" placeholder="Min 8 characters"></div>' +
-      '<div class="field"><label>Confirm Password <span class="req">*</span></label><input id="r-pass2" type="password"></div></div>' +
+      '<div class="field"><label>Password <span class="req">*</span></label><div class="pw-wrap"><input id="r-pass" type="password" placeholder="Min 8 characters"><button type="button" class="pw-eye" data-for="r-pass" aria-label="Show password">' + I("eye", 18) + '</button></div></div>' +
+      '<div class="field"><label>Confirm Password <span class="req">*</span></label><div class="pw-wrap"><input id="r-pass2" type="password"><button type="button" class="pw-eye" data-for="r-pass2" aria-label="Show password">' + I("eye", 18) + '</button></div></div></div>' +
 
       '<label class="check"><input type="checkbox" id="r-18"><span>I confirm I am over 18. <span class="req">*</span></span></label>' +
       '<label class="check"><input type="checkbox" id="r-coc"><span>I agree to the <a href="#" id="coc-link">Code of Conduct</a>. <span class="req">*</span></span></label>' +
@@ -372,7 +374,7 @@
       '<div class="tagline">Welcome back — log in to continue serving the community.</div></div>' +
       '<div class="card">' +
       '<div class="field"><label>Email</label><input id="l-email" type="email" autocomplete="email" placeholder="you@example.com" value="' + esc(lastEmail) + '"></div>' +
-      '<div class="field"><label>Password</label><input id="l-pass" type="password" autocomplete="current-password"></div>' +
+      '<div class="field"><label>Password</label><div class="pw-wrap"><input id="l-pass" type="password" autocomplete="current-password"><button type="button" class="pw-eye" data-for="l-pass" aria-label="Show password">' + I("eye", 18) + '</button></div></div>' +
       '<button class="btn btn-primary block" id="l-submit" style="min-height:54px">Log in</button>' +
       '<p class="center" style="margin:12px 0 0;font-size:0.82rem">New volunteer? <a href="#/register"><b>Register here</b></a></p>' +
       "</div>" +
@@ -1139,6 +1141,16 @@
     document.addEventListener("click", function (e) {
       var t = e.target && e.target.closest ? e.target.closest("[data-theme-toggle]") : null;
       if (t) toggleTheme();
+      var eye = e.target && e.target.closest ? e.target.closest(".pw-eye") : null;
+      if (eye) {
+        var input = document.getElementById(eye.getAttribute("data-for"));
+        if (input) {
+          var show = input.type === "password";
+          input.type = show ? "text" : "password";
+          eye.innerHTML = I(show ? "eyeoff" : "eye", 18);
+          eye.setAttribute("aria-label", show ? "Hide password" : "Show password");
+        }
+      }
     });
 
     window.addEventListener("hashchange", route);

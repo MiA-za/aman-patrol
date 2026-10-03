@@ -558,3 +558,13 @@ html[data-theme="dark"] .cal-cell.selected { background: #25477e; border-color: 
   font-size: 0.58rem; font-weight: 800; border-radius: 9px; padding: 1px 5px; line-height: 1.3;
 }
 .bottom-nav a { position: relative; }
+
+/* password show/hide eye toggle */
+.pw-wrap { position: relative; }
+.pw-wrap input { padding-right: 48px; }
+.pw-eye {
+  position: absolute; right: 5px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; padding: 10px; display: inline-flex;
+  align-items: center; color: var(--muted); cursor: pointer; border-radius: 10px;
+}
+.pw-eye:active { opacity: 0.55; }

@@ -10,6 +10,16 @@
 
   var CATS = [
     {
+      id: "EMS", seg: "EMS / Medical", full: "Medical / EMS Emergency (EMS)",
+      fields: [
+        { k: "emergency_type", l: "Nature of Emergency", t: "select", o: ["Medical collapse / Unconscious", "Traffic collision / Injury", "Assault / Physical trauma", "Cardiac / Difficulty breathing", "Elderly distress / Fall", "Fire / Smoke inhalation", "Severe bleeding", "Other medical emergency"] },
+        { k: "patient_count", l: "Number of Patients in Distress", t: "text", ph: "e.g. 1 adult male" },
+        { k: "consciousness", l: "Patient Condition", t: "select", o: ["Conscious & breathing", "Difficulty breathing", "Unconscious but breathing", "Unresponsive / CPR needed", "Unknown"] },
+        { k: "scene_hazards", l: "Scene Hazards", t: "select", o: ["None - Scene safe", "Heavy road traffic", "Downed power lines", "Fire / Smoke", "Hostile crowd / Threat", "Unknown"] },
+        { k: "exact_location", l: "Location / Landmark for Ambulance", t: "text", ph: "Auto-filled from GPS — correct if needed", auto: true }
+      ]
+    },
+    {
       id: "VOI", seg: "Vehicle", full: "Suspicious Vehicle (VOI)",
       fields: [
         { k: "registration_number", l: "Registration Number", t: "text", ph: "e.g. JD 54 GP (or “no plates”)" },
@@ -40,15 +50,14 @@
         { k: "incident_type", l: "Incident Type", t: "select", o: ["Suspicious activity", "Housebreaking attempt", "Theft from vehicle", "Smash-and-grab", "Robbery", "Vandalism", "Cable theft", "Trespassing", "Other"] },
         { k: "modus_operandi", l: "Modus Operandi", t: "textarea", ph: "What happened / how was it attempted?" },
         { k: "location_address", l: "Location / Address", t: "text", ph: "Auto-filled from GPS — correct if needed", auto: true },
-        { k: "property_owner_notified", l: "Property Owner Notified?", t: "select", o: ["Unknown", "No", "Yes"] },
-        { k: "saps_ar_called", l: "SAPS or Armed Response Called?", t: "select", o: ["No", "SAPS", "Armed response", "Both"] }
+        { k: "property_owner_notified", l: "Property Owner Notified?", t: "select", o: ["Unknown", "No", "Yes"] }
       ]
     }
   ];
 
   var RESPONDER_TYPES = ["None yet", "SAPS", "EMS/Ambulance", "Armed Response", "Private Security", "Fire"];
 
-  var state = { cat: "VOI", gps: null, address: "", photo: null };
+  var state = { cat: "EMS", gps: null, address: "", photo: null, video: null };
 
   function cat() {
     for (var i = 0; i < CATS.length; i++) if (CATS[i].id === state.cat) return CATS[i];
@@ -114,7 +123,7 @@
   }
 
   function render(screen) {
-    state = { cat: "VOI", gps: null, address: "", photo: null };
+    state = { cat: "EMS", gps: null, address: "", photo: null, video: null };
     screen.className = "screen";
     screen.innerHTML =
       '<h1 class="page-title">Log an incident</h1>' +
@@ -131,29 +140,37 @@
       '<div class="field"><label>Description <span class="req">*</span></label>' +
       '<textarea id="f-description" placeholder="What did you see? Be factual and specific — times, actions, exact location details."></textarea></div>' +
 
-      '<div class="field"><label>Photo (camera / gallery)</label>' +
-      '<input type="file" id="f-photo" accept="image/*" style="display:none">' +
-      '<button type="button" class="btn btn-ghost block" id="photo-btn">' + window.AmanUI.I("camera",16) + ' Attach photo</button>' +
+      '<div class="field"><label>Media Evidence (Photo or Video clip)</label>' +
+      '<div class="grid-2" style="margin-bottom:8px">' +
+      '<div><input type="file" id="f-photo" accept="image/*" capture="environment" style="display:none">' +
+      '<button type="button" class="btn btn-ghost block" id="photo-btn">' + window.AmanUI.I("camera",16) + ' Add Photo</button></div>' +
+      '<div><input type="file" id="f-video" accept="video/*" capture="environment" style="display:none">' +
+      '<button type="button" class="btn btn-ghost block" id="video-btn">' + window.AmanUI.I("play",16) + ' Add Video</button></div></div>' +
       '<img id="photo-preview" class="photo-preview hidden" alt="Photo preview">' +
-      '<button type="button" class="link-btn hidden" id="photo-remove">Remove photo</button>' +
-      '<div class="hint">Photos of vehicles, property or the street scene only — never of people without need, and never of victims or minors.</div></div>' +
+      '<video id="video-preview" class="photo-preview hidden" controls playsinline style="max-height:200px;width:100%"></video>' +
+      '<button type="button" class="link-btn hidden" id="photo-remove" style="color:var(--danger)">Remove media</button>' +
+      '<div class="hint">Photos/videos of scenes or vehicles only — never of victims or minors.</div></div>' +
 
       '<label class="check" id="photo-consent-wrap"><input type="checkbox" id="f-consent">' +
-      "<span>I confirm this photo does not show a victim or a minor.</span></label>" +
+      "<span>I confirm this media does not show a victim or a minor.</span></label>" +
 
-      '<details style="margin:6px 0 14px">' +
-      '<summary style="font-weight:800;font-size:0.86rem;color:var(--navy);padding:10px 0;cursor:pointer">Response &amp; handover (if responders attended)</summary>' +
-      '<div style="padding-top:6px">' +
+      '<div class="card" style="margin:14px 0">' +
+      '<h3>Emergency services notified &amp; on scene</h3>' +
+      '<p class="muted" style="font-size:0.8rem;margin:0 0 10px">Tick all emergency responders called for this incident:</p>' +
+      '<div class="grid-2" style="gap:8px 12px;margin-bottom:12px">' +
+      '<label class="check" style="font-size:0.84rem"><input type="checkbox" value="SAPS" class="resp-chk"><span><b>SAPS</b> (Police · 10111)</span></label>' +
+      '<label class="check" style="font-size:0.84rem"><input type="checkbox" value="EMS/Ambulance" class="resp-chk"><span><b>EMS</b> (Ambulance · 10177)</span></label>' +
+      '<label class="check" style="font-size:0.84rem"><input type="checkbox" value="Armed Response" class="resp-chk"><span><b>Armed Response</b> / Security</span></label>' +
+      '<label class="check" style="font-size:0.84rem"><input type="checkbox" value="Fire" class="resp-chk"><span><b>Fire Dept</b> / Rescue</span></label>' +
+      '<label class="check" style="font-size:0.84rem"><input type="checkbox" value="Community Watch" class="resp-chk"><span><b>Aman Patrol</b> Community</span></label>' +
+      '</div>' +
       '<div class="grid-2">' +
-      '<div class="field"><label>Responder type</label><select id="f-responder_type">' + RESPONDER_TYPES.map(function (t) { return "<option>" + t + "</option>"; }).join("") + "</select></div>" +
-      '<div class="field"><label>Officer / Responder name</label><input type="text" id="f-responder_name"></div>' +
-      '<div class="field"><label>Vehicle registration</label><input type="text" id="f-vehicle_reg" placeholder="e.g. ARR-102 GP"></div>' +
-      '<div class="field"><label>Call sign</label><input type="text" id="f-call_sign" placeholder="e.g. EAGLE 4"></div>' +
-      "</div>" +
-      '<div class="field"><label>Contact details</label><input type="text" id="f-contact_details" placeholder="Phone / radio channel"></div>' +
+      '<div class="field"><label>Officer / Paramedic Names</label><input type="text" id="f-responder_name" placeholder="e.g. Const. Mokoena / Paramedic"></div>' +
+      '<div class="field"><label>Call Signs / Vehicle Reg</label><input type="text" id="f-call_sign" placeholder="e.g. EAGLE 4 / AMB 12"></div></div>' +
+      '<div class="field"><label>Contact details</label><input type="text" id="f-contact_details" placeholder="Phone numbers / radio channel"></div>' +
       '<div class="field"><label>Arrival time</label><input type="datetime-local" id="f-arrival_time"></div>' +
-      '<div class="field"><label>Outcome / Action taken</label><textarea id="f-outcome" style="min-height:70px" placeholder="What did the responder do?"></textarea></div>' +
-      "</div></details>" +
+      '<div class="field"><label>Outcome / Action taken</label><textarea id="f-outcome" style="min-height:64px" placeholder="What action was taken by responders on scene?"></textarea></div>' +
+      '</div>' +
 
       '<button class="btn btn-teal block" id="incident-submit" style="min-height:54px">Submit report</button>' +
       '<p class="center" style="font-size:0.7rem;color:var(--muted);margin-top:10px">Your report goes to the coordinator immediately. In an emergency, call 10111 (SAPS) first — then log it here.</p>';
@@ -186,21 +203,47 @@
     });
 
     var fileInput = document.getElementById("f-photo");
+    var videoInput = document.getElementById("f-video");
     document.getElementById("photo-btn").onclick = function () { fileInput.click(); };
+    document.getElementById("video-btn").onclick = function () { videoInput.click(); };
+
     fileInput.onchange = function () {
       var f = fileInput.files && fileInput.files[0];
       if (!f) return;
       compressPhoto(f, function (dataUrl) {
         state.photo = dataUrl;
+        state.video = null;
         var img = document.getElementById("photo-preview");
+        var vid = document.getElementById("video-preview");
         img.src = dataUrl; img.classList.remove("hidden");
+        vid.classList.add("hidden");
         document.getElementById("photo-remove").classList.remove("hidden");
         document.getElementById("photo-consent-wrap").style.background = "var(--warn-soft)";
       });
     };
+
+    videoInput.onchange = function () {
+      var f = videoInput.files && videoInput.files[0];
+      if (!f) return;
+      var reader = new FileReader();
+      reader.onload = function (evt) {
+        state.video = evt.target.result;
+        state.photo = null;
+        var img = document.getElementById("photo-preview");
+        var vid = document.getElementById("video-preview");
+        vid.src = evt.target.result; vid.classList.remove("hidden");
+        img.classList.add("hidden");
+        document.getElementById("photo-remove").classList.remove("hidden");
+        document.getElementById("photo-consent-wrap").style.background = "var(--warn-soft)";
+      };
+      reader.readAsDataURL(f);
+    };
+
     document.getElementById("photo-remove").onclick = function () {
-      state.photo = null; fileInput.value = "";
+      state.photo = null; state.video = null;
+      fileInput.value = ""; videoInput.value = "";
       document.getElementById("photo-preview").classList.add("hidden");
+      document.getElementById("video-preview").classList.add("hidden");
       document.getElementById("photo-remove").classList.add("hidden");
       document.getElementById("f-consent").checked = false;
       document.getElementById("photo-consent-wrap").style.background = "var(--teal-soft)";
@@ -252,16 +295,18 @@
     }
 
     var arrival = document.getElementById("f-arrival_time").value;
+    var chks = Array.prototype.slice.call(document.querySelectorAll(".resp-chk:checked")).map(function (x) { return x.value; });
+    var respType = chks.join(", ") || "None yet";
     var res = S.addIncident({
       user_id: user.id,
       category: c.full,
       gps_lat: state.gps.lat, gps_lng: state.gps.lng,
-      location_address: fields.location_address || state.address || (state.gps.lat.toFixed(5) + ", " + state.gps.lng.toFixed(5)),
+      location_address: fields.location_address || fields.exact_location || state.address || (state.gps.lat.toFixed(5) + ", " + state.gps.lng.toFixed(5)),
       description: desc,
-      photo_url: state.photo,
-      responder_type: document.getElementById("f-responder_type").value || "None yet",
+      photo_url: state.photo || state.video || null,
+      responder_type: respType,
       responder_name: document.getElementById("f-responder_name").value.trim(),
-      vehicle_reg: document.getElementById("f-vehicle_reg").value.trim(),
+      vehicle_reg: document.getElementById("f-call_sign").value.trim(),
       call_sign: document.getElementById("f-call_sign").value.trim(),
       contact_details: document.getElementById("f-contact_details").value.trim(),
       arrival_time: arrival ? new Date(arrival).toISOString() : null,

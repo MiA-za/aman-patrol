@@ -308,7 +308,7 @@
       '<div class="row mt-8" style="gap:8px;margin-bottom:12px">' +
       '<button type="button" class="btn btn-teal btn-sm grow" id="im-route-btn">' + ui.I("map", 14) + ' Route on Map</button>' +
       '<a class="btn btn-ghost btn-sm grow" href="https://www.google.com/maps/dir/?api=1&destination=' + i.gps_lat + ',' + i.gps_lng + '" target="_blank" rel="noopener">Google Maps</a></div>' +
-      (i.photo_url ? '<img src="' + i.photo_url + '" class="photo-preview" alt="Incident photo" style="max-height:180px">' : "") +
+      (i.photo_url ? (i.photo_url.indexOf("data:video") === 0 || i.photo_url.indexOf(".mp4") !== -1 || i.photo_url.indexOf(".webm") !== -1 ? '<video controls src="' + i.photo_url + '" class="photo-preview" style="max-height:180px;width:100%"></video>' : '<img src="' + i.photo_url + '" class="photo-preview" alt="Incident photo" style="max-height:180px">') : "") +
       (i.description ? '<div class="field"><label>Description</label><div style="font-size:0.84rem;line-height:1.5">' + esc(i.description) + "</div></div>" : "") +
       (fieldsHtml ? '<div class="detail-list" style="margin-bottom:12px">' + fieldsHtml + "</div>" : "") +
       statusHtml +

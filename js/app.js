@@ -549,6 +549,107 @@
     toast("Calendar invite downloaded. Tap to add to your calendar.", "ok");
   }
 
+  function amanAiModal() {
+    var S = window.AmanStore;
+    var user = S.sessionUser();
+    var incidents = S.incidents ? S.incidents() : [];
+    var slots = S.slots ? S.slots() : [];
+
+    modal(
+      "<h3>" + I("shield_star", 18) + " Aman AI Patrol Assistant</h3>" +
+      '<p class="m-sub">Instant AI assistant for patrol routes, emergency dispatch, safety protocols, and neighborhood intelligence.</p>' +
+      '<div class="ai-prompts-wrap" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">' +
+      '<button class="chip teal ai-prompt-btn" data-q="fastest_route">Fastest Routes &amp; Corridors</button>' +
+      '<button class="chip navy ai-prompt-btn" data-q="emergency_dispatch">Emergency EMS &amp; SAPS Contacts</button>' +
+      '<button class="chip warn ai-prompt-btn" data-q="voi_protocol">Suspicious Vehicle Protocol</button>' +
+      '<button class="chip ok ai-prompt-btn" data-q="active_intel">Current Patrol Intelligence</button>' +
+      "</div>" +
+      '<div id="ai-chat-history" class="card tight" style="min-height:160px;max-height:260px;overflow-y:auto;background:var(--bg);font-size:0.84rem;line-height:1.55;padding:12px;margin-bottom:12px">' +
+      '<div style="color:var(--teal-dark);font-weight:700;margin-bottom:4px">Aman AI Assistant:</div>' +
+      '<div>Assalamu alaykum ' + esc(user.first_name) + '. I am your patrol assistant. Ask me for fastest routes, emergency responder protocols, sector boundaries, or live neighborhood intelligence.</div>' +
+      "</div>" +
+      '<div class="row" style="gap:8px">' +
+      '<input type="text" id="ai-user-query" placeholder="Ask about routes, SOPs, contacts, or patrol..." style="flex:1" autocomplete="off">' +
+      '<button class="btn btn-teal" id="ai-query-send">Ask</button>' +
+      "</div>" +
+      '<div class="m-actions"><button class="btn btn-ghost" data-close>Close</button></div>',
+      function (root) {
+        var hist = root.querySelector("#ai-chat-history");
+        var inp = root.querySelector("#ai-user-query");
+        var sendBtn = root.querySelector("#ai-query-send");
+
+        function answerQuery(query) {
+          var q = query.toLowerCase();
+          var reply = "";
+
+          if (q.indexOf("route") !== -1 || q.indexOf("fastest") !== -1 || q.indexOf("traffic") !== -1 || q.indexOf("corridor") !== -1) {
+            reply = "<b>Fastest Patrol Routes &amp; Corridors:</b><br>" +
+              "• <b>Zone A (Greenside):</b> Use <i>Gleneagles Road</i> as primary east-west arterial; <i>Greenside Road</i> and <i>Barry Hertzog Ave</i> for north-south access.<br>" +
+              "• <b>Zone B (Emmarentia):</b> <i>Rustenburg Road</i> connects directly to <i>Barry Hertzog</i>; <i>Judith Road</i> and <i>Emmarentia Ave</i> provide swift access around the dam.<br>" +
+              "• <b>Bottleneck alert:</b> Avoid Barry Hertzog intersections during peak school/pick-up hours; use Tana Road or Greenhill Road bypass.";
+          } else if (q.indexOf("ems") !== -1 || q.indexOf("medical") !== -1 || q.indexOf("ambulance") !== -1 || q.indexOf("saps") !== -1 || q.indexOf("contact") !== -1 || q.indexOf("phone") !== -1 || q.indexOf("number") !== -1) {
+            reply = "<b>Emergency Dispatch Directory:</b><br>" +
+              "• <b>SAPS Police Flying Squad:</b> 10111 (Nationwide emergency)<br>" +
+              "• <b>SAPS Parkview Police Station:</b> 011 067 6000 / 011 486 5000 (Serving Greenside &amp; Emmarentia)<br>" +
+              "• <b>Netcare 911 Ambulance:</b> 082 911<br>" +
+              "• <b>ER24 Emergency Medical:</b> 084 124<br>" +
+              "• <b>City of Joburg EMS (Ambulance/Fire):</b> 011 375 5911 / 10177<br>" +
+              "• <b>City Power (Electricity / Outages):</b> 086 056 2874<br>" +
+              "• <b>Joburg Water (Burst pipes):</b> 011 688 1400";
+          } else if (q.indexOf("vehicle") !== -1 || q.indexOf("voi") !== -1 || q.indexOf("car") !== -1 || q.indexOf("plate") !== -1) {
+            reply = "<b>Suspicious Vehicle (VOI) Protocol:</b><br>" +
+              "1. <b>Observe from safety:</b> Keep minimum 30m distance, never block or pursue.<br>" +
+              "2. <b>Capture evidence:</b> Note Make, Model, Colour, Number Plate (or note 'No Plates'), and Direction of Travel.<br>" +
+              "3. <b>Take stamped photo:</b> Use the app's Evidence Camera to record GPS and timestamp.<br>" +
+              "4. <b>Log immediately:</b> Submit an incident report and notify the team chat / WhatsApp voice.";
+          } else if (q.indexOf("person") !== -1 || q.indexOf("poi") !== -1 || q.indexOf("suspicious") !== -1) {
+            reply = "<b>Suspicious Person (POI) SOP:</b><br>" +
+              "• <b>Strict non-confrontation:</b> Observe and report only. Never question or detain anyone.<br>" +
+              "• <b>Key descriptors:</b> Clothing top/bottom, approximate age, build, distinctive features (backpack, limp, markings), and direction of travel.<br>" +
+              "• <b>Pairs only:</b> Never patrol or approach an area alone.";
+          } else if (q.indexOf("intel") !== -1 || q.indexOf("incident") !== -1 || q.indexOf("status") !== -1 || q.indexOf("active") !== -1) {
+            var incCount = incidents.length;
+            var openSlots = slots.filter(function(s){return s.understaffed;}).length;
+            reply = "<b>Live Patrol Intelligence:</b><br>" +
+              "• <b>Total incidents logged:</b> " + incCount + " on record.<br>" +
+              "• <b>Roster status:</b> " + openSlots + " upcoming slots need a partner.<br>" +
+              "• <b>Priority watch areas:</b> Madrassah walking corridor on Greenside Road, Tana Road park edge, and Barry Hertzog robots.";
+          } else {
+            reply = "<b>Aman AI Guidance:</b><br>" +
+              "Remember our core principle: <b>Observe and report only — never confront, never pursue, never patrol alone.</b><br>" +
+              "For immediate police or medical assistance, dial 10111 (SAPS) or 082 911 (Netcare). Use the Incident tab to log detailed reports with GPS and photos.";
+          }
+
+          hist.innerHTML += '<div style="margin-top:10px;text-align:right"><span style="background:var(--navy-soft);padding:4px 10px;border-radius:8px;display:inline-block"><b>You:</b> ' + esc(query) + '</span></div>' +
+            '<div style="margin-top:8px"><div style="color:var(--teal-dark);font-weight:700">Aman AI:</div>' + reply + '</div>';
+          hist.scrollTop = hist.scrollHeight;
+        }
+
+        root.querySelectorAll(".ai-prompt-btn").forEach(function (btn) {
+          btn.onclick = function () {
+            var qType = btn.getAttribute("data-q");
+            if (qType === "fastest_route") answerQuery("What are the fastest routes and corridors in Greenside and Emmarentia?");
+            else if (qType === "emergency_dispatch") answerQuery("What are the emergency numbers for EMS, ambulance, and SAPS?");
+            else if (qType === "voi_protocol") answerQuery("What is the protocol for suspicious vehicles (VOI)?");
+            else if (qType === "active_intel") answerQuery("What is the current patrol intelligence and active incidents?");
+          };
+        });
+
+        function handleSend() {
+          var q = inp.value.trim();
+          if (!q) return;
+          inp.value = "";
+          answerQuery(q);
+        }
+
+        sendBtn.onclick = handleSend;
+        inp.addEventListener("keydown", function (e) {
+          if (e.key === "Enter") { e.preventDefault(); handleSend(); }
+        });
+      }
+    );
+  }
+
   function compassModal() {
     var lat = (window.AmanLiveTracking && window.AmanLiveTracking.lat) || -26.148;
     var lng = (window.AmanLiveTracking && window.AmanLiveTracking.lng) || 28.005;
@@ -763,7 +864,8 @@
       '<a class="action" href="#/roster"><div class="a-icon navy">' + I("calendar",20) + '</div><div class="a-label">Create or join a patrol</div><div class="a-sub">Pick any date &amp; time · pairs only · ' + S().slots().filter(function (s) { return s.understaffed; }).length + ' need a partner</div></a>' +
       '<a class="action" href="#/map"><div class="a-icon teal">' + I("map",20) + '</div><div class="a-label">View area map</div><div class="a-sub">Real area data + risk pins</div></a>' +
       '<a class="action" href="#/notifications"><div class="a-icon warn">' + I("bell",20) + '</div><div class="a-label">Notifications</div><div class="a-sub" id="dash-notif-sub">' + S().unreadCount(user) + ' unread</div></a>' +
-      '<a class="action" href="#/chat"><div class="a-icon info">' + I("chat",20) + '</div><div class="a-label">Team chat</div><div class="a-sub">Message volunteers in the app</div></a>' +
+      '<a class="action" href="#/chat"><div class="a-icon info">' + I("chat",20) + '</div><div class="a-label">Team chat</div><div class="a-sub">Operational team coordination</div></a>' +
+      '<button class="action" id="dash-ai-btn" style="text-align:left;cursor:pointer"><div class="a-icon navy">' + I("shield_star",20) + '</div><div class="a-label">Aman AI Assistant</div><div class="a-sub">Routes · dispatch · live intel</div></button>' +
       '<button class="action" id="dash-compass-btn" style="text-align:left;cursor:pointer"><div class="a-icon teal">' + I("compass",20) + '</div><div class="a-label">Compass &amp; Camera</div><div class="a-sub">Bearing · GPS · Stamped photos</div></button>' +
       '<button class="action" id="radio-btn" style="text-align:left;cursor:pointer"><div class="a-icon warn">' + I("radio",20) + '</div><div class="a-label">Patrol comms and voice</div><div class="a-sub">How the team talks on shift</div></button>' +
       "</div>" +
@@ -788,6 +890,7 @@
     });
 
     $("#radio-btn").onclick = radioModal;
+    var dab = $("#dash-ai-btn"); if (dab) dab.onclick = amanAiModal;
     var dcb = $("#dash-compass-btn"); if (dcb) dcb.onclick = compassModal;
     var osb = $("#onshift-banner-btn"); if (osb) osb.onclick = compassModal;
     refreshBell();
@@ -1308,14 +1411,16 @@
     $("#chat-send").onclick = sendNow;
     box.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); sendNow(); } });
 
-    // PTT Recording
+    // PTT Recording (supports up to 120s + tap-to-lock hands-free)
     var pttBtn = $("#ptt-talk-btn");
     var pttLbl = $("#ptt-lbl");
     var recTimer = null;
     var recStart = 0;
+    var isHandsFree = false;
 
     function startRec(e) {
-      if (e) e.preventDefault();
+      if (e && e.type !== "click") e.preventDefault();
+      if (mediaRecorder && mediaRecorder.state === "recording") return;
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
         toast("Audio recording not supported on this browser.", "error");
         return;
@@ -1338,11 +1443,14 @@
         mediaRecorder.start();
         recStart = Date.now();
         pttBtn.classList.add("recording");
-        pttLbl.textContent = "RECORDING... (RELEASE TO SEND)";
+        pttLbl.textContent = "RECORDING (0s / 120s) · RELEASE OR TAP TO SEND";
         recTimer = setInterval(function () {
           var s = Math.round((Date.now() - recStart) / 1000);
-          pttLbl.textContent = "RECORDING (" + s + "s) · RELEASE TO SEND";
-          if (s >= 30) stopRec();
+          pttLbl.textContent = "RECORDING (" + s + "s / 120s) · RELEASE TO SEND";
+          if (s >= 120) {
+            toast("Reached 120s maximum voice clip — sending now.", "ok");
+            stopRec();
+          }
         }, 1000);
       }).catch(function (err) {
         toast("Microphone access needed for PTT voice notes.", "error");

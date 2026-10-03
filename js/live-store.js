@@ -357,7 +357,7 @@
       var u = userById(id);
       pushNotif({
         audience: { type: "user", id: id }, kind: "ok", title: "Your registration was approved",
-        body: "Welcome to Aman Patrol, " + (u ? u.first_name : "volunteer") + ". You can now claim patrol slots. Remember: observe and report only — never patrol alone."
+        body: "السلام عليكم — Welcome to Aman Patrol, " + (u ? u.first_name : "volunteer") + "! Your registration is approved. You can now claim patrol slots. Remember: observe and report only — never patrol alone."
       });
       sendMessage(me.id, "السلام عليكم — Welcome to Aman Patrol, " + (u ? u.first_name : "volunteer") + "! You are approved — log in with the email you registered. Observe and report only, never patrol alone. Emergencies: call 10111.");
       refreshSoon("users"); refreshSoon("roster");

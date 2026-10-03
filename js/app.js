@@ -231,14 +231,10 @@
   function renderRegister() {
     setShell(false);
     screenEl.className = "screen";
-    var persistNote = S().persistent ? "" :
-      '<p class="page-sub center" style="color:var(--warn)">Preview mode: this page cannot save data between visits. Use the live preview or download the app file for the full demo.</p>';
     screenEl.innerHTML =
       '<div class="auth-hero">' + LOGO.replace(/\{s\}/g, "84") +
       "<h1>AMAN PATROL</h1>" +
-      '<div class="salam">السلام عليكم ورحمة الله</div>' +
       '<div class="tagline">Community neighbourhood watch — Greenside &amp; Emmarentia<br>Observe and report · patrol in pairs · never alone</div></div>' +
-      persistNote +
       '<div class="card">' +
       "<h3>Volunteer registration</h3>" +
       '<p class="muted" style="font-size:0.8rem;margin:0 0 12px">Apply to join the Aman Patrol team. A coordinator reviews every application before you can patrol.</p>' +
@@ -372,7 +368,6 @@
     screenEl.innerHTML =
       '<div class="auth-hero">' + LOGO.replace(/\{s\}/g, "84") +
       "<h1>AMAN PATROL</h1>" +
-      '<div class="salam">السلام عليكم ورحمة الله</div>' +
       '<div class="tagline">Welcome back — log in to continue serving the community.</div></div>' +
       '<div class="card">' +
       '<div class="field"><label>Email</label><input id="l-email" type="email" autocomplete="email" placeholder="you@example.com" value="' + esc(lastEmail) + '"></div>' +
@@ -459,7 +454,6 @@
       '<p class="page-sub" style="margin:0">' + esc(user.street + ", " + user.suburb) + "</p></div>" +
       '<span class="chip ' + (coord ? "teal" : "ok") + '">' + (coord ? "Coordinator" : "Approved volunteer") + "</span></div>" +
 
-      duaCardHtml() +
       '<div class="weather" id="weather-tile">' +
       '<div class="w-top"><div class="w-icon" style="width:44px;height:44px"><div style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.15);margin:5px"></div></div>' +
       '<div><div class="w-temp">—°</div><div class="w-desc">Fetching conditions for Greenside &amp; Emmarentia…</div></div></div></div>' +
@@ -509,13 +503,12 @@
   function radioModal() {
     modal(
       "<h3>" + I("radio",18) + " Patrol comms</h3>" +
-      '<p class="m-sub">Three channels, in order of use:</p>' +
+      '<p class="m-sub">Two channels, in order of use:</p>' +
       '<div class="detail-list" style="font-size:0.84rem">' +
       '<div><span class="dl-k">1 · Team chat</span><span class="dl-v">In the app (Chat tab) — text messages, live between phones</span></div>' +
       '<div><span class="dl-k">2 · Voice on shift</span><span class="dl-v">The WhatsApp group — voice notes work push-to-talk style</span></div>' +
-      '<div><span class="dl-k">3 · Radio (optional)</span><span class="dl-v">True push-to-talk radio (Mumble, open source) can be added later — needs its own small server</span></div>' +
-      '<div><span class="dl-k">Radio check</span><span class="dl-v">At shift start, radio "Aman [name], radio check"</span></div>' +
-      '<div><span class="dl-k">Etiquette</span><span class="dl-v">Short, calm, factual. No names of persons of interest over the air.</span></div>' +
+      '<div><span class="dl-k">Check-in</span><span class="dl-v">At shift start, send a message or voice note: "Aman [name], check in"</span></div>' +
+      '<div><span class="dl-k">Etiquette</span><span class="dl-v">Short, calm, factual. No names of persons of interest over the air or chat.</span></div>' +
       "</div>" +
       '<div class="m-actions"><button class="btn btn-primary" data-close>Close</button></div>'
     );
@@ -739,7 +732,7 @@
       var res = S().startShift(slotId, user.id, gps);
       if (!res.ok) { toast(res.error, "error"); return; }
       toast("Shift started at " + S().fmtTime(res.start_shift_time) + " · GPS " + gps.lat.toFixed(4) + ", " + gps.lng.toFixed(4) + " (" + gps.source + ")", "ok");
-      duaModal("leaving");
+      duaModal("safety");
       if (rerender) rerender();
     });
   }
@@ -1044,7 +1037,7 @@
       '<button class="btn btn-ghost block" id="radio-btn2" style="margin-bottom:10px">' + I("radio",15) + ' Patrol comms and voice</button>' +
       (S().live ? "" : '<button class="btn btn-ghost danger block" id="reset-btn" style="margin-bottom:10px">' + I("refresh",15) + ' Reset demo data</button>') +
       '<button class="btn btn-primary block" id="logout-btn">Log out</button></div>' +
-      '<p class="center" style="font-size:0.66rem;color:var(--muted);line-height:1.6">Aman Patrol · observe &amp; report only · map data © OpenStreetMap contributors · weather by Open-Meteo<br>' + (S().live ? "Live build — data syncs securely between all volunteers." : "Demo build — data stays on this device until Supabase is connected.") + "</p>";
+      '<p class="center" style="font-size:0.66rem;color:var(--muted);line-height:1.6">Aman Patrol · Greenside &amp; Emmarentia<br>Observe and report only · Never patrol alone · Map data © OpenStreetMap</p>';
 
     $all("[data-inc]").forEach(function (r) { r.onclick = function () { window.AmanAdmin.incidentModal(r.getAttribute("data-inc"), null); }; });
     $("#coc-btn").onclick = codeOfConductModal;

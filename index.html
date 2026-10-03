@@ -1,9 +1,7 @@
 <!-- ============================================================
-     AMAN PATROL — Greenside & Emmarentia (single-file demo build)
-     Open-and-share version: everything is in this one file.
-     Map base tiles & live weather need internet; everything else
-     works offline. Demo data stays on the device (no server).
-     Map data © OpenStreetMap contributors (ODbL) · Weather: Open-Meteo
+     AMAN PATROL — Greenside & Emmarentia
+     Community neighbourhood watch web application.
+     Observe and report · Patrol in pairs · Never patrol alone
      ============================================================ -->
 <!DOCTYPE html>
 <html lang="en">
@@ -875,25 +873,30 @@ p.page-sub { margin: 0 0 14px; color: var(--muted); font-size: 0.85rem; }
 .btn[disabled] { opacity: 0.45; pointer-events: none; }
 
 /* dashboard action grid */
-.action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
 .action {
   background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
   padding: 14px 12px; text-decoration: none; color: var(--text);
   display: flex; flex-direction: column; gap: 8px; box-shadow: var(--shadow);
-  min-height: 92px;
+  min-height: 96px; box-sizing: border-box;
 }
 .action .a-icon {
   width: 38px; height: 38px; border-radius: 11px; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
 }
 .action .a-icon.navy { background: var(--navy-soft); color: var(--navy); }
 .action .a-icon.teal { background: var(--teal-soft); color: var(--teal-dark); }
 .action .a-icon.warn { background: var(--warn-soft); color: var(--warn); }
 .action .a-icon.info { background: var(--info-soft); color: var(--info); }
-.action .a-label { font-weight: 800; font-size: 0.86rem; line-height: 1.2; }
-.action .a-sub { font-size: 0.7rem; color: var(--muted); margin-top: -4px; }
-.action.full { grid-column: 1 / -1; flex-direction: row; align-items: center; padding: 16px; }
-.action.full .a-label { font-size: 1rem; }
-.action.full .a-icon { width: 46px; height: 46px; }
+.action .a-label { font-weight: 800; font-size: 0.86rem; line-height: 1.25; }
+.action .a-sub { font-size: 0.72rem; color: var(--muted); margin-top: 0; line-height: 1.35; }
+.action.full {
+  grid-column: 1 / -1; flex-direction: row; align-items: center; padding: 16px 18px;
+  gap: 16px; margin-bottom: 12px; min-height: 84px;
+}
+.action.full .a-label { font-size: 1rem; font-weight: 800; line-height: 1.25; margin-bottom: 3px; }
+.action.full .a-icon { width: 48px; height: 48px; flex-shrink: 0; border-radius: 12px; }
+.action.full .a-sub { font-size: 0.78rem; line-height: 1.35; color: var(--muted); margin-top: 0; }
 
 /* ---------- weather tile ---------- */
 .weather {
@@ -1086,7 +1089,7 @@ p.page-sub { margin: 0 0 14px; color: var(--muted); font-size: 0.85rem; }
   text-align: center; color: var(--muted); padding: 30px 16px; font-size: 0.84rem; line-height: 1.6;
 }
 .empty .big { font-size: 2rem; margin-bottom: 6px; }
-/* ---- inline SVG icons (replaced emoji) ---- */
+/* ---- inline SVG icons ---- */
 .ico { display: inline-block; vertical-align: -3px; }
 .a-icon .ico, .n-icon .ico, .big-ico .ico, .empty .big .ico { display: block; }
 .dua-head .ico, .dua-modal-title .ico { flex-shrink: 0; }
@@ -1546,7 +1549,7 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
         { id: "p3", label: "Madrassah walking corridor — Greenside Masjid to Greenside Primary", type: "madrassah_corridor", lat: -26.1507, lng: 28.0105, created_by: "u-coord" }
       ],
       notifications: [
-        { id: "n1", audience: { type: "user", id: "u-aisha" }, kind: "ok", title: "Your registration was approved", body: "Welcome to Aman Patrol, Aisha. You can now claim patrol slots. Remember: observe and report only — never patrol alone.", created_at: new Date(now - 21 * 24 * H).toISOString(), read_by: ["u-aisha"] },
+        { id: "n1", audience: { type: "user", id: "u-aisha" }, kind: "ok", title: "Your registration was approved", body: "السلام عليكم — Welcome to Aman Patrol, Aisha! Your registration is approved. You can now claim patrol slots. Remember: observe and report only — never patrol alone.", created_at: new Date(now - 21 * 24 * H).toISOString(), read_by: ["u-aisha"] },
         { id: "n2", audience: { type: "user", id: "u-coord" }, kind: "info", title: "New registration awaiting review", body: "Ismail Desai (Emmarentia) has applied to join Aman Patrol.", created_at: new Date(now - 20 * H).toISOString(), read_by: [] },
         { id: "n3", audience: { type: "all" }, kind: "warn", title: "A patrol slot is understaffed", body: "Tomorrow 12:00 — Afternoon patrol (Zone B – Emmarentia) needs one more volunteer.", created_at: new Date(now - 5 * H).toISOString(), read_by: [] },
         { id: "n4", audience: { type: "user", id: "u-mo" }, kind: "danger", title: "New incident logged in your zone", body: "Suspicious Vehicle (VOI) reported on Gleneagles Road, Greenside.", created_at: new Date(now - 26 * H).toISOString(), read_by: [] },
@@ -1555,7 +1558,7 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
       messages: [
         { id: "m1", user_id: "u-coord", body: "As-salamu alaykum team. This chat is for patrol coordination. Observe and report only — never confront or chase.", created_at: new Date(now - 2 * H).toISOString() },
         { id: "m2", user_id: "u-aisha", body: "Noted, shukran. I am on the Madrassah drop-off tomorrow — I will check in here when I start my shift.", created_at: new Date(now - 90 * 60000).toISOString() },
-        { id: "m3", user_id: "u-mo", body: "Radio check from my side. WhatsApp group still works well for voice notes while walking.", created_at: new Date(now - 35 * 60000).toISOString() }
+        { id: "m3", user_id: "u-mo", body: "Check-in from my side. WhatsApp group works well for voice notes while walking.", created_at: new Date(now - 35 * 60000).toISOString() }
       ]
     };
   }
@@ -1650,7 +1653,7 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     var u = userById(id);
     if (!u) return;
     u.status = "approved";
-    pushNotif({ audience: { type: "user", id: id }, kind: "ok", title: "Your registration was approved", body: "Welcome to Aman Patrol, " + u.first_name + ". You can now claim patrol slots. Remember: observe and report only — never patrol alone." });
+    pushNotif({ audience: { type: "user", id: id }, kind: "ok", title: "Your registration was approved", body: "السلام عليكم — Welcome to Aman Patrol, " + u.first_name + "! Your registration is approved. You can now claim patrol slots. Remember: observe and report only — never patrol alone." });
     save();
     var su = sessionUser();
     if (su) sendMessage(su.id, "السلام عليكم — Welcome to Aman Patrol, " + u.first_name + "! You are approved — log in with the email you registered. Observe and report only, never patrol alone. Emergencies: call 10111.");
@@ -3535,7 +3538,7 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
       var u = userById(id);
       pushNotif({
         audience: { type: "user", id: id }, kind: "ok", title: "Your registration was approved",
-        body: "Welcome to Aman Patrol, " + (u ? u.first_name : "volunteer") + ". You can now claim patrol slots. Remember: observe and report only — never patrol alone."
+        body: "السلام عليكم — Welcome to Aman Patrol, " + (u ? u.first_name : "volunteer") + "! Your registration is approved. You can now claim patrol slots. Remember: observe and report only — never patrol alone."
       });
       sendMessage(me.id, "السلام عليكم — Welcome to Aman Patrol, " + (u ? u.first_name : "volunteer") + "! You are approved — log in with the email you registered. Observe and report only, never patrol alone. Emergencies: call 10111.");
       refreshSoon("users"); refreshSoon("roster");
@@ -4313,14 +4316,10 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
   function renderRegister() {
     setShell(false);
     screenEl.className = "screen";
-    var persistNote = S().persistent ? "" :
-      '<p class="page-sub center" style="color:var(--warn)">Preview mode: this page cannot save data between visits. Use the live preview or download the app file for the full demo.</p>';
     screenEl.innerHTML =
       '<div class="auth-hero">' + LOGO.replace(/\{s\}/g, "84") +
       "<h1>AMAN PATROL</h1>" +
-      '<div class="salam">السلام عليكم ورحمة الله</div>' +
       '<div class="tagline">Community neighbourhood watch — Greenside &amp; Emmarentia<br>Observe and report · patrol in pairs · never alone</div></div>' +
-      persistNote +
       '<div class="card">' +
       "<h3>Volunteer registration</h3>" +
       '<p class="muted" style="font-size:0.8rem;margin:0 0 12px">Apply to join the Aman Patrol team. A coordinator reviews every application before you can patrol.</p>' +
@@ -4454,7 +4453,6 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     screenEl.innerHTML =
       '<div class="auth-hero">' + LOGO.replace(/\{s\}/g, "84") +
       "<h1>AMAN PATROL</h1>" +
-      '<div class="salam">السلام عليكم ورحمة الله</div>' +
       '<div class="tagline">Welcome back — log in to continue serving the community.</div></div>' +
       '<div class="card">' +
       '<div class="field"><label>Email</label><input id="l-email" type="email" autocomplete="email" placeholder="you@example.com" value="' + esc(lastEmail) + '"></div>' +
@@ -4541,7 +4539,6 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
       '<p class="page-sub" style="margin:0">' + esc(user.street + ", " + user.suburb) + "</p></div>" +
       '<span class="chip ' + (coord ? "teal" : "ok") + '">' + (coord ? "Coordinator" : "Approved volunteer") + "</span></div>" +
 
-      duaCardHtml() +
       '<div class="weather" id="weather-tile">' +
       '<div class="w-top"><div class="w-icon" style="width:44px;height:44px"><div style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.15);margin:5px"></div></div>' +
       '<div><div class="w-temp">—°</div><div class="w-desc">Fetching conditions for Greenside &amp; Emmarentia…</div></div></div></div>' +
@@ -4591,13 +4588,12 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
   function radioModal() {
     modal(
       "<h3>" + I("radio",18) + " Patrol comms</h3>" +
-      '<p class="m-sub">Three channels, in order of use:</p>' +
+      '<p class="m-sub">Two channels, in order of use:</p>' +
       '<div class="detail-list" style="font-size:0.84rem">' +
       '<div><span class="dl-k">1 · Team chat</span><span class="dl-v">In the app (Chat tab) — text messages, live between phones</span></div>' +
       '<div><span class="dl-k">2 · Voice on shift</span><span class="dl-v">The WhatsApp group — voice notes work push-to-talk style</span></div>' +
-      '<div><span class="dl-k">3 · Radio (optional)</span><span class="dl-v">True push-to-talk radio (Mumble, open source) can be added later — needs its own small server</span></div>' +
-      '<div><span class="dl-k">Radio check</span><span class="dl-v">At shift start, radio "Aman [name], radio check"</span></div>' +
-      '<div><span class="dl-k">Etiquette</span><span class="dl-v">Short, calm, factual. No names of persons of interest over the air.</span></div>' +
+      '<div><span class="dl-k">Check-in</span><span class="dl-v">At shift start, send a message or voice note: "Aman [name], check in"</span></div>' +
+      '<div><span class="dl-k">Etiquette</span><span class="dl-v">Short, calm, factual. No names of persons of interest over the air or chat.</span></div>' +
       "</div>" +
       '<div class="m-actions"><button class="btn btn-primary" data-close>Close</button></div>'
     );
@@ -4821,7 +4817,7 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
       var res = S().startShift(slotId, user.id, gps);
       if (!res.ok) { toast(res.error, "error"); return; }
       toast("Shift started at " + S().fmtTime(res.start_shift_time) + " · GPS " + gps.lat.toFixed(4) + ", " + gps.lng.toFixed(4) + " (" + gps.source + ")", "ok");
-      duaModal("leaving");
+      duaModal("safety");
       if (rerender) rerender();
     });
   }
@@ -5126,7 +5122,7 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
       '<button class="btn btn-ghost block" id="radio-btn2" style="margin-bottom:10px">' + I("radio",15) + ' Patrol comms and voice</button>' +
       (S().live ? "" : '<button class="btn btn-ghost danger block" id="reset-btn" style="margin-bottom:10px">' + I("refresh",15) + ' Reset demo data</button>') +
       '<button class="btn btn-primary block" id="logout-btn">Log out</button></div>' +
-      '<p class="center" style="font-size:0.66rem;color:var(--muted);line-height:1.6">Aman Patrol · observe &amp; report only · map data © OpenStreetMap contributors · weather by Open-Meteo<br>' + (S().live ? "Live build — data syncs securely between all volunteers." : "Demo build — data stays on this device until Supabase is connected.") + "</p>";
+      '<p class="center" style="font-size:0.66rem;color:var(--muted);line-height:1.6">Aman Patrol · Greenside &amp; Emmarentia<br>Observe and report only · Never patrol alone · Map data © OpenStreetMap</p>';
 
     $all("[data-inc]").forEach(function (r) { r.onclick = function () { window.AmanAdmin.incidentModal(r.getAttribute("data-inc"), null); }; });
     $("#coc-btn").onclick = codeOfConductModal;

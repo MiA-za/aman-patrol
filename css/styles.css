@@ -188,25 +188,30 @@ p.page-sub { margin: 0 0 14px; color: var(--muted); font-size: 0.85rem; }
 .btn[disabled] { opacity: 0.45; pointer-events: none; }
 
 /* dashboard action grid */
-.action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
 .action {
   background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
   padding: 14px 12px; text-decoration: none; color: var(--text);
   display: flex; flex-direction: column; gap: 8px; box-shadow: var(--shadow);
-  min-height: 92px;
+  min-height: 96px; box-sizing: border-box;
 }
 .action .a-icon {
   width: 38px; height: 38px; border-radius: 11px; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
 }
 .action .a-icon.navy { background: var(--navy-soft); color: var(--navy); }
 .action .a-icon.teal { background: var(--teal-soft); color: var(--teal-dark); }
 .action .a-icon.warn { background: var(--warn-soft); color: var(--warn); }
 .action .a-icon.info { background: var(--info-soft); color: var(--info); }
-.action .a-label { font-weight: 800; font-size: 0.86rem; line-height: 1.2; }
-.action .a-sub { font-size: 0.7rem; color: var(--muted); margin-top: -4px; }
-.action.full { grid-column: 1 / -1; flex-direction: row; align-items: center; padding: 16px; }
-.action.full .a-label { font-size: 1rem; }
-.action.full .a-icon { width: 46px; height: 46px; }
+.action .a-label { font-weight: 800; font-size: 0.86rem; line-height: 1.25; }
+.action .a-sub { font-size: 0.72rem; color: var(--muted); margin-top: 0; line-height: 1.35; }
+.action.full {
+  grid-column: 1 / -1; flex-direction: row; align-items: center; padding: 16px 18px;
+  gap: 16px; margin-bottom: 12px; min-height: 84px;
+}
+.action.full .a-label { font-size: 1rem; font-weight: 800; line-height: 1.25; margin-bottom: 3px; }
+.action.full .a-icon { width: 48px; height: 48px; flex-shrink: 0; border-radius: 12px; }
+.action.full .a-sub { font-size: 0.78rem; line-height: 1.35; color: var(--muted); margin-top: 0; }
 
 /* ---------- weather tile ---------- */
 .weather {
@@ -399,7 +404,7 @@ p.page-sub { margin: 0 0 14px; color: var(--muted); font-size: 0.85rem; }
   text-align: center; color: var(--muted); padding: 30px 16px; font-size: 0.84rem; line-height: 1.6;
 }
 .empty .big { font-size: 2rem; margin-bottom: 6px; }
-/* ---- inline SVG icons (replaced emoji) ---- */
+/* ---- inline SVG icons ---- */
 .ico { display: inline-block; vertical-align: -3px; }
 .a-icon .ico, .n-icon .ico, .big-ico .ico, .empty .big .ico { display: block; }
 .dua-head .ico, .dua-modal-title .ico { flex-shrink: 0; }

@@ -189,7 +189,7 @@
         { id: "p3", label: "Madrassah walking corridor — Greenside Masjid to Greenside Primary", type: "madrassah_corridor", lat: -26.1507, lng: 28.0105, created_by: "u-coord" }
       ],
       notifications: [
-        { id: "n1", audience: { type: "user", id: "u-aisha" }, kind: "ok", title: "Your registration was approved", body: "Welcome to Aman Patrol, Aisha. You can now claim patrol slots. Remember: observe and report only — never patrol alone.", created_at: new Date(now - 21 * 24 * H).toISOString(), read_by: ["u-aisha"] },
+        { id: "n1", audience: { type: "user", id: "u-aisha" }, kind: "ok", title: "Your registration was approved", body: "السلام عليكم — Welcome to Aman Patrol, Aisha! Your registration is approved. You can now claim patrol slots. Remember: observe and report only — never patrol alone.", created_at: new Date(now - 21 * 24 * H).toISOString(), read_by: ["u-aisha"] },
         { id: "n2", audience: { type: "user", id: "u-coord" }, kind: "info", title: "New registration awaiting review", body: "Ismail Desai (Emmarentia) has applied to join Aman Patrol.", created_at: new Date(now - 20 * H).toISOString(), read_by: [] },
         { id: "n3", audience: { type: "all" }, kind: "warn", title: "A patrol slot is understaffed", body: "Tomorrow 12:00 — Afternoon patrol (Zone B – Emmarentia) needs one more volunteer.", created_at: new Date(now - 5 * H).toISOString(), read_by: [] },
         { id: "n4", audience: { type: "user", id: "u-mo" }, kind: "danger", title: "New incident logged in your zone", body: "Suspicious Vehicle (VOI) reported on Gleneagles Road, Greenside.", created_at: new Date(now - 26 * H).toISOString(), read_by: [] },
@@ -198,7 +198,7 @@
       messages: [
         { id: "m1", user_id: "u-coord", body: "As-salamu alaykum team. This chat is for patrol coordination. Observe and report only — never confront or chase.", created_at: new Date(now - 2 * H).toISOString() },
         { id: "m2", user_id: "u-aisha", body: "Noted, shukran. I am on the Madrassah drop-off tomorrow — I will check in here when I start my shift.", created_at: new Date(now - 90 * 60000).toISOString() },
-        { id: "m3", user_id: "u-mo", body: "Radio check from my side. WhatsApp group still works well for voice notes while walking.", created_at: new Date(now - 35 * 60000).toISOString() }
+        { id: "m3", user_id: "u-mo", body: "Check-in from my side. WhatsApp group works well for voice notes while walking.", created_at: new Date(now - 35 * 60000).toISOString() }
       ]
     };
   }
@@ -293,7 +293,7 @@
     var u = userById(id);
     if (!u) return;
     u.status = "approved";
-    pushNotif({ audience: { type: "user", id: id }, kind: "ok", title: "Your registration was approved", body: "Welcome to Aman Patrol, " + u.first_name + ". You can now claim patrol slots. Remember: observe and report only — never patrol alone." });
+    pushNotif({ audience: { type: "user", id: id }, kind: "ok", title: "Your registration was approved", body: "السلام عليكم — Welcome to Aman Patrol, " + u.first_name + "! Your registration is approved. You can now claim patrol slots. Remember: observe and report only — never patrol alone." });
     save();
     var su = sessionUser();
     if (su) sendMessage(su.id, "السلام عليكم — Welcome to Aman Patrol, " + u.first_name + "! You are approved — log in with the email you registered. Observe and report only, never patrol alone. Emergencies: call 10111.");

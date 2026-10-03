@@ -1,6 +1,6 @@
 /* ============================================================
    AMAN PATROL — Area Map.
-   - Multi-layer base maps: Streets, Satellite (Aerial), Dark
+   - Multi-layer base maps: Streets, Satellite (Aerial), CSS-filtered Night
    - Zone A (Greenside) & Zone B (Emmarentia) boundary outlines
    - One-tap "Locate Me" live GPS tracking
    - Real layers from OpenStreetMap (via Overpass snapshot in data.js)
@@ -38,8 +38,12 @@
       label: "Satellite Aerial"
     },
     dark: {
-      url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-      opts: { maxZoom: 19, subdomains: "abcd", attribution: '&copy; <a href="https://carto.com/">CARTO</a> &copy; OpenStreetMap' },
+      url: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+      opts: {
+        maxZoom: 19,
+        className: "night-map-tiles",
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      },
       label: "Night / Dark"
     }
   };
@@ -94,6 +98,7 @@
   function setBaseMap(type) {
     if (!BASE_TILES[type] || !map) return;
     currentBaseMap = type;
+    tileErrors = 0;
     try { localStorage.setItem("aman_map_basemap", type); } catch (e) {}
     if (currentTileLayer) {
       map.removeLayer(currentTileLayer);

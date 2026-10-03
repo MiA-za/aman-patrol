@@ -50,6 +50,7 @@
     camera: '<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
     mic: '<path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>',
     download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>',
+    share: '<path d="M12 3v12"/><polyline points="7 8 12 3 17 8"/><path d="M5 13v7h14v-7"/>',
     play: '<polygon points="6 4 20 12 6 20 6 4"/>',
     stop: '<rect x="6" y="6" width="12" height="12" rx="1"/>',
     pin: '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>',
@@ -153,7 +154,101 @@
   }
 
   var screenEl, lastNotifId = null;
+  var deferredInstallPrompt = null;
   function S() { return window.AmanStore; }
+
+  /* ---------- install Aman Patrol on a phone ---------- */
+  function appIsInstalled() {
+    return (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) ||
+      window.navigator.standalone === true;
+  }
+  function isIOSDevice() {
+    var ua = navigator.userAgent || "";
+    return /iphone|ipad|ipod/i.test(ua) ||
+      (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  }
+  function installCardHtml() {
+    var installed = appIsInstalled();
+    return '<button type="button" class="action full install-card' + (installed ? " is-installed" : "") + '" data-install-app>' +
+      '<div class="a-icon" data-install-icon>' + I(installed ? "check_circle" : "download", 24) + '</div>' +
+      '<div class="grow"><div class="a-label" data-install-title>' + (installed ? "Aman Patrol is installed" : "Download / Install App to Phone") + '</div>' +
+      '<div class="a-sub" data-install-sub>' + (installed ? "Open it anytime from your phone home screen" : "Add Aman Patrol to your home screen for quick access") + '</div></div>' +
+      '<span class="install-arrow" aria-hidden="true">' + I("chev_r", 20) + '</span></button>';
+  }
+  function refreshInstallCards() {
+    var installed = appIsInstalled();
+    $all("[data-install-app]").forEach(function (card) {
+      card.classList.toggle("is-installed", installed);
+      var icon = card.querySelector("[data-install-icon]");
+      var title = card.querySelector("[data-install-title]");
+      var sub = card.querySelector("[data-install-sub]");
+      if (icon) icon.innerHTML = I(installed ? "check_circle" : "download", 24);
+      if (title) title.textContent = installed ? "Aman Patrol is installed" : "Download / Install App to Phone";
+      if (sub) sub.textContent = installed
+        ? "Open it anytime from your phone home screen"
+        : (deferredInstallPrompt ? "Ready to install now" : "Add Aman Patrol to your home screen for quick access");
+    });
+  }
+  function showIOSInstallInstructions() {
+    modal(
+      "<h3>Install Aman Patrol on iPhone</h3>" +
+      '<p class="m-sub">Use Safari to add the app to your phone home screen.</p>' +
+      '<div class="install-route">' + I("share", 20) + ' Tap Share &rarr; Add to Home Screen ' + I("plus", 20) + '</div>' +
+      '<div class="install-steps">' +
+      '<div class="install-step"><span class="install-step-num">1</span><div><b>Tap Share</b><br>It is the square button with an upward arrow in Safari.</div></div>' +
+      '<div class="install-step"><span class="install-step-num">2</span><div><b>Choose Add to Home Screen</b><br>You may need to scroll down in the Share list.</div></div>' +
+      '<div class="install-step"><span class="install-step-num">3</span><div><b>Tap Add</b><br>Aman Patrol will appear on your home screen.</div></div>' +
+      '</div><div class="m-actions"><button class="btn btn-primary" data-close>Understood</button></div>'
+    );
+  }
+  function showBrowserInstallInstructions() {
+    modal(
+      "<h3>Install Aman Patrol</h3>" +
+      '<p class="m-sub">The automatic install button is not available in this browser right now.</p>' +
+      '<div class="install-steps">' +
+      '<div class="install-step"><span class="install-step-num">1</span><div>Open your browser menu.</div></div>' +
+      '<div class="install-step"><span class="install-step-num">2</span><div>Choose <b>Install app</b> or <b>Add to Home screen</b>.</div></div>' +
+      '<div class="install-step"><span class="install-step-num">3</span><div>Confirm the installation.</div></div>' +
+      '</div><div class="m-actions"><button class="btn btn-primary" data-close>Understood</button></div>'
+    );
+  }
+  function installApp() {
+    if (appIsInstalled()) {
+      toast("Aman Patrol is already installed on this phone.", "ok");
+      return;
+    }
+    if (isIOSDevice()) {
+      showIOSInstallInstructions();
+      return;
+    }
+    if (!deferredInstallPrompt) {
+      showBrowserInstallInstructions();
+      return;
+    }
+    var promptEvent = deferredInstallPrompt;
+    deferredInstallPrompt = null;
+    refreshInstallCards();
+    try {
+      promptEvent.prompt();
+      if (promptEvent.userChoice) {
+        promptEvent.userChoice.then(function (choice) {
+          if (!choice || choice.outcome !== "accepted") toast("Installation was not completed. You can try again later.");
+        });
+      }
+    } catch (err) {
+      showBrowserInstallInstructions();
+    }
+  }
+  window.addEventListener("beforeinstallprompt", function (event) {
+    event.preventDefault();
+    deferredInstallPrompt = event;
+    refreshInstallCards();
+  });
+  window.addEventListener("appinstalled", function () {
+    deferredInstallPrompt = null;
+    refreshInstallCards();
+    toast("Aman Patrol was installed successfully.", "ok");
+  });
 
   /* ---------- toast ---------- */
   function toast(msg, kind) {
@@ -961,6 +1056,7 @@
       '<span class="chip ' + (coord ? "teal" : "ok") + '">' + (coord ? "Coordinator" : "Approved volunteer") + "</span>" +
       '<span class="chip grey" style="font-size:0.6rem;padding:2px 6px">Power: Stage 0 (Normal)</span></div></div>' +
 
+      installCardHtml() +
       handoverHtml +
 
       '<div class="weather" id="weather-tile">' +
@@ -1260,6 +1356,15 @@
   function startShiftFlow(slotId, rerender) {
     var user = S().sessionUser();
     var slot = S().slotById(slotId);
+    if (!user || !slot) { toast("This patrol shift could not be found.", "error"); return; }
+    if (slot.understaffed) {
+      modal(
+        "<h3>Partner required before starting</h3>" +
+        '<p class="m-sub">This patrol does not yet have a full pair. Ask your partner to join this slot in the Roster first. Never patrol alone.</p>' +
+        '<div class="m-actions"><button class="btn btn-primary" data-close>Understood</button></div>'
+      );
+      return;
+    }
     toast("Capturing your GPS position…");
     captureGPS(function (gps) {
       if (!gps) gps = zoneCenter(slot.zone);
@@ -1543,7 +1648,7 @@
     }).join("");
     screenEl.innerHTML =
       "<h1 class=\"page-title\">Team chat</h1>" +
-      '<p class="page-sub">Operational messages only — observe and report. Use text or hold the PTT button to record instant voice notes.</p>' +
+      '<p class="page-sub">Operational messages only — observe and report. Hold PTT to record a voice note with a live text transcript where supported.</p>' +
       '<div class="chat-wrap" id="chat-list">' +
       (items || '<p class="muted center" style="font-size:0.82rem;padding:18px 0">No messages yet — say as-salamu alaykum.</p>') +
       "</div>" +
@@ -1552,7 +1657,8 @@
       '<button class="btn btn-teal" id="chat-send">Send</button></div>' +
       '<div class="ptt-wrap">' +
       '<button type="button" class="ptt-btn" id="ptt-talk-btn">' + I("mic", 16) + ' <span id="ptt-lbl">HOLD TO TALK (PTT)</span></button>' +
-      '</div>';
+      '</div>' +
+      '<div class="ptt-transcript" id="ptt-transcript" role="status" aria-live="polite">Automatic live transcript will appear here while you talk.</div>';
     var box = $("#chat-box");
     function sendNow() {
       var res = S().sendMessage(user.id, box.value);
@@ -1563,39 +1669,137 @@
     $("#chat-send").onclick = sendNow;
     box.addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); sendNow(); } });
 
-    // PTT Recording (supports up to 120s + tap-to-lock hands-free)
+    // PTT recording with live speech-to-text where the browser supports it
     var pttBtn = $("#ptt-talk-btn");
     var pttLbl = $("#ptt-lbl");
+    var transcriptBox = $("#ptt-transcript");
     var recTimer = null;
     var recStart = 0;
-    var isHandsFree = false;
+    var pttHeld = false;
+    var pttStarting = false;
+    var pttFinishing = false;
+    var speechRecognition = null;
+    var speechFinal = "";
+    var speechInterim = "";
+    var SpeechRecognitionApi = window.SpeechRecognition || window.webkitSpeechRecognition;
 
-    function startRec(e) {
-      if (e && e.type !== "click") e.preventDefault();
-      if (mediaRecorder && mediaRecorder.state === "recording") return;
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        toast("Audio recording not supported on this browser.", "error");
+    function setTranscriptStatus(text, listening) {
+      if (!transcriptBox) return;
+      transcriptBox.textContent = text;
+      transcriptBox.classList.toggle("listening", !!listening);
+    }
+
+    function combinedTranscript() {
+      return (speechFinal + " " + speechInterim).replace(/\s+/g, " ").trim();
+    }
+
+    function startTranscription() {
+      speechFinal = "";
+      speechInterim = "";
+      if (!SpeechRecognitionApi) {
+        setTranscriptStatus("Automatic transcription is not supported by this browser. The audio will still be recorded.", false);
         return;
       }
+      try {
+        speechRecognition = new SpeechRecognitionApi();
+        speechRecognition.continuous = true;
+        speechRecognition.interimResults = true;
+        speechRecognition.maxAlternatives = 1;
+        speechRecognition.lang = "en-ZA";
+        speechRecognition.onresult = function (event) {
+          var finalParts = [];
+          var interimParts = [];
+          for (var i = 0; i < event.results.length; i++) {
+            var words = event.results[i][0] ? event.results[i][0].transcript : "";
+            if (event.results[i].isFinal) finalParts.push(words);
+            else interimParts.push(words);
+          }
+          speechFinal = finalParts.join(" ").trim();
+          speechInterim = interimParts.join(" ").trim();
+          var text = combinedTranscript();
+          setTranscriptStatus(text ? "Live transcript: " + text : "Listening for live transcript...", true);
+        };
+        speechRecognition.onerror = function (event) {
+          if (event.error !== "no-speech" && event.error !== "aborted") {
+            setTranscriptStatus("Live transcript is unavailable. The audio is still recording.", false);
+          }
+        };
+        speechRecognition.start();
+        setTranscriptStatus("Listening for live transcript...", true);
+      } catch (err) {
+        speechRecognition = null;
+        setTranscriptStatus("Live transcript is unavailable. The audio is still recording.", false);
+      }
+    }
+
+    function stopTranscription() {
+      if (!speechRecognition) return;
+      try { speechRecognition.stop(); } catch (err) {}
+      speechRecognition = null;
+      if (combinedTranscript()) setTranscriptStatus("Transcript: " + combinedTranscript(), false);
+    }
+
+    function voiceMessageBody(duration) {
+      var text = combinedTranscript();
+      var prefix = "Voice Note (" + duration + "s)\n";
+      if (!text) return prefix + "Automatic transcript unavailable or no speech recognised.";
+      var label = "Transcript: ";
+      return prefix + label + text.slice(0, Math.max(0, 500 - prefix.length - label.length));
+    }
+
+    function startRec(e) {
+      if (e) e.preventDefault();
+      if (pttStarting || pttFinishing || (mediaRecorder && mediaRecorder.state === "recording")) return;
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) {
+        toast("Audio recording is not supported on this browser.", "error");
+        return;
+      }
+      pttHeld = true;
+      pttStarting = true;
+      if (e && e.type === "mousedown") document.addEventListener("mouseup", stopRec, { once: true });
+      setTranscriptStatus("Waiting for microphone permission...", false);
       navigator.mediaDevices.getUserMedia({ audio: true }).then(function (stream) {
+        pttStarting = false;
+        if (!pttHeld || !document.body.contains(pttBtn)) {
+          stream.getTracks().forEach(function (t) { t.stop(); });
+          setTranscriptStatus("Hold PTT to record a voice note with a live transcript.", false);
+          return;
+        }
         audioChunks = [];
-        mediaRecorder = new MediaRecorder(stream);
+        try {
+          mediaRecorder = new MediaRecorder(stream);
+        } catch (err) {
+          stream.getTracks().forEach(function (t) { t.stop(); });
+          toast("Audio recording could not start on this browser.", "error");
+          return;
+        }
         mediaRecorder.ondataavailable = function (evt) { if (evt.data.size > 0) audioChunks.push(evt.data); };
         mediaRecorder.onstop = function () {
           stream.getTracks().forEach(function (t) { t.stop(); });
-          var blob = new Blob(audioChunks, { type: "audio/webm" });
+          stopTranscription();
+          var mime = mediaRecorder.mimeType || (audioChunks[0] && audioChunks[0].type) || "audio/webm";
+          var blob = new Blob(audioChunks, { type: mime });
           var dur = Math.max(1, Math.round((Date.now() - recStart) / 1000));
           var reader = new FileReader();
           reader.onload = function () {
-            S().sendMessage(user.id, "Voice Note (" + dur + "s)", reader.result);
-            renderChat();
+            setTimeout(function () {
+              var res = S().sendMessage(user.id, voiceMessageBody(dur), reader.result);
+              pttFinishing = false;
+              if (!res.ok) { toast(res.error, "error"); return; }
+              renderChat();
+            }, 300);
+          };
+          reader.onerror = function () {
+            pttFinishing = false;
+            toast("The voice note could not be prepared. Please try again.", "error");
           };
           reader.readAsDataURL(blob);
         };
         mediaRecorder.start();
         recStart = Date.now();
+        startTranscription();
         pttBtn.classList.add("recording");
-        pttLbl.textContent = "RECORDING (0s / 120s) · RELEASE OR TAP TO SEND";
+        pttLbl.textContent = "RECORDING (0s / 120s) · RELEASE TO SEND";
         recTimer = setInterval(function () {
           var s = Math.round((Date.now() - recStart) / 1000);
           pttLbl.textContent = "RECORDING (" + s + "s / 120s) · RELEASE TO SEND";
@@ -1604,17 +1808,22 @@
             stopRec();
           }
         }, 1000);
-      }).catch(function (err) {
+      }).catch(function () {
+        pttHeld = false;
+        pttStarting = false;
+        setTranscriptStatus("Microphone permission is needed for PTT voice notes.", false);
         toast("Microphone access needed for PTT voice notes.", "error");
       });
     }
 
     function stopRec(e) {
       if (e) e.preventDefault();
+      pttHeld = false;
       if (recTimer) { clearInterval(recTimer); recTimer = null; }
       pttBtn.classList.remove("recording");
       pttLbl.textContent = "HOLD TO TALK (PTT)";
       if (mediaRecorder && mediaRecorder.state === "recording") {
+        pttFinishing = true;
         mediaRecorder.stop();
       }
     }
@@ -1622,8 +1831,13 @@
     if (pttBtn) {
       pttBtn.addEventListener("mousedown", startRec);
       pttBtn.addEventListener("mouseup", stopRec);
+      pttBtn.addEventListener("mouseleave", function (event) {
+        if (mediaRecorder && mediaRecorder.state === "recording" && event.buttons === 0) stopRec(event);
+      });
       pttBtn.addEventListener("touchstart", startRec, { passive: false });
       pttBtn.addEventListener("touchend", stopRec, { passive: false });
+      pttBtn.addEventListener("touchcancel", stopRec, { passive: false });
+      pttBtn.addEventListener("contextmenu", function (event) { event.preventDefault(); });
     }
 
     S().markChatSeen();
@@ -1651,6 +1865,8 @@
       "<dt>Address</dt><dd>" + esc(user.street + ", " + user.suburb) + "</dd>" +
       '<dt>Emergency</dt><dd>' + esc((user.emergency_contact_name || "") + " " + (user.emergency_contact_number || "")) + "</dd></dl>" +
       '<button class="btn btn-ghost btn-sm block mt-12" id="edit-prof-btn">' + I("user", 13) + ' Edit Contact Details</button></div>' +
+
+      installCardHtml() +
 
       (S().getSetting("whatsapp_group_url") ? '<a class="action full" href="' + esc(S().getSetting("whatsapp_group_url")) + '" target="_blank" rel="noopener" style="margin-bottom:12px"><div class="a-icon" style="background:var(--ok);color:#fff">' + I("megaphone",20) + '</div><div class="grow"><div class="a-label">Community WhatsApp group</div><div class="a-sub">Open the Aman Patrol group chat</div></div></a>' : "") +
 
@@ -1904,6 +2120,8 @@
     document.addEventListener("click", function (e) {
       var t = e.target && e.target.closest ? e.target.closest("[data-theme-toggle]") : null;
       if (t) toggleTheme();
+      var install = e.target && e.target.closest ? e.target.closest("[data-install-app]") : null;
+      if (install) { e.preventDefault(); installApp(); }
       var eye = e.target && e.target.closest ? e.target.closest(".pw-eye") : null;
       if (eye) {
         var input = document.getElementById(eye.getAttribute("data-for"));

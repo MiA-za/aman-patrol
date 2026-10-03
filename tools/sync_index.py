@@ -29,6 +29,7 @@ by hand), then run this script before committing.
 """
 import glob
 import hashlib
+import os
 import subprocess
 import sys
 
@@ -38,6 +39,14 @@ JS_FILES = ["js/config.js", "js/lib/supabase.js", "js/data.js", "js/store.js",
 LEAFLET = "js/lib/leaflet.js"
 INDEX = "index.html"
 STYLES = "css/styles.css"
+
+CRLF_FILES = [INDEX, "js/app.js", "js/admin.js", "js/map.js", "js/incident.js",
+              STYLES] + sorted(glob.glob("**/*.md", recursive=True))
+LF_FILES = ["js/store.js", "js/live-store.js", "js/data.js", "js/weather.js",
+            "js/config.js", "multi-file.html", "sw.js", "manifest.webmanifest"] + \
+           sorted(glob.glob("js/lib/*")) + sorted(glob.glob("tools/*")) + \
+           sorted(glob.glob("supabase/**/*", recursive=True))
+LF_FILES = [path for path in LF_FILES if os.path.isfile(path)]
 
 EMOJI_RANGES = [(0x1F000, 0x1FAFF), (0x2600, 0x27BF), (0x2B00, 0x2BFF),
                 (0x23E9, 0x23FA), (0x231B, 0x231B), (0x2139, 0x2139),
@@ -174,11 +183,11 @@ def verify():
     all_ok = all_ok and syntax_ok
 
     # 3. emoji scan
-    files = ["index.html", "multi-file.html", "README.md", "PUT_ON_GITHUB.md",
-             "SUPABASE_SETUP.md", "OPEN_SOURCE_NOTES.md", "NEXT_STEPS.md", "AUDIT.md",
-             "sw.js", "manifest.webmanifest"] + \
-            sorted(glob.glob("js/*.js")) + sorted(glob.glob("js/lib/*.js")) + \
-            sorted(glob.glob("css/*.css"))
+    text_patterns = ["**/*.html", "**/*.md", "**/*.js", "**/*.css", "**/*.sql",
+                     "**/*.py", "**/*.ts", "**/*.webmanifest"]
+    files = sorted(set(path for pattern in text_patterns
+                       for path in glob.glob(pattern, recursive=True)
+                       if os.path.isfile(path) and not path.startswith(".git/")))
     emoji_ok = True
     for path in files:
         try:
@@ -195,12 +204,8 @@ def verify():
 
     # 4. line-ending sanity
     le_ok = True
-    for path, want_crlf in [(INDEX, True), ("js/app.js", True), ("js/incident.js", True),
-                            ("css/styles.css", True), ("js/store.js", False),
-                            ("js/data.js", False), ("js/config.js", False),
-                            ("js/live-store.js", False), ("js/lib/supabase.js", False),
-                            ("multi-file.html", False), ("sw.js", False),
-                            ("manifest.webmanifest", False)]:
+    expected = [(path, True) for path in CRLF_FILES] + [(path, False) for path in LF_FILES]
+    for path, want_crlf in expected:
         data = read(path, binary=True)
         lf_only = data.count(b"\n") - data.count(b"\r\n")
         bad = (want_crlf and lf_only) or (not want_crlf and data.count(b"\r\n"))
@@ -208,7 +213,7 @@ def verify():
             print(f"FAIL line endings: {path}")
             le_ok = False
     if le_ok:
-        print("PASS line endings: per-file conventions preserved")
+        print(f"PASS line endings: all {len(expected)} per-file conventions preserved")
     all_ok = all_ok and le_ok
 
     return all_ok

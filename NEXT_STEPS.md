@@ -80,10 +80,10 @@ watch (500 MB database, 50,000 monthly active users, 2 GB file storage).
 **Coordinator's steps (about 15 minutes, no coding):**
 1. Create a free account at supabase.com and create a project (choose the
    region closest to South Africa, e.g. Frankfurt or London).
-2. Open *SQL Editor*, paste the contents of `supabase/schema.sql` from this
-   repo, and run it. This creates the tables (profiles, patrol slots, slot
-   claims, incidents, map pins, notifications) with row-level security so
-   volunteers can only see what they should.
+2. Open *SQL Editor* and run `supabase/schema.sql`. Then run
+   `supabase/addendum_a.sql` and `supabase/addendum_b.sql`, in that order, as
+   separate new queries. Addendum B creates `public.messages` for Team Chat
+   and enables live delivery between phones.
 3. Copy the project URL and the anonymous key from *Settings, API* and keep
    them safe.
 4. Tell me the project is created — I then build the connection into the app
@@ -108,10 +108,11 @@ Supabase project — not with us, not with a third-party app.
 
 > Update 3 October 2026: in-app TEAM CHAT (text) is now built — a Chat
 > tab in the app, live between phones via Supabase Realtime
-> (supabase/addendum_b.sql adds the messages table). Voice on shift
-> stays on the WhatsApp group. Mumble remains the open-source radio
-> upgrade if the team still wants it after the pilot, but it needs its
-> own always-on server that Supabase cannot host (see
+> (`supabase/addendum_b.sql` adds the messages table). PTT voice notes now
+> include automatic live text transcription on supported browsers. WhatsApp
+> remains the backup voice channel. Mumble remains the open-source radio
+> upgrade if the team still wants it after the pilot, but it needs its own
+> always-on server that Supabase cannot host (see
 > OPEN_SOURCE_NOTES.md).
 
 **Asked for:** a free PTT app on GitHub instead of the Zello placeholder.
@@ -195,16 +196,13 @@ rest.
 
 ## 8. Parked Enhancements & Open Source Tools Review
 
-### A. Pre-Shift 15-Second Safety Checklist (Parked for next release)
-When starting a shift, display a quick 4-point verification modal:
-1. Hi-vis reflective vest on.
-2. Torch / flashlight charged and working.
-3. Partner is physically present (never patrol alone).
-4. WhatsApp check-in sent to the patrol group.
+### A. Pre-Shift 15-Second Safety Checklist (Parked for later review)
+This is not included in the current app. It can be reconsidered later if the
+coordinator and volunteers request it.
 
 ### B. Open Source Tools in Use (Lightweight & High-Value)
 - Leaflet.js: Open-source interactive map engine (no Google Maps API fees, runs entirely client-side).
-- OpenStreetMap & CartoDB: Community street map data and high-contrast dark night tiles.
+- OpenStreetMap: Community street map data, with an in-app CSS night filter that needs no API key.
 - Esri World Imagery: Free, high-resolution satellite aerial imagery overlay for neighbourhood context.
 - Open-Meteo API: Zero-key, open-source meteorological and rain forecast service.
 - Web Print API & CSS Print Layout: Instant client-side PDF export for coordinator security reports without heavy server dependencies.

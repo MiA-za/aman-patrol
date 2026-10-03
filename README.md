@@ -96,12 +96,14 @@ Tell me which two serve the area and I'll lock them in as the patrol anchors.
 ## Going live with Supabase
 
 Follow **`SUPABASE_SETUP.md`** (written for non-technical users). The SQL in
-**`supabase/schema.sql`** creates the five tables — `profiles`,
+**`supabase/schema.sql`** creates the five main tables — `profiles`,
 `patrol_slots`, `slot_claims`, `incidents`, `map_pins` — plus Row Level
 Security so volunteers only ever see their own personal data, a private photo
-bucket, and starter slots/pins. The demo's data layer (`js/store.js`) is
-written to mirror those tables exactly, so connecting Supabase later changes
-no screens.
+bucket, and starter slots/pins. Then run **`supabase/addendum_a.sql`** and
+**`supabase/addendum_b.sql`**, in that order. Addendum B creates the
+`public.messages` Team Chat table and enables live message delivery. The
+demo's data layer (`js/store.js`) mirrors those tables, so connecting Supabase
+changes no screens.
 
 ---
 

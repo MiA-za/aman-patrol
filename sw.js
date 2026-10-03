@@ -5,7 +5,7 @@
    requests (Supabase, OpenStreetMap, Open-Meteo) are never
    touched. Bump CACHE when the shell assets change.
    ============================================================ */
-var CACHE = "aman-shell-v1";
+var CACHE = "aman-shell-v2";
 var SHELL = [
   "./",
   "./index.html",

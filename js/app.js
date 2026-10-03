@@ -614,14 +614,28 @@
               "• <b>Total incidents logged:</b> " + incCount + " on record.<br>" +
               "• <b>Roster status:</b> " + openSlots + " upcoming slots need a partner.<br>" +
               "• <b>Priority watch areas:</b> Madrassah walking corridor on Greenside Road, Tana Road park edge, and Barry Hertzog robots.";
+          } else if (S.askAman) {
+            hist.innerHTML += '<div style="margin-top:10px;text-align:right"><span style="background:var(--navy-soft);padding:4px 10px;border-radius:8px;display:inline-block"><b>You:</b> ' + esc(query) + '</span></div>' +
+              '<div class="ai-wait" style="margin-top:8px;color:var(--muted)">Aman is checking the free AI service...</div>';
+            hist.scrollTop = hist.scrollHeight;
+            sendBtn.disabled = true;
+            S.askAman(query, (location.hash.replace(/^#\/?/, "").split("/")[0] || "dashboard")).then(function (data) {
+              var wait = hist.querySelector(".ai-wait");
+              if (wait) wait.outerHTML = '<div style="margin-top:8px"><div style="color:var(--teal-dark);font-weight:700">Aman AI:</div><div style="white-space:pre-wrap">' + esc(data.answer) + '</div><div class="hint">Free AI response. Confirm critical information with the coordinator or emergency service.</div></div>';
+              hist.scrollTop = hist.scrollHeight;
+            }).catch(function () {
+              var wait = hist.querySelector(".ai-wait");
+              if (wait) wait.outerHTML = '<div style="margin-top:8px"><div style="color:var(--teal-dark);font-weight:700">Aman built-in help:</div>Free AI is unavailable right now. Remember: observe and report only; never confront, pursue, or patrol alone. For an immediate police emergency call SAPS on 10111. Ask the coordinator if you need guidance that is not covered here.</div>';
+            }).finally(function () { sendBtn.disabled = false; });
+            return;
           } else {
-            reply = "<b>Aman AI Guidance:</b><br>" +
+            reply = "<b>Aman built-in guidance:</b><br>" +
               "Remember our core principle: <b>Observe and report only — never confront, never pursue, never patrol alone.</b><br>" +
-              "For immediate police or medical assistance, dial 10111 (SAPS) or 082 911 (Netcare). Use the Incident tab to log detailed reports with GPS and photos.";
+              "For immediate police assistance, dial 10111. Ask the coordinator if you need guidance that is not covered here.";
           }
 
           hist.innerHTML += '<div style="margin-top:10px;text-align:right"><span style="background:var(--navy-soft);padding:4px 10px;border-radius:8px;display:inline-block"><b>You:</b> ' + esc(query) + '</span></div>' +
-            '<div style="margin-top:8px"><div style="color:var(--teal-dark);font-weight:700">Aman AI:</div>' + reply + '</div>';
+            '<div style="margin-top:8px"><div style="color:var(--teal-dark);font-weight:700">Aman:</div>' + reply + '</div>';
           hist.scrollTop = hist.scrollHeight;
         }
 
@@ -1557,12 +1571,81 @@
   /* ============================================================
      ROUTER
      ============================================================ */
+  /* ============================================================
+     MOVABLE AMAN ASSISTANT
+     ============================================================ */
+  var amanBotDrag = null;
+
+  function removeAmanBot() {
+    var old = document.getElementById("aman-helper");
+    if (old) old.remove();
+  }
+
+  function showAmanBot(page) {
+    removeAmanBot();
+    if (["dashboard", "roster", "incident", "map"].indexOf(page) === -1) return;
+
+    var bot = document.createElement("button");
+    bot.type = "button";
+    bot.id = "aman-helper";
+    bot.className = "aman-helper";
+    bot.setAttribute("aria-label", "Open Aman patrol assistant. Drag to move.");
+    bot.innerHTML =
+      '<span class="aman-help-label">Need help?</span>' +
+      '<span class="aman-bot" aria-hidden="true">' +
+        '<span class="aman-bot-antenna"><i></i></span>' +
+        '<span class="aman-bot-head"><i class="aman-eye left"></i><i class="aman-eye right"></i><i class="aman-mouth"></i></span>' +
+        '<span class="aman-bot-body"><i class="aman-badge">A</i></span>' +
+        '<span class="aman-bot-arm left"></span><span class="aman-bot-arm right"></span>' +
+      '</span>';
+    document.body.appendChild(bot);
+
+    try {
+      var saved = JSON.parse(localStorage.getItem("aman_bot_position") || "null");
+      if (saved && typeof saved.x === "number" && typeof saved.y === "number") {
+        bot.style.left = Math.max(8, Math.min(window.innerWidth - 82, saved.x)) + "px";
+        bot.style.top = Math.max(70, Math.min(window.innerHeight - 150, saved.y)) + "px";
+        bot.style.right = "auto";
+        bot.style.bottom = "auto";
+      }
+    } catch (err) {}
+
+    bot.addEventListener("pointerdown", function (e) {
+      amanBotDrag = { x: e.clientX, y: e.clientY, left: bot.offsetLeft, top: bot.offsetTop, moved: false };
+      bot.setPointerCapture(e.pointerId);
+      bot.classList.add("dragging");
+    });
+    bot.addEventListener("pointermove", function (e) {
+      if (!amanBotDrag) return;
+      var dx = e.clientX - amanBotDrag.x;
+      var dy = e.clientY - amanBotDrag.y;
+      if (Math.abs(dx) + Math.abs(dy) > 6) amanBotDrag.moved = true;
+      bot.style.left = Math.max(8, Math.min(window.innerWidth - bot.offsetWidth - 8, amanBotDrag.left + dx)) + "px";
+      bot.style.top = Math.max(70, Math.min(window.innerHeight - bot.offsetHeight - 82, amanBotDrag.top + dy)) + "px";
+      bot.style.right = "auto";
+      bot.style.bottom = "auto";
+    });
+    bot.addEventListener("pointerup", function () {
+      if (!amanBotDrag) return;
+      var moved = amanBotDrag.moved;
+      amanBotDrag = null;
+      bot.classList.remove("dragging");
+      if (moved) {
+        try { localStorage.setItem("aman_bot_position", JSON.stringify({ x: bot.offsetLeft, y: bot.offsetTop })); } catch (err) {}
+      } else {
+        amanAiModal();
+      }
+    });
+    bot.addEventListener("pointercancel", function () { amanBotDrag = null; bot.classList.remove("dragging"); });
+  }
+
   function route() {
     var user = S().sessionUser();
     var hash = location.hash || "";
     var parts = hash.replace(/^#\/?/, "").split("/");
     var page = parts[0] || "";
     window.AmanMap.destroy();
+    removeAmanBot();
 
     if (!user) {
       if (page === "login") renderLogin();
@@ -1585,6 +1668,7 @@
     }
     refreshBell();
     applyTheme(currentTheme());
+    showAmanBot(page || "dashboard");
   }
 
   /* ============================================================

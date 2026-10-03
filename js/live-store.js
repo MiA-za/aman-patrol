@@ -912,6 +912,16 @@
     } catch (e) { console.warn("realtime unavailable", e); }
   }
 
+  function askAman(query, page) {
+    if (!me || me.status !== "approved") return Promise.reject(new Error("Approved volunteers only."));
+    return sb.functions.invoke("aman-assistant", {
+      body: { query: String(query || "").slice(0, 500), page: String(page || "dashboard").slice(0, 30) }
+    }).then(function (r) {
+      if (r.error || !r.data || !r.data.answer) throw new Error("Free AI is unavailable.");
+      return r.data;
+    });
+  }
+
   window.AmanStore = {
     live: true,
     mode: "live",
@@ -938,7 +948,7 @@
     pushNotif: pushNotif, notificationsFor: notificationsFor, unreadCount: unreadCount, markAllRead: markAllRead,
     messages: listMessages, sendMessage: sendMessage, unreadChatCount: unreadChatCount, markChatSeen: markChatSeen,
     // misc
-    zoneOfCoords: Demo.zoneOfCoords, incidentsCSV: incidentsCSV, resetDemo: function () {},
+    zoneOfCoords: Demo.zoneOfCoords, incidentsCSV: incidentsCSV, resetDemo: function () {}, askAman: askAman,
     // helpers
     fmtDate: Demo.fmtDate, fmtTime: Demo.fmtTime, fmtDateTime: Demo.fmtDateTime, timeAgo: Demo.timeAgo,
     slotStartISO: Demo.slotStartISO, todayISO: Demo.todayISO

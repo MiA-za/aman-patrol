@@ -1,43 +1,28 @@
 -- ============================================================
---  AMAN PATROL — MAKE ME THE COORDINATOR (owner bootstrap)
---  Fill in YOUR details in the one line marked FILL THIS IN,
---  then click Run ONCE.
---
---  What it does:
---    1. Creates your login (email + password)
---    2. Makes you the approved coordinator immediately
---
---  After it runs: open the app and simply LOG IN with this
---  email and password. No registration form, no approval wait.
---  Safe to run again if anything errors — just fix the line
---  and Run the whole script once more.
+--  AMAN PATROL — MAKE ME THE OWNER
+--  Fill in FOUR things below, click Run once. Done.
+--  After that: open the app and log in with this email + password.
+--  (Safe to re-run.)
 -- ============================================================
 
 create extension if not exists pgcrypto with schema extensions;
 
+-- remove the example account if an earlier run created it
+delete from auth.users where email = 'you@example.com';
+
 drop table if exists _o;
-create temp table _o (
-  first_name text, surname text, email text, password text,
-  whatsapp text, street text, suburb text, dob date,
-  ec_name text, ec_number text
-);
+create temp table _o (name text, email text, password text, phone text);
 
--- FILL THIS IN (all ten values, in this order):
+-- FILL THIS IN — four values only:
 insert into _o values (
-  'Yusuf',              -- first name
-  'Adams',              -- surname
-  'you@example.com',    -- your email (this is your login)
-  'YourPassword123',    -- your password (at least 8 characters)
-  '+27 82 555 0100',    -- your WhatsApp number
-  '24 Gleneagles Road', -- your street
-  'Greenside',          -- suburb: Greenside or Emmarentia
-  '1984-06-12',         -- your date of birth (YYYY-MM-DD)
-  'Maryam Adams',       -- emergency contact name
-  '+27 82 555 0101'     -- emergency contact number
+  'Yusuf Adams',        -- 1. your full name
+  'you@example.com',    -- 2. your email (this is your login)
+  'YourPassword123',    -- 3. your password (at least 8 characters)
+  '+27 82 555 0100'     -- 4. your phone number
 );
 
--- 1. Create the login (if this email already has an account, skip
---    creating and just make sure the password matches the one above)
+-- create the login (or, if this email already has an account, keep it
+-- and set the password to the one above)
 insert into auth.users (
   instance_id, id, aud, role, email, encrypted_password,
   email_confirmed_at, raw_app_meta_data, raw_user_meta_data,
@@ -49,7 +34,11 @@ select
   'authenticated', 'authenticated', lower(o.email),
   crypt(o.password, gen_salt('bf')), now(),
   '{"provider":"email","providers":["email"]}'::jsonb,
-  jsonb_build_object('first_name', o.first_name, 'surname', o.surname),
+  jsonb_build_object(
+    'first_name', split_part(o.name, ' ', 1),
+    'surname', case when position(' ' in o.name) > 0
+                then substr(o.name, position(' ' in o.name) + 1) else '-' end
+  ),
   now(), now(), '', '', '', ''
 from _o o
 where not exists (select 1 from auth.users u where lower(u.email) = lower(o.email));
@@ -59,9 +48,7 @@ set encrypted_password = crypt(o.password, gen_salt('bf')), updated_at = now()
 from _o o
 where lower(u.email) = lower(o.email);
 
--- 2. Make this person the approved coordinator.
---    (The anti-self-promotion guard is paused for this one statement,
---    then switched straight back on.)
+-- make you the owner: full control, already approved
 alter table public.profiles disable trigger protect_profile_privileges;
 
 insert into public.profiles (
@@ -69,8 +56,12 @@ insert into public.profiles (
   emergency_contact_name, emergency_contact_number, role, status
 )
 select
-  u.id, o.first_name, o.surname, o.whatsapp, lower(o.email),
-  o.street, o.suburb, o.dob, o.ec_name, o.ec_number,
+  u.id,
+  split_part(o.name, ' ', 1),
+  case when position(' ' in o.name) > 0
+       then substr(o.name, position(' ' in o.name) + 1) else '-' end,
+  o.phone, lower(o.email),
+  '-', 'Greenside', '1900-01-01'::date, '-', '-',
   'coordinator', 'approved'
 from _o o
 join auth.users u on lower(u.email) = lower(o.email)
@@ -78,17 +69,12 @@ on conflict (id) do update set
   first_name = excluded.first_name,
   surname = excluded.surname,
   whatsapp = excluded.whatsapp,
-  street = excluded.street,
-  suburb = excluded.suburb,
-  dob = excluded.dob,
-  emergency_contact_name = excluded.emergency_contact_name,
-  emergency_contact_number = excluded.emergency_contact_number,
   role = 'coordinator',
   status = 'approved';
 
 alter table public.profiles enable trigger protect_profile_privileges;
 
--- 3. Result check — should show your name, coordinator, approved
+-- result: this must show YOUR name, coordinator, approved
 select first_name, surname, email, role, status
 from public.profiles
 where email = (select lower(email) from _o);

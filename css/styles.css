@@ -662,3 +662,35 @@ html[data-theme="dark"] .compass-card-label { color: #4fc9c9; }
 html[data-theme="dark"] .compass-needle::after { border-top-color: #60a5fa; }
 html[data-theme="dark"] .ptt-btn { background: #25477e; }
 html[data-theme="dark"] .on-shift-banner { background: linear-gradient(135deg, #064e3b 0%, #065f46 100%); }
+
+/* ---------- movable Aman assistant robot ---------- */
+.aman-helper {
+  position: fixed; right: 14px; bottom: 92px; width: 72px; height: 96px;
+  z-index: 850; border: 0; padding: 0; background: transparent; color: var(--text);
+  cursor: grab; touch-action: none; -webkit-tap-highlight-color: transparent;
+  filter: drop-shadow(0 5px 7px rgba(8, 30, 54, 0.24));
+}
+.aman-helper.dragging { cursor: grabbing; }
+.aman-help-label {
+  position: absolute; right: 48px; top: 2px; white-space: nowrap; padding: 5px 8px;
+  border-radius: 10px 10px 2px 10px; background: var(--card); border: 1px solid var(--line);
+  font-size: 0.66rem; font-weight: 800; box-shadow: var(--shadow);
+  animation: aman-label 8s ease-in-out infinite;
+}
+.aman-bot { position: absolute; left: 12px; top: 21px; width: 52px; height: 71px; animation: aman-float 3s ease-in-out infinite; }
+.aman-bot-antenna { position: absolute; left: 24px; top: 0; width: 4px; height: 12px; background: var(--navy); border-radius: 3px; }
+.aman-bot-antenna i { position: absolute; left: -3px; top: -5px; width: 10px; height: 10px; border-radius: 50%; background: var(--teal); box-shadow: 0 0 0 3px rgba(14,159,159,.18); }
+.aman-bot-head { position: absolute; left: 5px; top: 10px; width: 42px; height: 31px; border: 3px solid var(--navy); border-radius: 13px; background: #f7fbff; }
+.aman-eye { position: absolute; top: 8px; width: 6px; height: 8px; border-radius: 5px; background: var(--teal-dark); animation: aman-blink 4s infinite; }
+.aman-eye.left { left: 9px; } .aman-eye.right { right: 9px; }
+.aman-mouth { position: absolute; left: 15px; bottom: 5px; width: 8px; height: 3px; border-bottom: 2px solid var(--navy); border-radius: 50%; }
+.aman-bot-body { position: absolute; left: 9px; top: 42px; width: 34px; height: 27px; border: 3px solid var(--navy); border-radius: 7px 7px 12px 12px; background: var(--teal); }
+.aman-badge { position: absolute; left: 9px; top: 4px; width: 12px; height: 14px; padding-top: 1px; border-radius: 6px 6px 8px 8px; background: var(--navy); color: #fff; font: 800 8px/12px sans-serif; text-align: center; }
+.aman-bot-arm { position: absolute; top: 47px; width: 7px; height: 21px; border: 3px solid var(--navy); background: #f7fbff; border-radius: 6px; }
+.aman-bot-arm.left { left: 0; transform: rotate(12deg); } .aman-bot-arm.right { right: 0; transform: rotate(-12deg); }
+.aman-helper:focus-visible { outline: 3px solid var(--warn); outline-offset: 3px; border-radius: 16px; }
+html[data-theme="dark"] .aman-bot-head, html[data-theme="dark"] .aman-bot-arm { background: #dbeafe; }
+@keyframes aman-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+@keyframes aman-blink { 0%,44%,50%,100% { transform: scaleY(1); } 47% { transform: scaleY(.12); } }
+@keyframes aman-label { 0%,65%,100% { opacity: 1; transform: translateY(0); } 72%,92% { opacity: 0; transform: translateY(3px); } }
+@media (prefers-reduced-motion: reduce) { .aman-bot, .aman-help-label, .aman-eye { animation: none; } }

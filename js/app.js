@@ -1557,12 +1557,81 @@
   /* ============================================================
      ROUTER
      ============================================================ */
+  /* ============================================================
+     MOVABLE AMAN ASSISTANT
+     ============================================================ */
+  var amanBotDrag = null;
+
+  function removeAmanBot() {
+    var old = document.getElementById("aman-helper");
+    if (old) old.remove();
+  }
+
+  function showAmanBot(page) {
+    removeAmanBot();
+    if (["dashboard", "roster", "incident", "map"].indexOf(page) === -1) return;
+
+    var bot = document.createElement("button");
+    bot.type = "button";
+    bot.id = "aman-helper";
+    bot.className = "aman-helper";
+    bot.setAttribute("aria-label", "Open Aman patrol assistant. Drag to move.");
+    bot.innerHTML =
+      '<span class="aman-help-label">Need help?</span>' +
+      '<span class="aman-bot" aria-hidden="true">' +
+        '<span class="aman-bot-antenna"><i></i></span>' +
+        '<span class="aman-bot-head"><i class="aman-eye left"></i><i class="aman-eye right"></i><i class="aman-mouth"></i></span>' +
+        '<span class="aman-bot-body"><i class="aman-badge">A</i></span>' +
+        '<span class="aman-bot-arm left"></span><span class="aman-bot-arm right"></span>' +
+      '</span>';
+    document.body.appendChild(bot);
+
+    try {
+      var saved = JSON.parse(localStorage.getItem("aman_bot_position") || "null");
+      if (saved && typeof saved.x === "number" && typeof saved.y === "number") {
+        bot.style.left = Math.max(8, Math.min(window.innerWidth - 82, saved.x)) + "px";
+        bot.style.top = Math.max(70, Math.min(window.innerHeight - 150, saved.y)) + "px";
+        bot.style.right = "auto";
+        bot.style.bottom = "auto";
+      }
+    } catch (err) {}
+
+    bot.addEventListener("pointerdown", function (e) {
+      amanBotDrag = { x: e.clientX, y: e.clientY, left: bot.offsetLeft, top: bot.offsetTop, moved: false };
+      bot.setPointerCapture(e.pointerId);
+      bot.classList.add("dragging");
+    });
+    bot.addEventListener("pointermove", function (e) {
+      if (!amanBotDrag) return;
+      var dx = e.clientX - amanBotDrag.x;
+      var dy = e.clientY - amanBotDrag.y;
+      if (Math.abs(dx) + Math.abs(dy) > 6) amanBotDrag.moved = true;
+      bot.style.left = Math.max(8, Math.min(window.innerWidth - bot.offsetWidth - 8, amanBotDrag.left + dx)) + "px";
+      bot.style.top = Math.max(70, Math.min(window.innerHeight - bot.offsetHeight - 82, amanBotDrag.top + dy)) + "px";
+      bot.style.right = "auto";
+      bot.style.bottom = "auto";
+    });
+    bot.addEventListener("pointerup", function () {
+      if (!amanBotDrag) return;
+      var moved = amanBotDrag.moved;
+      amanBotDrag = null;
+      bot.classList.remove("dragging");
+      if (moved) {
+        try { localStorage.setItem("aman_bot_position", JSON.stringify({ x: bot.offsetLeft, y: bot.offsetTop })); } catch (err) {}
+      } else {
+        amanAiModal();
+      }
+    });
+    bot.addEventListener("pointercancel", function () { amanBotDrag = null; bot.classList.remove("dragging"); });
+  }
+
   function route() {
     var user = S().sessionUser();
     var hash = location.hash || "";
     var parts = hash.replace(/^#\/?/, "").split("/");
     var page = parts[0] || "";
     window.AmanMap.destroy();
+    removeAmanBot();
 
     if (!user) {
       if (page === "login") renderLogin();
@@ -1585,6 +1654,7 @@
     }
     refreshBell();
     applyTheme(currentTheme());
+    showAmanBot(page || "dashboard");
   }
 
   /* ============================================================

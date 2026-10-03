@@ -95,6 +95,14 @@
 
   function srcTag() { return '<div style="margin-top:6px;font-size:0.66rem;color:#8b98ab">Source: OpenStreetMap contributors</div>'; }
 
+  function applyMapAppearance() {
+    var wrapper = document.querySelector(".map-wrap");
+    if (!wrapper) return;
+    wrapper.classList.toggle("map-night", currentBaseMap === "dark");
+    wrapper.classList.toggle("map-satellite", currentBaseMap === "satellite");
+    wrapper.classList.toggle("map-theme-dark", document.documentElement.getAttribute("data-theme") === "dark");
+  }
+
   function setBaseMap(type) {
     if (!BASE_TILES[type] || !map) return;
     currentBaseMap = type;
@@ -105,6 +113,7 @@
     }
     var cfg = BASE_TILES[type];
     currentTileLayer = L.tileLayer(cfg.url, cfg.opts).addTo(map);
+    applyMapAppearance();
   }
 
   function buildLayers() {
@@ -501,7 +510,10 @@
           .addTo(map);
       }
     }
-    setTimeout(function () { map.invalidateSize(); }, 150);
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () { if (map) map.invalidateSize(); });
+    });
+    setTimeout(function () { if (map) map.invalidateSize(); }, 300);
   }
 
   function destroy() {
@@ -526,6 +538,7 @@
     locateUser: locateUser,
     openLayersModal: openLayersModal,
     setBaseMap: setBaseMap,
+    syncTheme: function () { applyMapAppearance(); },
     focus: function (lat, lng, marker) {
       window.__amanMapFocus = { lat: lat, lng: lng, marker: !!marker };
       if (map) { map.setView([lat, lng], 17); window.__amanMapFocus = null; }

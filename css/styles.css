@@ -857,3 +857,17 @@ html[data-theme="dark"] .aman-bot-dismiss { background: #1a2b47; border-color: #
   .tbl { border-collapse: collapse !important; width: 100% !important; }
   .tbl th, .tbl td { border: 1px solid #cbd5e1 !important; padding: 6px 8px !important; }
 }
+
+/* Reliable map appearance: state lives on the wrapper, not only on Leaflet tiles. */
+.map-wrap.map-night .leaflet-tile-pane {
+  filter: brightness(0.62) invert(1) contrast(1.45) hue-rotate(180deg) saturate(0.55);
+}
+.map-wrap.map-satellite .leaflet-tile-pane { filter: none; }
+.map-wrap.map-theme-dark:not(.map-night):not(.map-satellite) .leaflet-tile-pane {
+  filter: brightness(0.72) contrast(1.16) saturate(0.82);
+}
+.aman-helper { right: 82px; z-index: 1250; }
+@media (max-width: 420px) {
+  .screen.map-screen { min-height: calc(100dvh - 136px); }
+  .map-wrap { min-height: calc(100dvh - 136px); }
+}

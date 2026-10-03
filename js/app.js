@@ -88,6 +88,7 @@
   function applyTheme(t) {
     document.documentElement.setAttribute("data-theme", t);
     $all("[data-theme-icon]").forEach(function (el) { el.innerHTML = t === "dark" ? I("sun", 20) : I("moon", 20); });
+    if (window.AmanMap && window.AmanMap.syncTheme) window.AmanMap.syncTheme(t);
   }
   function toggleTheme() {
     var t = currentTheme() === "dark" ? "light" : "dark";
@@ -168,17 +169,18 @@
       (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   }
   function installCardHtml() {
-    var installed = appIsInstalled();
-    return '<button type="button" class="action full install-card' + (installed ? " is-installed" : "") + '" data-install-app>' +
-      '<div class="a-icon" data-install-icon>' + I(installed ? "check_circle" : "download", 24) + '</div>' +
-      '<div class="grow"><div class="a-label" data-install-title>' + (installed ? "Aman Patrol is installed" : "Download / Install App to Phone") + '</div>' +
-      '<div class="a-sub" data-install-sub>' + (installed ? "Open it anytime from your phone home screen" : "Add Aman Patrol to your home screen for quick access") + '</div></div>' +
+    if (appIsInstalled() || (!deferredInstallPrompt && !isIOSDevice())) return "";
+    return '<button type="button" class="action full install-card" data-install-app>' +
+      '<div class="a-icon" data-install-icon>' + I("download", 24) + '</div>' +
+      '<div class="grow"><div class="a-label" data-install-title>Install Aman Patrol</div>' +
+      '<div class="a-sub" data-install-sub>' + (isIOSDevice() ? "Tap Share, then Add to Home Screen" : "Install the app on this phone") + '</div></div>' +
       '<span class="install-arrow" aria-hidden="true">' + I("chev_r", 20) + '</span></button>';
   }
   function refreshInstallCards() {
     var installed = appIsInstalled();
     $all("[data-install-app]").forEach(function (card) {
-      card.classList.toggle("is-installed", installed);
+      if (installed) { card.remove(); return; }
+      card.classList.toggle("is-installed", false);
       var icon = card.querySelector("[data-install-icon]");
       var title = card.querySelector("[data-install-title]");
       var sub = card.querySelector("[data-install-sub]");
@@ -1056,7 +1058,6 @@
       '<span class="chip ' + (coord ? "teal" : "ok") + '">' + (coord ? "Coordinator" : "Approved volunteer") + "</span>" +
       '<span class="chip grey" style="font-size:0.6rem;padding:2px 6px">Power: Stage 0 (Normal)</span></div></div>' +
 
-      installCardHtml() +
       handoverHtml +
 
       '<div class="weather" id="weather-tile">' +
@@ -1766,8 +1767,18 @@
           return;
         }
         audioChunks = [];
+        var recorderOptions = null;
+        var preferredTypes = ["audio/webm;codecs=opus", "audio/mp4", "audio/webm", "audio/ogg;codecs=opus"];
+        if (typeof MediaRecorder.isTypeSupported === "function") {
+          for (var typeIndex = 0; typeIndex < preferredTypes.length; typeIndex++) {
+            if (MediaRecorder.isTypeSupported(preferredTypes[typeIndex])) {
+              recorderOptions = { mimeType: preferredTypes[typeIndex], audioBitsPerSecond: 64000 };
+              break;
+            }
+          }
+        }
         try {
-          mediaRecorder = new MediaRecorder(stream);
+          mediaRecorder = recorderOptions ? new MediaRecorder(stream, recorderOptions) : new MediaRecorder(stream);
         } catch (err) {
           stream.getTracks().forEach(function (t) { t.stop(); });
           toast("Audio recording could not start on this browser.", "error");
@@ -1780,20 +1791,22 @@
           var mime = mediaRecorder.mimeType || (audioChunks[0] && audioChunks[0].type) || "audio/webm";
           var blob = new Blob(audioChunks, { type: mime });
           var dur = Math.max(1, Math.round((Date.now() - recStart) / 1000));
-          var reader = new FileReader();
-          reader.onload = function () {
-            setTimeout(function () {
-              var res = S().sendMessage(user.id, voiceMessageBody(dur), reader.result);
-              pttFinishing = false;
-              if (!res.ok) { toast(res.error, "error"); return; }
-              renderChat();
-            }, 300);
-          };
-          reader.onerror = function () {
+          var extension = mime.indexOf("mp4") !== -1 ? "m4a" : mime.indexOf("ogg") !== -1 ? "ogg" : "webm";
+          pttLbl.textContent = "SENDING VOICE NOTE...";
+          var sendVoice = S().sendVoiceMessage;
+          if (!sendVoice) {
             pttFinishing = false;
-            toast("The voice note could not be prepared. Please try again.", "error");
-          };
-          reader.readAsDataURL(blob);
+            toast("Shared voice storage is not configured. Apply Supabase addendum E.", "error");
+            return;
+          }
+          sendVoice(user.id, voiceMessageBody(dur), blob, extension).then(function () {
+            pttFinishing = false;
+            renderChat();
+          }).catch(function (err) {
+            pttFinishing = false;
+            pttLbl.textContent = "HOLD TO TALK (PTT)";
+            toast(err && err.message ? err.message : "The voice note could not be sent to Supabase.", "error");
+          });
         };
         mediaRecorder.start();
         recStart = Date.now();
@@ -1808,11 +1821,15 @@
             stopRec();
           }
         }, 1000);
-      }).catch(function () {
+      }).catch(function (err) {
         pttHeld = false;
         pttStarting = false;
-        setTranscriptStatus("Microphone permission is needed for PTT voice notes.", false);
-        toast("Microphone access needed for PTT voice notes.", "error");
+        var denied = err && (err.name === "NotAllowedError" || err.name === "SecurityError");
+        var message = denied
+          ? "Microphone permission was denied. Allow microphone access in browser settings and try again."
+          : "The microphone could not start: " + ((err && err.message) || "unknown device error");
+        setTranscriptStatus(message, false);
+        toast(message, "error");
       });
     }
 
@@ -1829,14 +1846,15 @@
     }
 
     if (pttBtn) {
-      pttBtn.addEventListener("mousedown", startRec);
-      pttBtn.addEventListener("mouseup", stopRec);
-      pttBtn.addEventListener("mouseleave", function (event) {
-        if (mediaRecorder && mediaRecorder.state === "recording" && event.buttons === 0) stopRec(event);
+      pttBtn.addEventListener("pointerdown", function (event) {
+        if (pttBtn.setPointerCapture) pttBtn.setPointerCapture(event.pointerId);
+        startRec(event);
       });
-      pttBtn.addEventListener("touchstart", startRec, { passive: false });
-      pttBtn.addEventListener("touchend", stopRec, { passive: false });
-      pttBtn.addEventListener("touchcancel", stopRec, { passive: false });
+      pttBtn.addEventListener("pointerup", stopRec);
+      pttBtn.addEventListener("pointercancel", stopRec);
+      pttBtn.addEventListener("lostpointercapture", function (event) {
+        if (pttHeld) stopRec(event);
+      });
       pttBtn.addEventListener("contextmenu", function (event) { event.preventDefault(); });
     }
 
@@ -1916,6 +1934,7 @@
       toggleBot.onchange = function () {
         setAmanBotHidden(!toggleBot.checked);
         if (toggleBot.checked) {
+          showAmanBot("more");
           toast("Aman assistant enabled.", "ok");
         } else {
           removeAmanBot();
@@ -1955,6 +1974,10 @@
 
   function isAmanBotHidden() {
     try {
+      if (!localStorage.getItem("aman_bot_visibility_repaired_v1")) {
+        localStorage.removeItem("aman_bot_hidden");
+        localStorage.setItem("aman_bot_visibility_repaired_v1", "1");
+      }
       return localStorage.getItem("aman_bot_hidden") === "true";
     } catch (e) {
       return false;
@@ -1975,7 +1998,7 @@
 
   function showAmanBot(page) {
     removeAmanBot();
-    if (["dashboard", "roster", "incident", "map"].indexOf(page) === -1) return;
+    if (["dashboard", "roster", "incident", "map", "more"].indexOf(page) === -1) return;
     if (isAmanBotHidden()) return;
 
     var bot = document.createElement("div");

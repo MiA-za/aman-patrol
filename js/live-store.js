@@ -196,7 +196,15 @@
   function loadMessages() {
     if (!me || me.status !== "approved") { msgRows = []; return Promise.resolve(); }
     return sb.from("messages").select("*").order("created_at", { ascending: true }).limit(200).then(function (r) {
-      if (!r.error && r.data) msgRows = r.data;
+      if (!r.error && r.data) {
+        msgRows = r.data;
+        return Promise.all(msgRows.map(function (message) {
+          if (!message.audio_path) return Promise.resolve();
+          return sb.storage.from("voice-messages").createSignedUrl(message.audio_path, 3600).then(function (signed) {
+            if (!signed.error && signed.data) message.audio_url = signed.data.signedUrl;
+          });
+        }));
+      }
     });
   }
 
@@ -878,6 +886,27 @@
     return { ok: true };
   }
 
+
+  function sendVoiceMessage(userId, body, blob, extension) {
+    if (!me) return Promise.reject(new Error("You are not signed in."));
+    if (!blob || !blob.size) return Promise.reject(new Error("The recording is empty."));
+    if (blob.size > 5 * 1024 * 1024) return Promise.reject(new Error("The recording is larger than the 5 MB limit."));
+    body = String(body || "Voice message").trim().slice(0, 500);
+    var path = me.id + "/" + Date.now() + "." + extension;
+    return sb.storage.from("voice-messages").upload(path, blob, { contentType: blob.type || "application/octet-stream", upsert: false })
+      .then(function (uploaded) {
+        if (uploaded.error) throw new Error("Audio upload failed: " + dbError(uploaded));
+        return sb.from("messages").insert({ user_id: userId, body: body, audio_path: path });
+      }).then(function (saved) {
+        if (saved.error) {
+          sb.storage.from("voice-messages").remove([path]);
+          throw new Error("Message delivery failed: " + dbError(saved));
+        }
+        refreshSoon("messages");
+        return { ok: true };
+      });
+  }
+
   /* ---------------- CSV export ---------------- */
   function csvEscape(v) {
     if (v === null || v === undefined) return "";
@@ -968,7 +997,7 @@
     pins: listPins, addPin: addPin, removePin: removePin,
     // notifications
     pushNotif: pushNotif, notificationsFor: notificationsFor, unreadCount: unreadCount, markAllRead: markAllRead,
-    messages: listMessages, sendMessage: sendMessage, unreadChatCount: unreadChatCount, markChatSeen: markChatSeen,
+    messages: listMessages, sendMessage: sendMessage, sendVoiceMessage: sendVoiceMessage, unreadChatCount: unreadChatCount, markChatSeen: markChatSeen,
     // misc
     zoneOfCoords: Demo.zoneOfCoords, incidentsCSV: incidentsCSV, resetDemo: function () {}, askAman: askAman,
     // helpers

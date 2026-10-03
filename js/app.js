@@ -48,6 +48,8 @@
     pin: '<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>',
     sun: '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>',
     moon: '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>',
+    chev_l: '<polyline points="15 18 9 12 15 6"/>',
+    chev_r: '<polyline points="9 18 15 12 9 6"/>',
     wind: '<path d="M9.59 4.59A2 2 0 1 1 11 8H2"/><path d="M12.59 19.41A2 2 0 1 0 14 16H2"/><path d="M17.73 7.73A2.5 2.5 0 1 1 19.5 12H2"/>',
     rain: '<line x1="16" y1="13" x2="16" y2="21"/><line x1="8" y1="13" x2="8" y2="21"/><line x1="12" y1="15" x2="12" y2="23"/><path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"/>',
     camera: '<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
@@ -321,6 +323,7 @@
   function demoLogin(email) {
     var res = S().login(email, "demo1234");
     if (!res.ok) { toast(res.error, "error"); return; }
+    try { localStorage.setItem("aman-last-email", email); } catch (err) {}
     location.hash = res.user.status === "approved" ? "#/dashboard" : "#/pending";
     route();
   }
@@ -330,13 +333,15 @@
      ============================================================ */
   function renderLogin() {
     setShell(false);
+    var lastEmail = "";
+    try { lastEmail = localStorage.getItem("aman-last-email") || ""; } catch (err) {}
     screenEl.className = "screen";
     screenEl.innerHTML =
       '<div class="auth-hero">' + LOGO.replace(/\{s\}/g, "84") +
       "<h1>AMAN PATROL</h1>" +
       '<div class="tagline">Welcome back — log in to continue serving the community.</div></div>' +
       '<div class="card">' +
-      '<div class="field"><label>Email</label><input id="l-email" type="email" autocomplete="email" placeholder="you@example.com"></div>' +
+      '<div class="field"><label>Email</label><input id="l-email" type="email" autocomplete="email" placeholder="you@example.com" value="' + esc(lastEmail) + '"></div>' +
       '<div class="field"><label>Password</label><input id="l-pass" type="password" autocomplete="current-password"></div>' +
       '<button class="btn btn-primary block" id="l-submit" style="min-height:54px">Log in</button>' +
       '<p class="center" style="margin:12px 0 0;font-size:0.82rem">New volunteer? <a href="#/register"><b>Register here</b></a></p>' +
@@ -351,6 +356,7 @@
     $("#l-submit").onclick = function () {
       var res = S().login($("#l-email").value, $("#l-pass").value);
       if (!res.ok) { toast(res.error, "error"); return; }
+      try { localStorage.setItem("aman-last-email", $("#l-email").value.trim()); } catch (err) {}
       location.hash = res.user.status === "approved" ? "#/dashboard" : (res.user.status === "declined" ? "#/declined" : "#/pending");
       route();
     };
@@ -424,8 +430,13 @@
       '<div class="a-icon" style="background:#fdebeb;color:#dc2626">' + I("siren",22) + '</div>' +
       '<div class="grow"><div class="a-label">Log an incident</div><div class="a-sub">Suspicious vehicle, person or incident — GPS auto-captured</div></div></a>' +
 
+      '<button type="button" class="action full sos-btn" id="sos-btn" style="border-left:5px solid var(--danger)">' +
+      '<div class="a-icon" style="background:var(--danger);color:#fff">' + I("siren",22) + "</div>" +
+      '<div class="grow"><div class="a-label" style="color:var(--danger)">SOS — hold 3 seconds if you are in danger</div><div class="a-sub">Alerts the coordinator and every patroller on duty, with your GPS position</div></div>' +
+      '<span class="sos-bar" id="sos-bar" aria-hidden="true"></span></button>' +
+
       '<div class="action-grid">' +
-      '<a class="action" href="#/roster"><div class="a-icon navy">' + I("calendar",20) + '</div><div class="a-label">Claim a patrol slot</div><div class="a-sub">Pairs only · ' + S().slots().filter(function (s) { return s.understaffed; }).length + ' understaffed now</div></a>' +
+      '<a class="action" href="#/roster"><div class="a-icon navy">' + I("calendar",20) + '</div><div class="a-label">Create or join a patrol</div><div class="a-sub">Pick any date &amp; time · pairs only · ' + S().slots().filter(function (s) { return s.understaffed; }).length + ' need a partner</div></a>' +
       '<a class="action" href="#/map"><div class="a-icon teal">' + I("map",20) + '</div><div class="a-label">View area map</div><div class="a-sub">Real area data + risk pins</div></a>' +
       '<a class="action" href="#/notifications"><div class="a-icon warn">' + I("bell",20) + '</div><div class="a-label">Notifications</div><div class="a-sub" id="dash-notif-sub">' + S().unreadCount(user) + ' unread</div></a>' +
       '<button class="action" id="radio-btn" style="text-align:left;cursor:pointer"><div class="a-icon info">' + I("radio",20) + '</div><div class="a-label">Patrol radio</div><div class="a-sub">Zello channel (placeholder)</div></button>' +
@@ -433,6 +444,7 @@
       (coord ? '<a class="action full" href="#/admin/approvals"><div class="a-icon navy">' + I("shield",20) + '</div><div class="grow"><div class="a-label">Coordinator dashboard</div><div class="a-sub">Approvals · volunteers · incidents · reports</div></div></a>' : "");
 
     renderMyShiftCard(user);
+    bindSOS();
     AmanWeather.current().then(function (w) {
       var tile = $("#weather-tile");
       if (!tile) return;
@@ -480,11 +492,11 @@
     var eta = started ? "on shift now" :
       (mins <= 90 ? "starts in " + mins + " min" : "starts " + S().fmtDateTime(when.getTime()).replace(" · ", " at "));
     box.innerHTML =
-      '<div class="card slot ' + (c.slot.zone.indexOf("A") !== -1 ? "zone-a" : "zone-b") + '">' +
+      '<div class="card slot' + (c.slot.zone ? " " + (c.slot.zone.indexOf("A") !== -1 ? "zone-a" : "zone-b") : "") + '">' +
       '<div class="row spread"><div class="grow">' +
       '<span class="chip ' + (started ? "info" : "navy") + '">' + (started ? "Shift in progress" : "My next shift") + "</span>" +
-      '<h3 style="margin:7px 0 2px">' + esc(c.slot.activity_window) + "</h3>" +
-      '<div class="muted" style="font-size:0.78rem">' + esc(S().fmtDate(c.slot.date)) + " · " + esc(c.slot.time_window) + " · " + esc(c.slot.zone) + " · " + eta + "</div></div></div>" +
+      '<h3 style="margin:7px 0 2px">' + esc(c.slot.activity_window) + " · " + esc(c.slot.time_window) + "</h3>" +
+      '<div class="muted" style="font-size:0.78rem">' + esc(S().fmtDate(c.slot.date)) + (c.slot.zone ? " · " + esc(c.slot.zone) : "") + " · " + eta + "</div></div></div>" +
       '<div class="row mt-12">' +
       (started
         ? '<button class="btn btn-primary grow" data-end="' + c.slot_id + '">' + I("stop",15) + ' END SHIFT</button>'
@@ -499,82 +511,180 @@
   /* ============================================================
      SCREEN: ROSTER
      ============================================================ */
+  var rosterState = { month: null, selected: null };
+  function pad2(n) { return (n < 10 ? "0" : "") + n; }
+  var CAL_MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  var CAL_DOW = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
   function renderRoster() {
     var user = S().sessionUser();
     setShell(true);
     setActiveNav("roster");
     screenEl.className = "screen";
-    var slots = S().slots();
+    if (!rosterState.month) { rosterState.month = new Date(); rosterState.month.setDate(1); }
+    if (!rosterState.selected) rosterState.selected = S().todayISO();
+
+    var all = S().slots();
+    var byDate = {};
+    all.forEach(function (s) { (byDate[s.date] = byDate[s.date] || []).push(s); });
+    var sel = rosterState.selected;
+    var daySlots = (byDate[sel] || []).slice().sort(function (a, b) { return S().slotStartISO(a) - S().slotStartISO(b); });
+    var today = S().todayISO();
     var myClaims = {};
     S().myClaims(user.id).forEach(function (c) { myClaims[c.slot_id] = c; });
 
-    screenEl.innerHTML =
-      "<h1 class=\"page-title\">Patrol roster</h1>" +
-      '<p class="page-sub">Every shift needs a minimum of 2 volunteers — patrols always run in pairs. START and END capture your GPS and time for the official shift log.</p>' +
-      (slots.map(function (s) {
-        var mine = myClaims[s.id];
-        var dateLabel = S().fmtDate(s.date);
-        if (s.date === S().todayISO()) dateLabel = "Today — " + dateLabel;
-        var names = s.claims.map(function (c) { return esc(c.user.first_name + " " + c.user.surname[0] + "."); }).join(", ") || "No volunteers yet";
-        var action = "";
-        if (mine) {
-          if (mine.status === "started")
-            action = '<button class="btn btn-primary grow" data-end="' + s.id + '">' + I("stop",15) + ' END SHIFT</button>';
-          else if (mine.status === "completed")
-            action = '<span class="chip ok">' + I("check",11) + ' Completed ' + esc(S().fmtTime(mine.end_shift_time)) + "</span>";
-          else
-            action = '<button class="btn btn-ok grow" data-start="' + s.id + '">' + I("play",15) + ' START SHIFT</button><button class="btn btn-ghost danger btn-sm" data-unclaim="' + s.id + '">Leave</button>';
-        } else {
-          action = '<button class="btn btn-teal grow" data-claim="' + s.id + '">Sign up for this shift</button>';
-        }
-        var mineInfo = "";
-        if (mine && mine.status === "started") mineInfo = '<div class="chip info" style="margin-top:6px">Started ' + esc(S().fmtTime(mine.start_shift_time)) + " · GPS logged</div>";
-        if (mine && mine.status === "completed") mineInfo = '<div class="muted" style="font-size:0.7rem;margin-top:5px">' + esc(S().fmtTime(mine.start_shift_time)) + "–" + esc(S().fmtTime(mine.end_shift_time)) + " · GPS at start &amp; end</div>";
-        return '<div class="card slot ' + (s.zone.indexOf("A") !== -1 ? "zone-a" : "zone-b") + '">' +
-          '<div class="row spread" style="align-items:flex-start">' +
-          '<div class="grow"><span class="chip ' + (s.zone.indexOf("A") !== -1 ? "zone-a" : "zone-b") + '">' + esc(s.zone) + "</span>" +
-          '<h3 style="margin:8px 0 3px">' + esc(s.activity_window) + "</h3>" +
-          '<div class="muted" style="font-size:0.78rem">' + esc(dateLabel) + " · " + esc(s.time_window) + "</div></div>" +
-          '<div class="center"><div class="count-pill">' + s.count + " / " + s.min_required + '</div>' +
-          '<span class="chip ' + (s.understaffed ? "warn" : "ok") + '" style="margin-top:6px">' + (s.understaffed ? "Understaffed" : "Fully staffed") + "</span></div></div>" +
-          '<div class="progress"><div style="width:' + Math.min(100, (s.count / s.min_required) * 100) + '%"></div></div>' +
-          '<div class="volunteers">' + names + "</div>" + mineInfo +
-          '<div class="row mt-12">' + action + "</div></div>";
-      }).join("") || '<div class="empty"><div class="big">' + I("calendar",36) + '</div>No patrol slots scheduled yet.</div>');
+    var y = rosterState.month.getFullYear(), m = rosterState.month.getMonth();
+    var startDow = (new Date(y, m, 1).getDay() + 6) % 7; // Monday = 0
+    var daysInMonth = new Date(y, m + 1, 0).getDate();
+    var cells = "";
+    var i, day, iso, ds;
+    for (i = 0; i < startDow; i++) cells += '<span class="cal-cell off"></span>';
+    for (day = 1; day <= daysInMonth; day++) {
+      iso = y + "-" + pad2(m + 1) + "-" + pad2(day);
+      ds = byDate[iso] || [];
+      var need = ds.some(function (s) { return s.understaffed; });
+      cells += '<button type="button" class="cal-cell' +
+        (iso === today ? " today" : "") + (iso === sel ? " selected" : "") +
+        '" data-day="' + iso + '" aria-label="' + iso + '">' + day +
+        (ds.length ? '<span class="cal-dot' + (need ? " need" : "") + '"></span>' : "") +
+        "</button>";
+    }
 
-    $all("[data-claim]").forEach(function (b) {
-      b.onclick = function () {
-        var s = S().slotById(b.getAttribute("data-claim"));
-        modal(
-          "<h3>Confirm your shift</h3>" +
-          '<p class="m-sub">You\'ll patrol ' + esc(s.activity_window) + " — " + esc(S().fmtDate(s.date)) + ", " + esc(s.time_window) + " · " + esc(s.zone) + "</p>" +
-          '<div class="detail-list" style="font-size:0.84rem">' +
-          '<div><span class="dl-k">Meeting point</span><span class="dl-v">' + (s.zone.indexOf("A") !== -1 ? "Greenside Masjid" : "Emmarentia Masjid") + " (confirm with coordinator)</span></div>" +
-          "<div><span class=\"dl-k\">Pair patrol</span><span class=\"dl-v\">Minimum " + s.min_required + " volunteers — " + (s.understaffed ? "needs " + (s.min_required - s.count) + " more" : "already full") + "</span></div>" +
-          '<div><span class="dl-k">Bring</span><span class="dl-v">Charged phone · hi-vis vest · radio (Zello)</span></div>' +
-          "</div>" +
-          '<div class="m-actions"><button class="btn btn-ghost" data-close>Cancel</button><button class="btn btn-teal" id="claim-yes">Sign me up</button></div>',
-          function (root) {
-            root.querySelector("#claim-yes").onclick = function () {
-              var res = S().claimSlot(s.id, user.id);
-              closeModal();
-              toast(res.ok ? "You're signed up. A reminder will arrive 15 minutes before your shift." : res.error, res.ok ? "ok" : "error");
-              refreshBell();
-              renderRoster();
-            };
-          }
-        );
-      };
+    var dateLabel = S().fmtDate(sel);
+    if (sel === today) dateLabel = "Today — " + dateLabel;
+    var canCreate = sel >= today;
+
+    screenEl.innerHTML =
+      "<h1 class=\"page-title\">Patrol calendar</h1>" +
+      '<p class="page-sub">Pick any date, choose your times, and a second volunteer joins you — patrols always run in pairs. START and END capture your GPS position and time for the shift log.</p>' +
+
+      '<div class="card tight"><div class="cal-head">' +
+      '<div class="cal-title">' + CAL_MONTHS[m] + " " + y + "</div>" +
+      '<div class="row" style="gap:6px">' +
+      '<button type="button" class="cal-nav" id="cal-prev" aria-label="Previous month">' + I("chev_l", 18) + "</button>" +
+      '<button type="button" class="cal-nav" id="cal-next" aria-label="Next month">' + I("chev_r", 18) + "</button></div></div>" +
+      '<div class="cal-grid">' + CAL_DOW.map(function (d) { return '<span class="cal-dow">' + d + "</span>"; }).join("") + cells + "</div></div>" +
+
+      '<div class="row spread" style="margin:2px 0 10px">' +
+      '<h3 style="font-size:0.95rem;margin:0">' + esc(dateLabel) + "</h3>" +
+      (canCreate ? '<button type="button" class="btn btn-teal btn-sm" id="new-slot-btn">' + I("plus", 15) + " Create patrol</button>" : "") +
+      "</div>" +
+
+      (daySlots.map(function (s) { return slotCardHtml(s, user, myClaims[s.id], dateLabel); }).join("") ||
+        '<div class="empty"><div class="big">' + I("calendar", 36) + "</div>No patrol on this date yet." + (canCreate ? " Be the first — create one." : "") + "</div>");
+
+    $("#cal-prev").onclick = function () { rosterState.month = new Date(y, m - 1, 1); renderRoster(); };
+    $("#cal-next").onclick = function () { rosterState.month = new Date(y, m + 1, 1); renderRoster(); };
+    $all("[data-day]").forEach(function (b) {
+      b.onclick = function () { rosterState.selected = b.getAttribute("data-day"); renderRoster(); };
     });
+    var nsb = $("#new-slot-btn");
+    if (nsb) nsb.onclick = function () { newSlotModal(user); };
+    $all("[data-claim]").forEach(function (b) { b.onclick = function () { claimModal(S().slotById(b.getAttribute("data-claim")), user); }; });
     $all("[data-unclaim]").forEach(function (b) {
       b.onclick = function () {
         var res = S().unclaim(b.getAttribute("data-unclaim"), user.id);
-        toast(res.ok ? "You've been removed from that shift." : res.error, res.ok ? "ok" : "error");
+        toast(res.ok ? "You've left that patrol." : res.error, res.ok ? "ok" : "error");
+        renderRoster();
+      };
+    });
+    $all("[data-del-slot]").forEach(function (b) {
+      b.onclick = function () {
+        var res = S().deleteOwnSlot(b.getAttribute("data-del-slot"), user.id);
+        toast(res.ok ? "Slot deleted." : res.error, res.ok ? "ok" : "error");
         renderRoster();
       };
     });
     $all("[data-start]").forEach(function (b) { b.onclick = function () { startShiftFlow(b.getAttribute("data-start"), renderRoster); }; });
     $all("[data-end]").forEach(function (b) { b.onclick = function () { endShiftFlow(b.getAttribute("data-end"), renderRoster); }; });
+  }
+
+  function slotCardHtml(s, user, mine, dateLabel) {
+    var names = s.claims.map(function (c) { return esc(c.user.first_name + " " + c.user.surname[0] + "."); }).join(", ") || "No volunteers yet";
+    var creator = s.created_by ? S().userLabel(s.created_by) : "";
+    var action = "";
+    if (mine) {
+      if (mine.status === "started")
+        action = '<button class="btn btn-primary grow" data-end="' + s.id + '">' + I("stop", 15) + " END SHIFT</button>";
+      else if (mine.status === "completed")
+        action = '<span class="chip ok">' + I("check", 11) + " Completed " + esc(S().fmtTime(mine.end_shift_time)) + "</span>";
+      else
+        action = '<button class="btn btn-ok grow" data-start="' + s.id + '">' + I("play", 15) + ' START SHIFT</button><button class="btn btn-ghost danger btn-sm" data-unclaim="' + s.id + '">Leave</button>';
+    } else if (!s.full) {
+      action = '<button class="btn btn-teal grow" data-claim="' + s.id + '">Join this patrol</button>';
+    } else {
+      action = '<span class="chip grey">Fully staffed</span>';
+    }
+    var mineInfo = "";
+    if (mine && mine.status === "started") mineInfo = '<div class="chip info" style="margin-top:6px">Started ' + esc(S().fmtTime(mine.start_shift_time)) + " · GPS logged</div>";
+    if (mine && mine.status === "completed") mineInfo = '<div class="muted" style="font-size:0.7rem;margin-top:5px">' + esc(S().fmtTime(mine.start_shift_time)) + "–" + esc(S().fmtTime(mine.end_shift_time)) + " · GPS at start &amp; end</div>";
+    var del = "";
+    if (s.created_by === user.id && s.claims.every(function (c) { return c.user_id === user.id; }))
+      del = '<button class="link-btn" data-del-slot="' + s.id + '" style="color:var(--danger)">Delete slot</button>';
+    return '<div class="card slot">' +
+      '<div class="row spread" style="align-items:flex-start">' +
+      '<div class="grow"><h3 style="margin:0 0 3px">' + esc(s.activity_window) + " · " + esc(s.time_window) + "</h3>" +
+      '<div class="muted" style="font-size:0.78rem">' + esc(dateLabel) + (s.zone ? " · " + esc(s.zone) : "") + (creator ? " · created by " + esc(creator) : "") + "</div></div>" +
+      '<div class="center"><div class="count-pill">' + s.count + " / " + s.min_required + "</div>" +
+      '<span class="chip ' + (s.understaffed ? "warn" : "ok") + '" style="margin-top:6px">' + (s.understaffed ? "Needs one more" : "Pair complete") + "</span></div></div>" +
+      '<div class="progress"><div style="width:' + Math.min(100, (s.count / s.min_required) * 100) + '%"></div></div>' +
+      '<div class="volunteers">' + names + "</div>" + mineInfo +
+      '<div class="row mt-12">' + action + "</div>" +
+      (del ? '<div style="margin-top:8px">' + del + "</div>" : "") +
+      "</div>";
+  }
+
+  function newSlotModal(user) {
+    var sel = rosterState.selected || S().todayISO();
+    modal(
+      "<h3>Create a patrol slot</h3>" +
+      '<p class="m-sub">Choose your date and times. You will be patroller 1 of 2 — the slot stays open on the roster until a second volunteer joins.</p>' +
+      '<div class="field"><label>Date</label><input type="date" id="ns-date" value="' + esc(sel) + '" min="' + S().todayISO() + '"></div>' +
+      '<div class="grid-2">' +
+      '<div class="field"><label>Start time</label><input type="time" id="ns-start" value="18:00"></div>' +
+      '<div class="field"><label>End time</label><input type="time" id="ns-end" value="20:00"></div></div>' +
+      '<div class="m-actions"><button class="btn btn-ghost" data-close>Cancel</button><button class="btn btn-teal" id="ns-save">' + I("check", 15) + " Create slot</button></div>",
+      function (root) {
+        root.querySelector("#ns-save").onclick = function () {
+          var res = S().createSlot({
+            date: root.querySelector("#ns-date").value,
+            start_time: root.querySelector("#ns-start").value,
+            end_time: root.querySelector("#ns-end").value,
+            created_by: user.id,
+            claim_for_creator: true
+          });
+          if (!res.ok) { toast(res.error, "error"); return; }
+          closeModal();
+          rosterState.selected = res.slot.date;
+          rosterState.month = new Date(res.slot.date + "T00:00:00");
+          rosterState.month.setDate(1);
+          toast("Slot created — you are patroller 1 of 2. A second volunteer can now join you.", "ok");
+          renderRoster();
+        };
+      }
+    );
+  }
+
+  function claimModal(s, user) {
+    if (!s) return;
+    modal(
+      "<h3>Join this patrol</h3>" +
+      '<p class="m-sub">' + esc(s.activity_window) + " — " + esc(S().fmtDate(s.date)) + ", " + esc(s.time_window) + "</p>" +
+      '<div class="detail-list" style="font-size:0.84rem">' +
+      '<div><span class="dl-k">Pair patrol</span><span class="dl-v">2 volunteers — ' + (s.understaffed ? "needs " + (s.min_required - s.count) + " more (you!)" : "already full") + "</span></div>" +
+      '<div><span class="dl-k">Bring</span><span class="dl-v">Charged phone · hi-vis vest · torch</span></div>' +
+      '<div><span class="dl-k">Remember</span><span class="dl-v">Observe and report only — never confront or chase</span></div>' +
+      "</div>" +
+      '<div class="m-actions"><button class="btn btn-ghost" data-close>Cancel</button><button class="btn btn-teal" id="claim-yes">Sign me up</button></div>',
+      function (root) {
+        root.querySelector("#claim-yes").onclick = function () {
+          var res = S().claimSlot(s.id, user.id);
+          closeModal();
+          toast(res.ok ? "You're in. A reminder arrives 15 minutes before your shift." : res.error, res.ok ? "ok" : "error");
+          renderRoster();
+        };
+      }
+    );
   }
 
   function startShiftFlow(slotId, rerender) {
@@ -600,6 +710,62 @@
       toast("Shift completed at " + S().fmtTime(res.end_shift_time) + " — thank you for your service. Shift log updated.", "ok");
       duaModal("completion");
       if (rerender) rerender();
+    });
+  }
+
+  /* ============================================================
+     SOS — hold to send, alerts everyone on duty
+     ============================================================ */
+  var sosArming = null;
+  function bindSOS() {
+    var btn = $("#sos-btn");
+    if (!btn) return;
+    var bar = $("#sos-bar");
+    function reset() { if (bar) bar.style.width = "0"; btn.classList.remove("arming"); }
+    function cancel() { if (sosArming) { clearInterval(sosArming); sosArming = null; } reset(); }
+    function arm(e) {
+      if (sosArming) return;
+      if (e.cancelable) e.preventDefault();
+      var t0 = Date.now();
+      btn.classList.add("arming");
+      sosArming = setInterval(function () {
+        var p = Math.min(1, (Date.now() - t0) / 3000);
+        if (bar) bar.style.width = (p * 100) + "%";
+        if (p >= 1) { cancel(); sendSOS(); }
+      }, 50);
+    }
+    btn.addEventListener("touchstart", arm, { passive: false });
+    btn.addEventListener("mousedown", arm);
+    ["touchend", "touchcancel", "mouseup", "mouseleave"].forEach(function (ev) { btn.addEventListener(ev, cancel); });
+    btn.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+  }
+  function sendSOS() {
+    var user = S().sessionUser();
+    if (!user) return;
+    toast("Sending SOS with your position…");
+    captureGPS(function (gps) {
+      if (!gps) gps = { lat: window.AREA.center.lat, lng: window.AREA.center.lng, accuracy: null, source: "approximate area centre (GPS unavailable)" };
+      var res = S().raiseSOS(user.id, gps);
+      if (!res.ok) { toast(res.error, "error"); return; }
+      browserNotify("SOS sent", "The coordinator and patrollers on duty have been alerted.");
+      refreshBell();
+      var maps = "https://www.google.com/maps/dir/?api=1&destination=" + gps.lat + "," + gps.lng;
+      var wa = S().getSetting("whatsapp_group_url");
+      modal(
+        '<div class="dua-modal-title" style="color:var(--danger)">' + I("siren", 17) + " SOS sent — help is on the way</div>" +
+        '<p class="m-sub">The coordinator and every patroller on duty have been alerted with your GPS position' + (res.on_duty ? " (" + res.on_duty + " on duty now)" : "") + ".</p>" +
+        '<div class="card tight" style="background:var(--danger-soft);border:1px solid var(--danger-line)">' +
+        '<div class="detail-list">' +
+        '<div><span class="dl-k">Your position</span><span class="dl-v">' + gps.lat.toFixed(5) + ", " + gps.lng.toFixed(5) + "</span></div>" +
+        '<div><span class="dl-k">Sent at</span><span class="dl-v">' + esc(S().fmtTime(Date.now())) + "</span></div>" +
+        "</div></div>" +
+        '<p class="m-sub" style="font-weight:700">Get to safety first. Never confront or chase anyone — armed response and SAPS do that.</p>' +
+        '<div class="m-actions" style="flex-direction:column;gap:8px">' +
+        '<a class="btn btn-danger block" href="tel:10111">' + I("megaphone", 16) + " Call SAPS 10111</a>" +
+        (wa ? '<a class="btn btn-ok block" href="' + esc(wa) + '" target="_blank" rel="noopener">' + I("megaphone", 16) + " Message the WhatsApp group</a>" : "") +
+        '<a class="btn btn-ghost block" href="' + maps + '" target="_blank" rel="noopener">' + I("pin", 16) + " Open my position on the map</a>" +
+        '<button class="btn btn-ghost block" data-close>Close</button></div>'
+      );
     });
   }
 
@@ -671,14 +837,16 @@
     var list = S().notificationsFor(user);
     var KIND = {
       ok: ["var(--ok-soft)", "var(--ok)", I("check",18)], info: ["var(--info-soft)", "var(--info)", I("info",18)], warn: ["var(--warn-soft)", "var(--warn)", I("alert",18)],
-      danger: ["var(--danger-soft)", "var(--danger)", I("siren",18)]
+      danger: ["var(--danger-soft)", "var(--danger)", I("siren",18)],
+      sos: ["var(--danger)", "#fff", I("siren",18)]
     };
     var notifPermission = (window.Notification && Notification.permission) || "unsupported";
 
     screenEl.innerHTML =
       '<h1 class="page-title">Notifications</h1>' +
-      '<div class="row" style="margin-bottom:12px">' +
+      '<div class="row wrap" style="margin-bottom:12px">' +
       (user.role === "coordinator" ? '<button class="btn btn-ghost btn-sm grow" id="announce-btn">' + I("megaphone",15) + ' Send announcement</button>' : "") +
+      (user.role === "coordinator" ? '<button class="btn btn-ghost btn-sm grow" id="wa-link-btn">' + I("users",15) + ' WhatsApp group link</button>' : "") +
       '<button class="btn btn-ghost btn-sm grow" id="mark-read">' + I("check",13) + ' Mark all read</button></div>' +
       (notifPermission === "default" ? '<button class="btn btn-primary block" id="enable-push" style="margin-bottom:12px">' + I("bell",15) + ' Enable browser notifications</button>' : "") +
       '<div class="card tight" style="padding:0">' +
@@ -686,14 +854,34 @@
         var k = KIND[n.kind] || KIND.info;
         var unread = n.read_by.indexOf(user.id) === -1;
         return '<div class="notif' + (unread ? " unread" : "") + '">' +
-          '<div class="n-icon" style="background:' + k[0] + ";color:" + k[1] + '">' + k[2] + "</div>" +
+          '<div class="n-icon' + (n.kind === "sos" ? " sos-icon" : "") + '" style="background:' + k[0] + ";color:" + k[1] + '">' + k[2] + "</div>" +
           '<div class="grow"><div class="n-title">' + esc(n.title) + "</div>" +
           (n.body ? '<div class="n-body">' + esc(n.body) + "</div>" : "") +
+          (n.kind === "sos" && n.link ? '<div class="row mt-8"><a class="btn btn-danger btn-sm grow" href="' + esc(n.link) + '" target="_blank" rel="noopener">' + I("pin", 14) + " Route me there (Google Maps)</a></div>" : "") +
           '<div class="n-time">' + esc(S().timeAgo(n.created_at)) + "</div></div></div>";
       }).join("") || '<div class="empty"><div class="big">' + I("bell_off",36) + '</div>No notifications yet.</div>') +
       "</div>";
 
     $("#mark-read").onclick = function () { S().markAllRead(user); refreshBell(); renderNotifications(); };
+    var wb = $("#wa-link-btn");
+    if (wb) wb.onclick = function () {
+      modal(
+        "<h3>Community WhatsApp group</h3>" +
+        '<p class="m-sub">Paste the group invite link (in WhatsApp: Group info, then Invite via link). Every volunteer then gets a WhatsApp group button on their More screen, and it is offered during an SOS.</p>' +
+        '<div class="field"><label>Invite link</label><input id="wa-url" type="url" placeholder="https://chat.whatsapp.com/…" value="' + esc(S().getSetting("whatsapp_group_url")) + '"></div>' +
+        '<div class="m-actions"><button class="btn btn-ghost" data-close>Cancel</button><button class="btn btn-teal" id="wa-save">Save link</button></div>',
+        function (root) {
+          root.querySelector("#wa-save").onclick = function () {
+            var v = root.querySelector("#wa-url").value.trim();
+            if (v && v.indexOf("http") !== 0) { toast("The link should start with https://", "error"); return; }
+            S().setSetting("whatsapp_group_url", v);
+            closeModal();
+            toast(v ? "WhatsApp group link saved — volunteers now see it on the More tab." : "WhatsApp link cleared.", "ok");
+            renderNotifications();
+          };
+        }
+      );
+    };
     var eb = $("#enable-push");
     if (eb) eb.onclick = function () {
       Notification.requestPermission().then(function () { renderNotifications(); });
@@ -745,6 +933,8 @@
       '<dl class="kv"><dt>WhatsApp</dt><dd>' + esc(user.whatsapp) + "</dd>" +
       "<dt>Address</dt><dd>" + esc(user.street + ", " + user.suburb) + "</dd></dl></div>" +
 
+      (S().getSetting("whatsapp_group_url") ? '<a class="action full" href="' + esc(S().getSetting("whatsapp_group_url")) + '" target="_blank" rel="noopener" style="margin-bottom:12px"><div class="a-icon" style="background:var(--ok);color:#fff">' + I("megaphone",20) + '</div><div class="grow"><div class="a-label">Community WhatsApp group</div><div class="a-sub">Open the Aman Patrol group chat</div></div></a>' : "") +
+
       (user.role === "coordinator" ? '<a class="action full" href="#/admin/approvals" style="margin-bottom:12px"><div class="a-icon navy">' + I("shield",20) + '</div><div class="grow"><div class="a-label">Coordinator dashboard</div></div></a>' : "") +
 
       '<h3 style="font-size:0.95rem;margin:10px 0 8px">My shifts (' + claims.length + ")</h3>" +
@@ -752,7 +942,7 @@
       (claims.map(function (c) {
         if (!c.slot) return "";
         return '<div class="detail-list"><div><span class="dl-k">' + esc(S().fmtDate(c.slot.date)) + " · " + esc(c.slot.time_window) + "</span>" +
-          '<span class="dl-v">' + esc(c.slot.zone.replace("Zone ", "")) + " · " + esc(c.slot.activity_window) +
+          '<span class="dl-v">' + (c.slot.zone ? esc(c.slot.zone.replace("Zone ", "")) + " · " : "") + esc(c.slot.activity_window) +
           (c.status === "completed" && c.start_shift_time ? " · " + esc(S().fmtTime(c.start_shift_time) + "–" + S().fmtTime(c.end_shift_time)) : "") +
           ' <span class="chip ' + (c.status === "completed" ? "ok" : c.status === "started" ? "info" : "grey") + '" style="margin-left:4px">' + c.status + "</span></span></div></div>";
       }).join("") || '<div class="muted" style="font-size:0.8rem">No shifts yet — claim one from the roster.</div>') +
@@ -844,7 +1034,7 @@
         S().pushNotif({
           audience: { type: "user", id: user.id }, kind: "warn",
           title: "Your shift starts in 15 minutes",
-          body: c.slot.activity_window + " — " + S().fmtDate(c.slot.date) + ", " + c.slot.time_window + " · " + c.slot.zone + ". Meet your partner, radio check, then START SHIFT in the app."
+          body: c.slot.activity_window + " — " + S().fmtDate(c.slot.date) + ", " + c.slot.time_window + " · " + (c.slot.zone ? " · " + c.slot.zone : "") + ". Meet your partner, WhatsApp check-in, then START SHIFT in the app."
         });
         browserNotify("Your shift starts in 15 minutes", c.slot.activity_window + " · " + c.slot.zone);
         refreshBell();

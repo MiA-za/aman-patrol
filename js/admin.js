@@ -132,9 +132,11 @@
           ? '<div class="row mt-8"><select data-assign="' + s.id + '" style="flex:1;min-height:42px;border:1.5px solid var(--line);border-radius:10px;padding:8px;font-size:0.82rem">' +
             '<option value="">Assign volunteer…</option>' + free.map(function (u) { return '<option value="' + u.id + '">' + esc(u.first_name + " " + u.surname) + "</option>"; }).join("") + "</select></div>"
           : "";
-        return '<div class="card slot ' + (s.zone.indexOf("A") !== -1 ? "zone-a" : "zone-b") + '">' +
+        return '<div class="card slot' + (s.zone ? " " + (s.zone.indexOf("A") !== -1 ? "zone-a" : "zone-b") : "") + '">' +
           '<div class="row spread"><div>' +
-          '<span class="chip ' + (s.zone.indexOf("A") !== -1 ? "zone-a" : "zone-b") + '">' + esc(s.zone) + "</span>" +
+          (s.zone
+            ? '<span class="chip ' + (s.zone.indexOf("A") !== -1 ? "zone-a" : "zone-b") + '">' + esc(s.zone) + "</span>"
+            : '<span class="chip grey">Volunteer-created</span>') +
           '<h3 style="margin:7px 0 2px">' + esc(s.activity_window) + "</h3>" +
           '<div class="muted" style="font-size:0.78rem">' + esc(S.fmtDate(s.date)) + " · " + esc(s.time_window) + " · min " + s.min_required + "</div></div>" +
           '<div class="center"><div class="count-pill">' + s.count + " / " + s.min_required + '</div><span class="chip ' + (s.understaffed ? "warn" : "ok") + '" style="margin-top:6px">' + (s.understaffed ? "Understaffed" : "Fully staffed") + "</span></div></div>" +
@@ -169,27 +171,24 @@
   function addSlotModal() {
     var S = window.AmanStore;
     window.AmanUI.modal(
-      "<h3>Create patrol slot</h3><p class=\"m-sub\">Patrols run in pairs — minimum 2 volunteers per slot.</p>" +
-      '<div class="field"><label>Zone</label><select id="ns-zone">' + S.ZONES.map(function (z) { return "<option>" + esc(z) + "</option>"; }).join("") + "</select></div>" +
-      '<div class="field"><label>Activity window</label><select id="ns-window">' + S.WINDOWS.map(function (w) { return "<option>" + esc(w) + "</option>"; }).join("") + "</select></div>" +
+      "<h3>Create patrol slot</h3><p class=\"m-sub\">Patrols run in pairs — the slot opens on the roster for two volunteers to claim.</p>" +
+      '<div class="field"><label>Date</label><input type="date" id="ns-date" value="' + S.todayISO() + '" min="' + S.todayISO() + '"></div>' +
       '<div class="grid-2">' +
-      '<div class="field"><label>Date</label><input type="date" id="ns-date" value="' + S.todayISO() + '"></div>' +
-      '<div class="field"><label>Min volunteers</label><input type="number" id="ns-min" value="2" min="2" max="6"></div></div>' +
-      '<div class="grid-2">' +
-      '<div class="field"><label>Start time</label><input type="time" id="ns-start" value="07:30"></div>' +
-      '<div class="field"><label>End time</label><input type="time" id="ns-end" value="08:30"></div></div>' +
+      '<div class="field"><label>Start time</label><input type="time" id="ns-start" value="18:00"></div>' +
+      '<div class="field"><label>End time</label><input type="time" id="ns-end" value="20:00"></div></div>' +
       '<div class="m-actions"><button class="btn btn-ghost" data-close>Cancel</button><button class="btn btn-teal" id="ns-save">Create</button></div>',
       function (root) {
         root.querySelector("#ns-save").onclick = function () {
           var d = root.querySelector("#ns-date").value;
           if (!d) { window.AmanUI.toast("Please choose a date.", "error"); return; }
-          S.addSlot({
-            zone: root.querySelector("#ns-zone").value,
-            activity_window: root.querySelector("#ns-window").value,
+          var res = S.createSlot({
             date: d,
-            time_window: root.querySelector("#ns-start").value + "–" + root.querySelector("#ns-end").value,
-            min_required: +root.querySelector("#ns-min").value || 2
+            start_time: root.querySelector("#ns-start").value,
+            end_time: root.querySelector("#ns-end").value,
+            created_by: S.sessionUser().id,
+            claim_for_creator: false
           });
+          if (!res.ok) { window.AmanUI.toast(res.error, "error"); return; }
           window.AmanUI.closeModal();
           window.AmanUI.toast("Patrol slot created.");
           renderRoster(document.getElementById("admin-body"));

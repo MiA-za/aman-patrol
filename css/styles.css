@@ -509,3 +509,32 @@ html[data-theme="dark"] .leaflet-tile { filter: brightness(0.82) contrast(1.05);
   background: var(--card); color: var(--navy); border: 1.5px solid var(--line);
   cursor: pointer; padding: 0;
 }
+
+/* ---------- patrol calendar ---------- */
+.cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.cal-title { font-weight: 800; font-size: 0.95rem; letter-spacing: 0.2px; }
+.cal-nav {
+  width: 38px; height: 38px; border-radius: 10px; border: 1.5px solid var(--line);
+  background: var(--card); color: var(--navy); cursor: pointer; font: inherit;
+  display: flex; align-items: center; justify-content: center;
+}
+html[data-theme="dark"] .cal-nav { color: #cfe0f7; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.cal-dow { text-align: center; font-size: 0.6rem; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; padding: 3px 0 5px; }
+.cal-cell {
+  position: relative; height: 44px; border-radius: 10px; border: 1.5px solid var(--line);
+  background: var(--card); color: var(--text); font: inherit; font-size: 0.82rem; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.cal-cell.off { visibility: hidden; }
+.cal-cell.today { border-color: var(--teal); color: var(--teal-dark); }
+html[data-theme="dark"] .cal-cell.today { color: #4fc9c9; }
+.cal-cell.selected { background: var(--navy); border-color: var(--navy); color: #fff; }
+html[data-theme="dark"] .cal-cell.selected { background: #25477e; border-color: #25477e; color: #fff; }
+.cal-dot { position: absolute; bottom: 5px; left: 50%; transform: translateX(-50%); width: 5px; height: 5px; border-radius: 50%; background: var(--ok); }
+.cal-dot.need { background: var(--warn); }
+
+/* ---------- SOS (hold to send) ---------- */
+.sos-btn { position: relative; overflow: hidden; cursor: pointer; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.sos-btn .sos-bar { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: rgba(220, 38, 38, 0.18); pointer-events: none; }
+.n-icon.sos-icon, html[data-theme="dark"] .n-icon.sos-icon { background: var(--danger) !important; color: #fff !important; }

@@ -108,6 +108,8 @@
     var H = 3600000;
     return {
       counter: 100,
+      settings: { whatsapp_group_url: "" },
+      sos_log: [],
       users: [
         {
           id: "u-coord", first_name: "Yusuf", surname: "Adams",
@@ -215,9 +217,10 @@
   }
   function rollSlotDates() {
     // keep the demo evergreen: if every slot date has passed, roll dates forward
-    var allPast = db.slots.every(function (s) { return s.date < todayISO(); });
+    var seeds = db.slots.filter(function (s) { return s.day_offset > 0; });
+    var allPast = seeds.length > 0 && seeds.every(function (s) { return s.date < todayISO(); });
     if (!allPast) return;
-    db.slots.forEach(function (s) { s.date = dateISO(s.day_offset || 1); });
+    seeds.forEach(function (s) { s.date = dateISO(s.day_offset); });
     save();
   }
   function uid(prefix) { db.counter = (db.counter || 100) + 1; return prefix + db.counter; }
@@ -317,7 +320,7 @@
     var claims = db.claims.filter(function (c) { return c.slot_id === s.id && c.status !== "cancelled"; }).map(claimView);
     return {
       id: s.id, zone: s.zone, activity_window: s.activity_window, date: s.date,
-      time_window: s.time_window, min_required: s.min_required,
+      time_window: s.time_window, min_required: s.min_required, created_by: s.created_by || null,
       claims: claims, count: claims.length,
       understaffed: claims.length < s.min_required,
       full: claims.length >= s.min_required
@@ -334,10 +337,11 @@
     }
     d.claims.push({ id: uid("c"), slot_id: slotId, user_id: userId, status: "claimed", start_shift_time: null, end_shift_time: null, start_gps: null, end_gps: null, reminded: false });
     var view = slotView(slot);
+    var where = slot.zone ? " (" + slot.zone + ")" : "";
     if (view.understaffed) {
-      pushNotif({ audience: { type: "all" }, kind: "warn", title: "A patrol slot is understaffed", body: fmtDate(slot.date) + " " + slot.time_window.split("–")[0] + " — " + slot.activity_window + " (" + slot.zone + ") needs one more volunteer." });
+      pushNotif({ audience: { type: "all" }, kind: "warn", title: "A patrol slot is understaffed", body: fmtDate(slot.date) + " " + slot.time_window.split("–")[0] + " — " + slot.activity_window + where + " needs one more volunteer." });
     } else {
-      pushNotif({ audience: { type: "all" }, kind: "ok", title: "Patrol slot fully staffed", body: slot.activity_window + " on " + fmtDate(slot.date) + " (" + slot.zone + ") now has a full pair. Barakallahu feekum." });
+      pushNotif({ audience: { type: "all" }, kind: "ok", title: "Patrol slot fully staffed", body: slot.activity_window + " on " + fmtDate(slot.date) + where + " now has a full pair. Barakallahu feekum." });
     }
     save();
     return { ok: true };
@@ -421,6 +425,90 @@
     save();
   }
   function assignVolunteer(slotId, userId) { return claimSlot(slotId, userId); }
+
+  /* ---------- volunteer-created slots (calendar roster) ---------- */
+  function createSlot(data) {
+    if (!data || !data.date) return { ok: false, error: "Choose a date." };
+    if (data.date < todayISO()) return { ok: false, error: "Choose today or a future date." };
+    if (!data.start_time || !data.end_time) return { ok: false, error: "Choose a start and an end time." };
+    if (String(data.end_time) <= String(data.start_time)) return { ok: false, error: "The end time must be after the start time." };
+    var d = load();
+    var slot = {
+      id: uid("s"), zone: null, activity_window: "Volunteer patrol",
+      date: data.date, day_offset: 0,
+      time_window: data.start_time + "–" + data.end_time,
+      min_required: 2, created_by: data.created_by || null
+    };
+    d.slots.push(slot);
+    var who = data.created_by ? userById(data.created_by) : null;
+    if (data.claim_for_creator && who) {
+      d.claims.push({ id: uid("c"), slot_id: slot.id, user_id: who.id, status: "claimed", start_shift_time: null, end_shift_time: null, start_gps: null, end_gps: null, reminded: false });
+    }
+    var need = (data.claim_for_creator && who)
+      ? "One more volunteer is needed to make a pair."
+      : "Two volunteers are needed — claim it from the roster.";
+    pushNotif({
+      audience: { type: "all" }, kind: "info", title: "New patrol slot on the roster",
+      body: (who
+        ? who.first_name + " scheduled a patrol on " + fmtDate(slot.date) + ", " + slot.time_window + ". "
+        : "A new patrol slot is open on " + fmtDate(slot.date) + ", " + slot.time_window + ". ") + need
+    });
+    save();
+    return { ok: true, slot: slotView(slot) };
+  }
+  function deleteOwnSlot(slotId, userId) {
+    var d = load();
+    var slot = null, i;
+    for (i = 0; i < d.slots.length; i++) if (d.slots[i].id === slotId) slot = d.slots[i];
+    if (!slot) return { ok: false, error: "Slot not found." };
+    if (slot.created_by !== userId) return { ok: false, error: "Only the volunteer who created this slot can delete it." };
+    var others = d.claims.filter(function (c) { return c.slot_id === slotId && c.user_id !== userId && c.status !== "cancelled"; });
+    if (others.length) return { ok: false, error: "Another volunteer has already joined this slot — leave it instead, or ask the coordinator to remove it." };
+    d.slots = d.slots.filter(function (s) { return s.id !== slotId; });
+    d.claims = d.claims.filter(function (c) { return c.slot_id !== slotId; });
+    save();
+    return { ok: true };
+  }
+
+  /* ---------- SOS ---------- */
+  function raiseSOS(userId, gps) {
+    var d = load();
+    var u = userById(userId);
+    if (!u) return { ok: false, error: "You are not signed in." };
+    var onDuty = d.claims.filter(function (c) { return c.status === "started" && c.user_id !== userId; }).length;
+    var rec = {
+      id: uid("sos"), user_id: userId, lat: gps.lat, lng: gps.lng, accuracy: gps.accuracy || null,
+      created_at: new Date().toISOString()
+    };
+    if (!d.sos_log) d.sos_log = [];
+    d.sos_log.unshift(rec);
+    if (d.sos_log.length > 50) d.sos_log.length = 50;
+    var maps = "https://www.google.com/maps/dir/?api=1&destination=" + gps.lat + "," + gps.lng;
+    pushNotif({
+      audience: { type: "all" }, kind: "sos", link: maps,
+      title: "SOS — " + u.first_name + " needs help",
+      body: u.first_name + " " + u.surname.charAt(0) + ". sent an SOS at " + fmtTime(rec.created_at) +
+        " (GPS " + Number(gps.lat).toFixed(5) + ", " + Number(gps.lng).toFixed(5) + "). " +
+        (onDuty
+          ? onDuty + " patroller" + (onDuty > 1 ? "s are" : " is") + " on duty — please respond and route to the position."
+          : "No patrollers are on duty right now — coordinator, please arrange armed response and check on them.") +
+        " Use the route button to navigate there."
+    });
+    save();
+    return { ok: true, sos: rec, on_duty: onDuty };
+  }
+
+  /* ---------- settings (set by the coordinator) ---------- */
+  function getSetting(key) {
+    var d = load();
+    return (d.settings && d.settings[key]) || "";
+  }
+  function setSetting(key, value) {
+    var d = load();
+    if (!d.settings) d.settings = {};
+    d.settings[key] = String(value || "");
+    save();
+  }
   function removeClaim(claimId) {
     var d = load();
     d.claims = d.claims.filter(function (c) { return c.id !== claimId; });
@@ -489,7 +577,7 @@
     var d = load();
     d.notifications.unshift({
       id: uid("n"), audience: n.audience, kind: n.kind || "info",
-      title: n.title, body: n.body || "", created_at: new Date().toISOString(), read_by: []
+      title: n.title, body: n.body || "", link: n.link || null, created_at: new Date().toISOString(), read_by: []
     });
     if (d.notifications.length > 200) d.notifications.length = 200;
     save();
@@ -558,6 +646,8 @@
     slots: slots, slotById: slotById, claimSlot: claimSlot, unclaim: unclaim, myClaims: myClaims,
     myClaimFor: myClaimFor, startShift: startShift, endShift: endShift, completedShifts: completedShifts,
     addSlot: addSlot, removeSlot: removeSlot, assignVolunteer: assignVolunteer, removeClaim: removeClaim,
+    createSlot: createSlot, deleteOwnSlot: deleteOwnSlot, raiseSOS: raiseSOS,
+    getSetting: getSetting, setSetting: setSetting,
     // incidents
     incidents: incidents, incidentById: incidentById, addIncident: addIncident, updateIncident: updateIncident,
     // pins

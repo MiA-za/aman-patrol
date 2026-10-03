@@ -62,6 +62,16 @@ deliberately small, private and simple — that is a feature, not a limitation.
   open-source answer to Zello-style push-to-talk. Would need a small server
   (a few dollars a month) if we ever replace the Zello placeholder.
   Channels map neatly onto patrol radio channels.
+- **PTT round 2 (2026-10-03):** two newer options checked out.
+  *golanbenoni/ptt* ("PTT Talk", AGPLv3) is a self-hosted, end-to-end
+  encrypted push-to-talk system with Android + iOS clients — promising on
+  paper but still pre-release, so watch it rather than adopt it.
+  *spdobest/QR-PTT-PushToTalk* (GPLv3) is a Mumble-based Android client
+  built for guarding patrols and lone workers, but it is old and
+  Android-only. **Verdict stands: Mumble is the open-source PTT choice if
+  voice radio is ever approved — with the honest caveat that its iOS client
+  lags behind Android, and the WhatsApp group remains the zero-effort
+  default for a mixed Android/iPhone team.**
 
 ## 3. Smaller community-watch apps on GitHub (reference only)
 

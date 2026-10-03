@@ -64,13 +64,16 @@ Tell me which two serve the area and I'll lock them in as the patrol anchors.
 2. **Login** — email + password (+ one-tap demo accounts).
 3. **Home dashboard** — greeting, the **dua for safety card** (see
    *Duas in the app* below), live weather tile with rain/wind warnings,
-   my-next-shift card, big buttons: Log an Incident, Claim a Patrol Slot, Area
-   Map, Notifications, Patrol Radio (Zello placeholder).
-4. **Patrol roster** — real slots, Zone A/B, patrol windows (Morning patrol,
-   Madrassah drop-off, Afternoon patrol, Jumu'ah, Evening after Maghrib/Isha),
-   "1 of 2" sign-ups, understaffed labels, **START SHIFT / END SHIFT** with
-   GPS + time capture (the official shift log); starting a shift shows the
-   authentic dua for leaving the home.
+   my-next-shift card, big buttons: Log an Incident, **SOS (hold 3 seconds)**,
+   Create or Join a Patrol, Area Map, Notifications, Patrol Radio
+   (Zello placeholder).
+4. **Patrol calendar (roster)** — volunteers create their own patrol slots:
+   pick any date on the calendar, choose start and end times, and the slot
+   opens as "1 of 2" until a second volunteer joins — patrols always run in
+   pairs. **START SHIFT / END SHIFT** capture GPS + time for the official
+   shift log; START shows the authentic dua for leaving the home and END
+   shows the dua of gratitude. The creator can delete a slot while nobody
+   else has joined it.
 5. **Log an incident** — auto GPS + time, VOI/POI/SOI categories with their
    exact field sets, photo upload with victim/minor consent checkbox, and the
    response & handover record (SAPS/armed response details, no case numbers).
@@ -79,8 +82,10 @@ Tell me which two serve the area and I'll lock them in as the patrol anchors.
    coordinator custom pins (dark spots, risk corners, madrassah corridors)
    and recent incidents. Coordinator adds pins with the pin button on the map.
 7. **Notifications** — in-app feed + browser notifications; approvals,
-   15-minute shift reminders, incidents in your zone, understaffed slots,
-   coordinator announcements.
+   15-minute shift reminders, new and understaffed patrol slots, incidents,
+   **SOS alerts with a one-tap Google Maps route to the patroller in
+   trouble** (works on Android and iPhone), and coordinator announcements
+   (announcements can only be sent by the coordinator).
 8. **Coordinator dashboard** — pending approvals, all volunteers (full
    details, coordinator-only), roster assignment, incident statuses +
    responder records, reports with filters, counts, completed shift log and

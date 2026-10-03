@@ -14,6 +14,18 @@
   ];
   var STATUSES = ["Logged", "Acknowledged", "SAPS/Security Notified", "Resolved"];
   var REPORT_FILTER = { from: "", to: "", category: "", status: "" };
+  var lastApproved = null; // set after Approve: drives the "send good news" banner
+
+  function waLink(phone, first) {
+    var n = String(phone || "").replace(/[^0-9+]/g, "");
+    if (n.indexOf("+") === 0) n = n.slice(1);
+    else if (n.charAt(0) === "0") n = "27" + n.slice(1);
+    var msg = "السلام عليكم " + (first || "") + "! Your Aman Patrol registration is approved. " +
+      "Open the app and log in with the email you registered. " +
+      "Remember: observe and report only, never patrol alone, emergencies 10111. " +
+      "App: https://mia-za.github.io/aman-patrol/";
+    return "https://wa.me/" + n + "?text=" + encodeURIComponent(msg);
+  }
 
   function esc(s) { return window.AmanUI.esc(s); }
 
@@ -53,7 +65,7 @@
       '<span class="chip ' + (u.status === "approved" ? "ok" : u.status === "pending" ? "warn" : "danger") + '">' + u.status + "</span></div>" +
       '<div class="divider"></div>' +
       '<dl class="kv">' +
-      "<dt>WhatsApp</dt><dd>" + esc(u.whatsapp) + "</dd>" +
+      "<dt>Cell Number</dt><dd>" + esc(u.whatsapp) + "</dd>" +
       "<dt>Email</dt><dd>" + esc(u.email) + "</dd>" +
       "<dt>Address</dt><dd>" + esc(u.street + ", " + u.suburb) + "</dd>" +
       "<dt>Date of birth</dt><dd>" + esc(u.dob) + " (" + Math.floor(window.AmanStore.ageFromDob(u.dob)) + ")</dd>" +
@@ -64,20 +76,31 @@
   function renderApprovals(el) {
     var S = window.AmanStore;
     var pending = S.users().filter(function (u) { return u.status === "pending"; });
+    var banner = lastApproved ?
+      '<div class="approve-banner">' +
+      '<div class="ab-text">' + esc(lastApproved.first_name) + ' is approved — a welcome notification and chat message are waiting in the app. Send the good news:</div>' +
+      '<a class="btn btn-ok block mt-12" href="' + waLink(lastApproved.whatsapp, lastApproved.first_name) + '" target="_blank" rel="noopener">' + window.AmanUI.I("chat",15) + ' WhatsApp ' + esc(lastApproved.first_name) + '</a>' +
+      '<button class="btn btn-ghost block mt-8" data-wa-dismiss>Close</button>' +
+      '</div>' : "";
     if (!pending.length) {
-      el.innerHTML = '<div class="empty"><div class="big">' + window.AmanUI.I("check_circle",36) + '</div>No registrations waiting.<br>All applications have been reviewed.</div>';
+      el.innerHTML = banner + '<div class="empty"><div class="big">' + window.AmanUI.I("check_circle",36) + '</div>No registrations waiting.<br>All applications have been reviewed.</div>';
+      bindApproveBanner(el);
       return;
     }
-    el.innerHTML = pending.map(function (u) {
+    el.innerHTML = banner + pending.map(function (u) {
       return userCard(u,
         '<div class="row mt-12">' +
         '<button class="btn btn-ok grow" data-approve="' + u.id + '">' + window.AmanUI.I("check",15) + ' Approve</button>' +
         '<button class="btn btn-ghost danger grow" data-decline="' + u.id + '">' + window.AmanUI.I("x",15) + ' Decline</button></div>');
     }).join("");
+    bindApproveBanner(el);
     el.querySelectorAll("[data-approve]").forEach(function (b) {
       b.onclick = function () {
-        S.approveUser(b.getAttribute("data-approve"));
-        window.AmanUI.toast("Volunteer approved and notified.", "ok");
+        var id = b.getAttribute("data-approve");
+        var u = S.users().filter(function (x) { return x.id === id; })[0];
+        S.approveUser(id);
+        if (u) lastApproved = u;
+        window.AmanUI.toast("Volunteer approved — welcome sent in the app and team chat.", "ok");
         window.AmanUI.refreshBell();
         render(el);
       };
@@ -91,6 +114,11 @@
         }
       };
     });
+  }
+
+  function bindApproveBanner(el) {
+    var b = el.querySelector("[data-wa-dismiss]");
+    if (b) b.onclick = function () { lastApproved = null; render(el); };
   }
 
   /* ---------------- volunteers ---------------- */
@@ -132,9 +160,11 @@
           ? '<div class="row mt-8"><select data-assign="' + s.id + '" style="flex:1;min-height:42px;border:1.5px solid var(--line);border-radius:10px;padding:8px;font-size:0.82rem">' +
             '<option value="">Assign volunteer…</option>' + free.map(function (u) { return '<option value="' + u.id + '">' + esc(u.first_name + " " + u.surname) + "</option>"; }).join("") + "</select></div>"
           : "";
-        return '<div class="card slot ' + (s.zone.indexOf("A") !== -1 ? "zone-a" : "zone-b") + '">' +
+        return '<div class="card slot' + (s.zone ? " " + (s.zone.indexOf("A") !== -1 ? "zone-a" : "zone-b") : "") + '">' +
           '<div class="row spread"><div>' +
-          '<span class="chip ' + (s.zone.indexOf("A") !== -1 ? "zone-a" : "zone-b") + '">' + esc(s.zone) + "</span>" +
+          (s.zone
+            ? '<span class="chip ' + (s.zone.indexOf("A") !== -1 ? "zone-a" : "zone-b") + '">' + esc(s.zone) + "</span>"
+            : '<span class="chip grey">Volunteer-created</span>') +
           '<h3 style="margin:7px 0 2px">' + esc(s.activity_window) + "</h3>" +
           '<div class="muted" style="font-size:0.78rem">' + esc(S.fmtDate(s.date)) + " · " + esc(s.time_window) + " · min " + s.min_required + "</div></div>" +
           '<div class="center"><div class="count-pill">' + s.count + " / " + s.min_required + '</div><span class="chip ' + (s.understaffed ? "warn" : "ok") + '" style="margin-top:6px">' + (s.understaffed ? "Understaffed" : "Fully staffed") + "</span></div></div>" +
@@ -169,27 +199,24 @@
   function addSlotModal() {
     var S = window.AmanStore;
     window.AmanUI.modal(
-      "<h3>Create patrol slot</h3><p class=\"m-sub\">Patrols run in pairs — minimum 2 volunteers per slot.</p>" +
-      '<div class="field"><label>Zone</label><select id="ns-zone">' + S.ZONES.map(function (z) { return "<option>" + esc(z) + "</option>"; }).join("") + "</select></div>" +
-      '<div class="field"><label>Activity window</label><select id="ns-window">' + S.WINDOWS.map(function (w) { return "<option>" + esc(w) + "</option>"; }).join("") + "</select></div>" +
+      "<h3>Create patrol slot</h3><p class=\"m-sub\">Patrols run in pairs — the slot opens on the roster for two volunteers to claim.</p>" +
+      '<div class="field"><label>Date</label><input type="date" id="ns-date" value="' + S.todayISO() + '" min="' + S.todayISO() + '"></div>' +
       '<div class="grid-2">' +
-      '<div class="field"><label>Date</label><input type="date" id="ns-date" value="' + S.todayISO() + '"></div>' +
-      '<div class="field"><label>Min volunteers</label><input type="number" id="ns-min" value="2" min="2" max="6"></div></div>' +
-      '<div class="grid-2">' +
-      '<div class="field"><label>Start time</label><input type="time" id="ns-start" value="07:30"></div>' +
-      '<div class="field"><label>End time</label><input type="time" id="ns-end" value="08:30"></div></div>' +
+      '<div class="field"><label>Start time</label><input type="time" id="ns-start" value="18:00"></div>' +
+      '<div class="field"><label>End time</label><input type="time" id="ns-end" value="20:00"></div></div>' +
       '<div class="m-actions"><button class="btn btn-ghost" data-close>Cancel</button><button class="btn btn-teal" id="ns-save">Create</button></div>',
       function (root) {
         root.querySelector("#ns-save").onclick = function () {
           var d = root.querySelector("#ns-date").value;
           if (!d) { window.AmanUI.toast("Please choose a date.", "error"); return; }
-          S.addSlot({
-            zone: root.querySelector("#ns-zone").value,
-            activity_window: root.querySelector("#ns-window").value,
+          var res = S.createSlot({
             date: d,
-            time_window: root.querySelector("#ns-start").value + "–" + root.querySelector("#ns-end").value,
-            min_required: +root.querySelector("#ns-min").value || 2
+            start_time: root.querySelector("#ns-start").value,
+            end_time: root.querySelector("#ns-end").value,
+            created_by: S.sessionUser().id,
+            claim_for_creator: false
           });
+          if (!res.ok) { window.AmanUI.toast(res.error, "error"); return; }
           window.AmanUI.closeModal();
           window.AmanUI.toast("Patrol slot created.");
           renderRoster(document.getElementById("admin-body"));

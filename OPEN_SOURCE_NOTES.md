@@ -62,6 +62,16 @@ deliberately small, private and simple — that is a feature, not a limitation.
   open-source answer to Zello-style push-to-talk. Would need a small server
   (a few dollars a month) if we ever replace the Zello placeholder.
   Channels map neatly onto patrol radio channels.
+- **PTT round 2 (2026-10-03):** two newer options checked out.
+  *golanbenoni/ptt* ("PTT Talk", AGPLv3) is a self-hosted, end-to-end
+  encrypted push-to-talk system with Android + iOS clients — promising on
+  paper but still pre-release, so watch it rather than adopt it.
+  *spdobest/QR-PTT-PushToTalk* (GPLv3) is a Mumble-based Android client
+  built for guarding patrols and lone workers, but it is old and
+  Android-only. **Verdict stands: Mumble is the open-source PTT choice if
+  voice radio is ever approved — with the honest caveat that its iOS client
+  lags behind Android, and the WhatsApp group remains the zero-effort
+  default for a mixed Android/iPhone team.**
 
 ## 3. Smaller community-watch apps on GitHub (reference only)
 
@@ -94,5 +104,81 @@ projects. Useful to see approaches, not production tools:
    location, Mumble for voice — and only with the coordinator's approval and
    privacy-by-design from day one.
 
-*Research compiled 2026-10-02. All projects listed are free and open source;
-check each repository for its exact licence before any reuse.*
+## 5. Round 2 — more tools the coordinator asked about (2026-10-03)
+
+Asked: what *other* free open-source GitHub repos could we add to this app?
+Same ground rule — nothing below is approved for integration; these are
+notes with a clear "fits us / does not fit us" verdict.
+
+### ntfy — github.com/binwiederhier/ntfy (Apache 2.0 / GPLv2)
+- Push notifications with the simplest API there is: one HTTP POST to a
+  topic, and every phone subscribed to that topic buzzes. Free hosted
+  service at ntfy.sh, or self-host a single small Go server. Android and
+  iOS apps.
+- **The most realistic next add for Aman Patrol:** once Supabase is live,
+  coordinator announcements and shift reminders could push to a private
+  topic volunteers subscribe to. No app store, no per-user accounts.
+- Privacy: use an unguessable private topic or a self-hosted instance, and
+  never push victim or address details through the public ntfy.sh.
+
+### Gotify — github.com/gotify/server (MIT)
+- Same idea as ntfy (self-hosted push notifications, web + Android client),
+  older and slightly heavier, using user/app tokens instead of topics. A
+  fine fallback if we ever want everything on one box.
+
+### PocketBase — github.com/pocketbase/pocketbase (MIT)
+- An entire backend — SQLite database, auth, file storage, admin UI — in one
+  Go binary you can run on a five-dollar VPS. If Supabase ever feels too
+  "cloud", PocketBase does the same job with zero external services. Our
+  Supabase schema would need porting, so we stay put unless that changes.
+
+### OwnTracks — github.com/owntracks (Eclipse Public Licence)
+- Privacy-first location sharing: the phone publishes its position over
+  MQTT (or HTTP) to a server *you* choose, for people *you* choose. A
+  lighter pattern than Traccar for "share my patrol position for this shift
+  only". Needs a small MQTT broker such as Mosquitto (also open source).
+
+### Dawarich — github.com/Freika/dawarich (AGPL-3.0)
+- Self-hosted location-history dashboard (a Google Timeline replacement)
+  that can ingest OwnTracks feeds. Recorded here for completeness — it is
+  personal analytics, not a patrol tool, and storing volunteers' movement
+  history is exactly what our privacy rules avoid. Not a fit.
+
+### Zulip — github.com/zulip/zulip (Apache 2.0)
+- Open-source team chat organised by streams and topics (threads), so
+  "Zone A · Monday patrol" can be one searchable conversation. A
+  community-owned alternative to the WhatsApp group. Runs as a full server.
+
+### Rocket.Chat — github.com/RocketChat/Rocket.Chat (MIT)
+- Self-hosted team chat, closer to Slack in look and feel. Same trade-offs
+  as Zulip; pick one, not both.
+
+### Element / Matrix — github.com/element-hq (Apache 2.0)
+- Decentralised, end-to-end-encrypted messaging on the open Matrix
+  protocol. The strongest privacy option for committee chat, at the cost of
+  more concepts to learn (homeservers). Element is the main client.
+
+### Jitsi Meet — github.com/jitsi/jitsi-meet (Apache 2.0)
+- Open-source video calls that work in the browser with no accounts —
+  useful for monthly committee meetings or coordinator check-ins. Free
+  public instance at meet.jit.si, or self-host.
+
+### Frigate — github.com/blakeblackshear/frigate (MIT)
+- Open-source NVR with local AI object detection for security cameras.
+  Residents often ask about CCTV; Frigate is what a household would run
+  *themselves*. Aman Patrol would only ever store "a camera covers this
+  street" (opt-in, coordinator-only) — never footage, never feeds.
+
+### What we would actually pick, in order
+1. **ntfy** — coordinator announcements and shift-reminder pushes once
+   Supabase is live. Smallest step, biggest daily value.
+2. **Mumble** (round 1) — if the Zello placeholder ever becomes real voice
+   radio.
+3. **Zulip or Element** — if the committee outgrows WhatsApp and wants
+   community-owned chat history.
+4. Everything else stays on the shelf until a real need appears — the app
+   stays small, private and simple by design.
+
+*Round 1 compiled 2026-10-02; round 2 (section 5) added 2026-10-03. All
+projects listed are free and open source; check each repository for its
+exact licence before any reuse.*

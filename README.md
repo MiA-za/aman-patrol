@@ -64,13 +64,16 @@ Tell me which two serve the area and I'll lock them in as the patrol anchors.
 2. **Login** — email + password (+ one-tap demo accounts).
 3. **Home dashboard** — greeting, the **dua for safety card** (see
    *Duas in the app* below), live weather tile with rain/wind warnings,
-   my-next-shift card, big buttons: Log an Incident, Claim a Patrol Slot, Area
-   Map, Notifications, Patrol Radio (Zello placeholder).
-4. **Patrol roster** — real slots, Zone A/B, patrol windows (Morning patrol,
-   Madrassah drop-off, Afternoon patrol, Jumu'ah, Evening after Maghrib/Isha),
-   "1 of 2" sign-ups, understaffed labels, **START SHIFT / END SHIFT** with
-   GPS + time capture (the official shift log); starting a shift shows the
-   authentic dua for leaving the home.
+   my-next-shift card, big buttons: Log an Incident, **SOS (hold 3 seconds)**,
+   Create or Join a Patrol, Area Map, Notifications, Patrol Radio
+   (Zello placeholder).
+4. **Patrol calendar (roster)** — volunteers create their own patrol slots:
+   pick any date on the calendar, choose start and end times, and the slot
+   opens as "1 of 2" until a second volunteer joins — patrols always run in
+   pairs. **START SHIFT / END SHIFT** capture GPS + time for the official
+   shift log; START shows the authentic dua for leaving the home and END
+   shows the dua of gratitude. The creator can delete a slot while nobody
+   else has joined it.
 5. **Log an incident** — auto GPS + time, VOI/POI/SOI categories with their
    exact field sets, photo upload with victim/minor consent checkbox, and the
    response & handover record (SAPS/armed response details, no case numbers).
@@ -79,8 +82,10 @@ Tell me which two serve the area and I'll lock them in as the patrol anchors.
    coordinator custom pins (dark spots, risk corners, madrassah corridors)
    and recent incidents. Coordinator adds pins with the pin button on the map.
 7. **Notifications** — in-app feed + browser notifications; approvals,
-   15-minute shift reminders, incidents in your zone, understaffed slots,
-   coordinator announcements.
+   15-minute shift reminders, new and understaffed patrol slots, incidents,
+   **SOS alerts with a one-tap Google Maps route to the patroller in
+   trouble** (works on Android and iPhone), and coordinator announcements
+   (announcements can only be sent by the coordinator).
 8. **Coordinator dashboard** — pending approvals, all volunteers (full
    details, coordinator-only), roster assignment, incident statuses +
    responder records, reports with filters, counts, completed shift log and
@@ -117,14 +122,27 @@ js/incident.js        VOI / POI / SOI reporting
 js/map.js             area map: OSM layers + custom pins + incidents
 js/data.js            area data snapshot — REAL OpenStreetMap data (auto-generated)
 js/store.js           demo data layer (localStorage) — mirrors the Supabase tables
+js/config.js          live backend settings (Supabase project URL + public key)
+js/lib/supabase.js    Supabase client library (local copy, no CDN needed)
+js/live-store.js      live data layer (Supabase) — same API as the demo store
 js/weather.js         Open-Meteo live weather
 images/logo.png       the Aman logo (also embedded inline in the app)
+images/icon-192.png   PWA home-screen icons, generated from the logo
+images/icon-512.png   (192 / 512 / maskable 512 + Apple touch icon)
+manifest.webmanifest  PWA install file (app name, icons, colours)
+sw.js                 service worker — the app opens even with no signal
 images/favicon.png    app icon file (also embedded inline)
 images/designarena_image_cbaeo2tp.png   original full-size logo artwork
 supabase/schema.sql   paste-once SQL for the live backend
+supabase/addendum_a.sql  paste after schema.sql (roster/SOS/settings)
+supabase/addendum_b.sql  paste after addendum A (photos + team chat)
+supabase/make_admin.sql  one-run script: creates the coordinator login
+supabase/addendum_c.sql  daily auto-cleanup of stale registrations (pg_cron)
 SUPABASE_SETUP.md     layman's step-by-step Supabase guide
+AUDIT.md              pre-Supabase gap audit: findings + Addendum A migration SQL
 PUT_ON_GITHUB.md      how this site was put on GitHub Pages (already done)
 OPEN_SOURCE_NOTES.md  research: similar open-source projects and what we can learn
+tools/sync_index.py   rebuilds index.html from js/* and css/*, then verifies
 ```
 
 Logo: the provided Aman logo is embedded throughout (header, sign-in
@@ -153,6 +171,10 @@ Each dua is shown in Arabic, transliteration and English, **with its source**:
 - **When starting a patrol shift** — the dua for leaving the home:
   *Bismillāhi tawakkaltu ʿalallāh, wa lā ḥawla wa lā quwwata illā billāh* —
   Sunan Abī Dāwūd 5095 · Jāmiʿ at-Tirmidhī 3426.
+- **When finishing a patrol shift (END SHIFT)** — the dua of gratitude:
+  *Alhamdulillāhil-ladhī bi-niʿmatihi tatimmuṣ-ṣāliḥāt* — Sunan Ibn Mājah
+  3803, graded ḥasan by Shaykh al-Albānī. The Prophet ﷺ would say it
+  whenever he saw or completed something good.
 
 ---
 
@@ -162,6 +184,10 @@ Each dua is shown in Arabic, transliteration and English, **with its source**:
   (Feather/Lucide style) — no emoji anywhere in the app.
 - Deep navy (#13294b) primary, teal (#0e9f9f) accent, white cards, large tap
   targets, phone-first.
+- Day and night themes: the sun/moon button in the header (and on the login
+  and register screens) switches instantly, remembers the choice on the
+  device, and follows the phone's system setting by default. Night mode
+  dims the map tiles for patrols after Maghrib.
 
 ---
 

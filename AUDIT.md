@@ -239,6 +239,18 @@ create trigger sos_notify after insert on public.sos_log
 --  policy from A7 so all notification inserts are coordinator-or-trigger.)
 ```
 
+**Addendum B (added during the live build, 3 October 2026):** incident
+photos are shared operational data, so approved volunteers need read
+access to the photo bucket (the audit-time policy allowed owner and
+coordinator only, which would hide teammates' photos in the shared
+incident view). Paste once in the SQL Editor, after Addendum A:
+
+```sql
+create policy "approved read incident photos" on storage.objects
+  for select to authenticated
+  using (bucket_id = 'incident-photos' and public.is_approved_volunteer());
+```
+
 ---
 
 ## 5. Important, not blocking (plan, do not block the connection on these)

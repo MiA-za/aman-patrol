@@ -15,8 +15,9 @@ Usage (from the repository root):
 
 What it does
   1. Replaces inline <style> block 1 with css/styles.css and inline
-     <script> blocks 1-7 with js/data.js, js/store.js, js/weather.js,
-     js/map.js, js/incident.js, js/admin.js, js/app.js.
+     <script> blocks 1..10 with js/config.js, js/lib/supabase.js,
+     js/data.js, js/store.js, js/weather.js, js/map.js, js/incident.js,
+     js/admin.js, js/live-store.js, js/app.js.
      (Block 0 is the Leaflet library and is left untouched.)
   2. Normalises index.html to CRLF line endings (its original convention).
   3. Verifies: block parity (md5 after line-ending normalisation),
@@ -31,8 +32,9 @@ import hashlib
 import subprocess
 import sys
 
-JS_FILES = ["js/data.js", "js/store.js", "js/weather.js", "js/map.js",
-            "js/incident.js", "js/admin.js", "js/app.js"]
+JS_FILES = ["js/config.js", "js/lib/supabase.js", "js/data.js", "js/store.js",
+            "js/weather.js", "js/map.js", "js/incident.js", "js/admin.js",
+            "js/live-store.js", "js/app.js"]
 LEAFLET = "js/lib/leaflet.js"
 INDEX = "index.html"
 STYLES = "css/styles.css"
@@ -101,10 +103,10 @@ def sync():
     i, j = spans[1]
     t = t[:i] + "  <style>\n" + css + "\n\n</style>" + t[j + len("</style>"):]
 
-    # --- script blocks 1..7 (block 0 is Leaflet's js, untouched) ---
+    # --- script blocks 1..N (block 0 is Leaflet's js, untouched) ---
     spans = find_spans(t, "  <script>\n", "</script>")
-    if len(spans) != 8:
-        print(f"FAIL: expected 8 script blocks, found {len(spans)}")
+    if len(spans) != len(JS_FILES) + 1:
+        print(f"FAIL: expected {len(JS_FILES) + 1} script blocks, found {len(spans)}")
         return False
     out, last = [], 0
     for n, (i, j) in enumerate(spans):
@@ -132,8 +134,8 @@ def verify():
     # 1. block parity
     parity_ok = True
     blocks = inline_blocks(hnorm, "script")
-    if len(blocks) != 8:
-        print(f"FAIL parity: expected 8 script blocks, found {len(blocks)}")
+    if len(blocks) != len(JS_FILES) + 1:
+        print(f"FAIL parity: expected {len(JS_FILES) + 1} script blocks, found {len(blocks)}")
         parity_ok = False
     else:
         leaflet = read(LEAFLET).replace("\r\n", "\n")
@@ -157,7 +159,7 @@ def verify():
         print("FAIL parity: expected 2 style blocks")
         parity_ok = False
     if parity_ok:
-        print("PASS parity: all 8 script blocks + style block match their files")
+        print(f"PASS parity: all {len(JS_FILES) + 1} script blocks + style block match their files")
     all_ok = all_ok and parity_ok
 
     # 2. node --check
@@ -168,7 +170,7 @@ def verify():
             print(f"FAIL syntax: {path}\n{r.stderr.decode()[:400]}")
             syntax_ok = False
     if syntax_ok:
-        print("PASS syntax: node --check on all 7 js files")
+        print(f"PASS syntax: node --check on all {len(JS_FILES)} js files")
     all_ok = all_ok and syntax_ok
 
     # 3. emoji scan
@@ -192,8 +194,10 @@ def verify():
 
     # 4. line-ending sanity
     le_ok = True
-    for path, want_crlf in [(INDEX, True), ("js/app.js", True), ("css/styles.css", True),
-                            ("js/store.js", False), ("js/data.js", False),
+    for path, want_crlf in [(INDEX, True), ("js/app.js", True), ("js/incident.js", True),
+                            ("css/styles.css", True), ("js/store.js", False),
+                            ("js/data.js", False), ("js/config.js", False),
+                            ("js/live-store.js", False), ("js/lib/supabase.js", False),
                             ("multi-file.html", False)]:
         data = read(path, binary=True)
         lf_only = data.count(b"\n") - data.count(b"\r\n")

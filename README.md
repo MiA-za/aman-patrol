@@ -122,6 +122,9 @@ js/incident.js        VOI / POI / SOI reporting
 js/map.js             area map: OSM layers + custom pins + incidents
 js/data.js            area data snapshot — REAL OpenStreetMap data (auto-generated)
 js/store.js           demo data layer (localStorage) — mirrors the Supabase tables
+js/config.js          live backend settings (Supabase project URL + public key)
+js/lib/supabase.js    Supabase client library (local copy, no CDN needed)
+js/live-store.js      live data layer (Supabase) — same API as the demo store
 js/weather.js         Open-Meteo live weather
 images/logo.png       the Aman logo (also embedded inline in the app)
 images/favicon.png    app icon file (also embedded inline)

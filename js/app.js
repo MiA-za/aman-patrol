@@ -208,7 +208,7 @@
   function setShell(loggedIn) {
     $("#app-header").classList.toggle("hidden", !loggedIn);
     $("#bottom-nav").classList.toggle("hidden", !loggedIn);
-    $("#demo-banner").classList.toggle("hidden", !loggedIn);
+    $("#demo-banner").classList.toggle("hidden", !loggedIn || !!S().live);
   }
   function setActiveNav(page) {
     ["dashboard", "roster", "map", "more"].forEach(function (p) {
@@ -256,15 +256,16 @@
       '<button class="btn btn-teal block" id="r-submit" style="min-height:54px">Submit application</button>' +
       '<p class="center" style="margin:12px 0 0;font-size:0.82rem">Already registered? <a href="#/login"><b>Log in</b></a></p>' +
       "</div>" +
+      (S().live ? "" :
       '<div class="demo-login"><h4>DEMO — TRY IT INSTANTLY</h4>' +
       "<p>No need to register — jump straight in with a demo account (password <b>demo1234</b>):</p>" +
       '<div class="row"><button class="btn btn-ghost grow" id="demo-coord">' + I("shield",16) + ' Coordinator</button>' +
-      '<button class="btn btn-ghost grow" id="demo-vol">' + I("user",16) + ' Volunteer</button></div></div>' +
+      '<button class="btn btn-ghost grow" id="demo-vol">' + I("user",16) + ' Volunteer</button></div></div>') +
       AUTH_THEME_BTN;
 
     $("#coc-link").onclick = function (e) { e.preventDefault(); codeOfConductModal(); };
-    $("#demo-coord").onclick = function () { demoLogin("coordinator@demo.co.za"); };
-    $("#demo-vol").onclick = function () { demoLogin("aisha@demo.co.za"); };
+    if ($("#demo-coord")) $("#demo-coord").onclick = function () { demoLogin("coordinator@demo.co.za"); };
+    if ($("#demo-vol")) $("#demo-vol").onclick = function () { demoLogin("aisha@demo.co.za"); };
     $("#r-submit").onclick = submitRegister;
   }
 
@@ -313,7 +314,21 @@
     if (!$("#r-18").checked || !$("#r-coc").checked) errs.push("— please confirm you are over 18 and agree to the Code of Conduct");
     if (errs.length) { toast("Please provide " + errs[0] + ".", "error"); return; }
 
+    var rbtn = $("#r-submit");
+    if (rbtn && S().live) { rbtn.disabled = true; rbtn.textContent = "Submitting application..."; }
     var res = S().register(d);
+    if (res && typeof res.then === "function") {
+      res.then(function (r) {
+        if (!r.ok) {
+          if (rbtn) { rbtn.disabled = false; rbtn.textContent = "Submit application"; }
+          toast(r.error, "error");
+          return;
+        }
+        location.hash = "#/pending";
+        route();
+      });
+      return;
+    }
     if (!res.ok) { toast(res.error, "error"); return; }
     S().login(d.email, d.password);
     location.hash = "#/pending";
@@ -321,6 +336,7 @@
   }
 
   function demoLogin(email) {
+    if (S().live) return;
     var res = S().login(email, "demo1234");
     if (!res.ok) { toast(res.error, "error"); return; }
     try { localStorage.setItem("aman-last-email", email); } catch (err) {}
@@ -346,23 +362,29 @@
       '<button class="btn btn-primary block" id="l-submit" style="min-height:54px">Log in</button>' +
       '<p class="center" style="margin:12px 0 0;font-size:0.82rem">New volunteer? <a href="#/register"><b>Register here</b></a></p>' +
       "</div>" +
+      (S().live ? "" :
       '<div class="demo-login"><h4>DEMO ACCOUNTS</h4>' +
       "<p>One tap — password is <b>demo1234</b> for all:</p>" +
       '<button class="btn btn-ghost block" id="demo-coord">' + I("shield",16) + ' Coordinator — Yusuf (full dashboard)</button>' +
       '<div class="row mt-8"><button class="btn btn-ghost grow" id="demo-vol">' + I("user",16) + ' Aisha (volunteer)</button>' +
-      '<button class="btn btn-ghost grow" id="demo-pend">' + I("hourglass",16) + ' Ismail (pending)</button></div></div>' +
+      '<button class="btn btn-ghost grow" id="demo-pend">' + I("hourglass",16) + ' Ismail (pending)</button></div></div>') +
       AUTH_THEME_BTN;
 
     $("#l-submit").onclick = function () {
+      var btn = this;
+      function afterLogin(res) {
+        if (!res.ok) { btn.disabled = false; btn.textContent = "Log in"; toast(res.error, "error"); return; }
+        try { localStorage.setItem("aman-last-email", $("#l-email").value.trim()); } catch (err) {}
+        location.hash = res.user.status === "approved" ? "#/dashboard" : (res.user.status === "declined" ? "#/declined" : "#/pending");
+        route();
+      }
       var res = S().login($("#l-email").value, $("#l-pass").value);
-      if (!res.ok) { toast(res.error, "error"); return; }
-      try { localStorage.setItem("aman-last-email", $("#l-email").value.trim()); } catch (err) {}
-      location.hash = res.user.status === "approved" ? "#/dashboard" : (res.user.status === "declined" ? "#/declined" : "#/pending");
-      route();
+      if (res && typeof res.then === "function") { btn.disabled = true; btn.textContent = "Signing in..."; res.then(afterLogin); }
+      else afterLogin(res);
     };
-    $("#demo-coord").onclick = function () { demoLogin("coordinator@demo.co.za"); };
-    $("#demo-vol").onclick = function () { demoLogin("aisha@demo.co.za"); };
-    $("#demo-pend").onclick = function () { demoLogin("pending@demo.co.za"); };
+    if ($("#demo-coord")) $("#demo-coord").onclick = function () { demoLogin("coordinator@demo.co.za"); };
+    if ($("#demo-vol")) $("#demo-vol").onclick = function () { demoLogin("aisha@demo.co.za"); };
+    if ($("#demo-pend")) $("#demo-pend").onclick = function () { demoLogin("pending@demo.co.za"); };
   }
 
   /* ============================================================
@@ -381,7 +403,7 @@
       '<h3>Your application is under review</h3>' +
       '<p class="muted" style="font-size:0.84rem;line-height:1.6">A coordinator is checking your details. You\'ll be able to use Aman Patrol as soon as you\'re approved — this keeps the team safe and accountable.</p>' +
       '<div class="divider"></div>' +
-      '<p class="muted" style="font-size:0.76rem;line-height:1.6;text-align:left">DEMO TIP: open this app as the coordinator (coordinator@demo.co.za / demo1234) and approve yourself from the Coordinator Dashboard → Approvals. Then log back in as ' + esc(user.email) + ".</p>" +
+      '<p class="muted" style="font-size:0.76rem;line-height:1.6;text-align:left">' + (S().live ? "The coordinator reviews new applications in the coordinator dashboard. Once approved, log out and back in to start patrolling." : "DEMO TIP: open this app as the coordinator (coordinator@demo.co.za / demo1234) and approve yourself from the Coordinator Dashboard → Approvals. Then log back in as " + esc(user.email) + ".") + "</p>" +
       '<button class="btn btn-ghost block mt-12" id="p-logout">Log out</button></div>';
     $("#p-logout").onclick = doLogout;
   }
@@ -960,15 +982,16 @@
       '<div class="card">' +
       '<button class="btn btn-ghost block" id="coc-btn" style="margin-bottom:10px">' + I("doc",15) + ' Code of Conduct &amp; values</button>' +
       '<button class="btn btn-ghost block" id="radio-btn2" style="margin-bottom:10px">' + I("radio",15) + ' Patrol radio (Zello)</button>' +
-      '<button class="btn btn-ghost danger block" id="reset-btn" style="margin-bottom:10px">' + I("refresh",15) + ' Reset demo data</button>' +
+      (S().live ? "" : '<button class="btn btn-ghost danger block" id="reset-btn" style="margin-bottom:10px">' + I("refresh",15) + ' Reset demo data</button>') +
       '<button class="btn btn-primary block" id="logout-btn">Log out</button></div>' +
-      '<p class="center" style="font-size:0.66rem;color:var(--muted);line-height:1.6">Aman Patrol · observe &amp; report only · map data © OpenStreetMap contributors · weather by Open-Meteo<br>Demo build — data stays on this device until Supabase is connected.</p>';
+      '<p class="center" style="font-size:0.66rem;color:var(--muted);line-height:1.6">Aman Patrol · observe &amp; report only · map data © OpenStreetMap contributors · weather by Open-Meteo<br>' + (S().live ? "Live build — data syncs securely between all volunteers." : "Demo build — data stays on this device until Supabase is connected.") + "</p>";
 
     $all("[data-inc]").forEach(function (r) { r.onclick = function () { window.AmanAdmin.incidentModal(r.getAttribute("data-inc"), null); }; });
     $("#coc-btn").onclick = codeOfConductModal;
     $("#radio-btn2").onclick = radioModal;
     $("#logout-btn").onclick = doLogout;
-    $("#reset-btn").onclick = function () {
+    var resetBtn = $("#reset-btn");
+    if (resetBtn) resetBtn.onclick = function () {
       modal(
         "<h3>Reset demo data?</h3>" +
         '<p class="m-sub">This restores the original sample volunteers, slots, incidents and pins, and logs you out.</p>' +
@@ -1061,8 +1084,24 @@
     });
 
     window.addEventListener("hashchange", route);
-    route();
-    setInterval(function () { checkReminders(); refreshBell(); }, 60000);
+    var startApp = function () {
+      route();
+      setInterval(function () { checkReminders(); refreshBell(); }, 60000);
+    };
+    if (S().onChange) {
+      S().onChange(function () {
+        // live data changed on the server: re-render the current screen,
+        // unless a modal is open (would close it) - then just refresh the bell
+        if (document.querySelector("#modal-root .modal-overlay")) { refreshBell(); return; }
+        route();
+      });
+    }
+    if (S().boot) {
+      screenEl.innerHTML = '<div class="auth-hero" style="padding-top:36vh"><div class="tagline">Connecting to Aman Patrol...</div></div>';
+      S().boot().then(startApp);
+    } else {
+      startApp();
+    }
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);

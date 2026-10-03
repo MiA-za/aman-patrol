@@ -272,6 +272,7 @@
     if (!res.ok) { ui.toast(res.error || "Could not save the report.", "error"); return; }
 
     var inc = res.incident;
+    var showDone = function () {
     var screen = document.getElementById("screen");
     screen.innerHTML =
       '<div class="card center" style="padding:26px 16px">' +
@@ -295,6 +296,21 @@
     };
     ui.refreshBell();
     window.scrollTo(0, 0);
+    };
+    if (res.done) {
+      var sending = document.getElementById("screen");
+      sending.innerHTML = '<div class="card center" style="padding:26px 16px">' +
+        '<div class="big-ico">' + window.AmanUI.I("radio",44) + '</div>' +
+        '<h3>Sending report...</h3>' +
+        '<p class="muted" style="font-size:0.84rem;line-height:1.55">Uploading to the live database. Please keep this page open a moment.</p></div>';
+      window.scrollTo(0, 0);
+      res.done.then(function (sent) {
+        if (sent && sent.ok === false) { location.hash = "#/dashboard"; return; }
+        showDone();
+      });
+    } else {
+      showDone();
+    }
   }
 
   window.AmanIncident = { render: render };

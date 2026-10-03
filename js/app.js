@@ -258,7 +258,7 @@
 
       '<label class="check"><input type="checkbox" id="r-18"><span>I confirm I am over 18. <span class="req">*</span></span></label>' +
       '<label class="check"><input type="checkbox" id="r-coc"><span>I agree to the <a href="#" id="coc-link">Code of Conduct</a>. <span class="req">*</span></span></label>' +
-      '<div class="privacy-line">' + I("lock",13) + '&nbsp;<span>Your details are stored securely and used only for Aman operations. Volunteers can never see each other\'s personal details — only the coordinator can.</span></div>' +
+      '<div class="privacy-line">' + I("lock",13) + '&nbsp;<span>Your details are encrypted in transit and at rest, and used only for Aman operations. Volunteers can never see each other\'s personal details — only the coordinator can.</span></div>' +
       '<button class="btn btn-teal block" id="r-submit" style="min-height:54px">Submit application</button>' +
       '<p class="center" style="margin:12px 0 0;font-size:0.82rem">Already registered? <a href="#/login"><b>Log in</b></a></p>' +
       "</div>" +

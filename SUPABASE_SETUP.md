@@ -100,6 +100,14 @@ where email = 'your@email.com';
 
 Now you can approve everyone else from inside the app itself — no more SQL.
 
+> **Easier / if the update above is refused:** the app has an
+> anti-tampering guard that can block that manual update with
+> "Only the coordinator can change role or status." If that happens
+> (or if you prefer one step), use **`supabase/make_admin.sql`**:
+> fill in your details in the one line at the top and Run it once —
+> it creates your login AND makes you the approved coordinator,
+> skipping the registration form entirely.
+
 ## Step 7 — Send me the two keys
 
 Come back to the chat and paste:

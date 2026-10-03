@@ -175,7 +175,8 @@ def verify():
 
     # 3. emoji scan
     files = ["index.html", "multi-file.html", "README.md", "PUT_ON_GITHUB.md",
-             "SUPABASE_SETUP.md", "OPEN_SOURCE_NOTES.md", "NEXT_STEPS.md", "AUDIT.md"] + \
+             "SUPABASE_SETUP.md", "OPEN_SOURCE_NOTES.md", "NEXT_STEPS.md", "AUDIT.md",
+             "sw.js", "manifest.webmanifest"] + \
             sorted(glob.glob("js/*.js")) + sorted(glob.glob("js/lib/*.js")) + \
             sorted(glob.glob("css/*.css"))
     emoji_ok = True
@@ -198,7 +199,8 @@ def verify():
                             ("css/styles.css", True), ("js/store.js", False),
                             ("js/data.js", False), ("js/config.js", False),
                             ("js/live-store.js", False), ("js/lib/supabase.js", False),
-                            ("multi-file.html", False)]:
+                            ("multi-file.html", False), ("sw.js", False),
+                            ("manifest.webmanifest", False)]:
         data = read(path, binary=True)
         lf_only = data.count(b"\n") - data.count(b"\r\n")
         bad = (want_crlf and lf_only) or (not want_crlf and data.count(b"\r\n"))

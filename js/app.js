@@ -352,6 +352,14 @@
     var lastEmail = "";
     try { lastEmail = localStorage.getItem("aman-last-email") || ""; } catch (err) {}
     screenEl.className = "screen";
+    var iosTip = "";
+    try {
+      var ua = navigator.userAgent || "";
+      var standalone = (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || window.navigator.standalone === true;
+      if (/iphone|ipad|ipod/i.test(ua) && !standalone) {
+        iosTip = '<p class="center" style="margin:10px 0 0;font-size:0.72rem;color:var(--muted)">Tip: tap Share, then "Add to Home Screen", to install Aman Patrol as an app.</p>';
+      }
+    } catch (err) {}
     screenEl.innerHTML =
       '<div class="auth-hero">' + LOGO.replace(/\{s\}/g, "84") +
       "<h1>AMAN PATROL</h1>" +
@@ -368,7 +376,7 @@
       '<button class="btn btn-ghost block" id="demo-coord">' + I("shield",16) + ' Coordinator — Yusuf (full dashboard)</button>' +
       '<div class="row mt-8"><button class="btn btn-ghost grow" id="demo-vol">' + I("user",16) + ' Aisha (volunteer)</button>' +
       '<button class="btn btn-ghost grow" id="demo-pend">' + I("hourglass",16) + ' Ismail (pending)</button></div></div>') +
-      AUTH_THEME_BTN;
+      AUTH_THEME_BTN + iosTip;
 
     $("#l-submit").onclick = function () {
       var btn = this;
@@ -1101,6 +1109,11 @@
       S().boot().then(startApp);
     } else {
       startApp();
+    }
+
+    // PWA: register the service worker (offline shell + install support)
+    if ("serviceWorker" in navigator) {
+      try { navigator.serviceWorker.register("./sw.js"); } catch (err) {}
     }
   }
 

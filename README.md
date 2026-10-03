@@ -127,6 +127,10 @@ js/lib/supabase.js    Supabase client library (local copy, no CDN needed)
 js/live-store.js      live data layer (Supabase) — same API as the demo store
 js/weather.js         Open-Meteo live weather
 images/logo.png       the Aman logo (also embedded inline in the app)
+images/icon-192.png   PWA home-screen icons, generated from the logo
+images/icon-512.png   (192 / 512 / maskable 512 + Apple touch icon)
+manifest.webmanifest  PWA install file (app name, icons, colours)
+sw.js                 service worker — the app opens even with no signal
 images/favicon.png    app icon file (also embedded inline)
 images/designarena_image_cbaeo2tp.png   original full-size logo artwork
 supabase/schema.sql   paste-once SQL for the live backend

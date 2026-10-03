@@ -1,9 +1,10 @@
 # Putting Aman Patrol on GitHub — for non-technical people
 
-> **Status: already done!** Aman Patrol is live at
-> **https://mia-za.github.io/aman-patrol/** (GitHub Pages, `main` branch, root
-> folder). This guide is kept for reference — and Step 5 below is still the
-> way to update the site by hand if you ever need to.
+> **Status: one step remains.** The repo is on GitHub and the app is
+> connected to Supabase — all that is left is to switch on the website
+> with **Step 4 below** (Settings → Pages → main branch → root → Save),
+> once the current work is merged into `main`. The site address will be
+> **https://mia-za.github.io/aman-patrol/**.
 
 **Why do this?**
 1. **Free hosting** — GitHub can serve the app on a link like
@@ -13,10 +14,11 @@
    nothing is lost.
 3. **Version history** — every future change I make can be updated there.
 
-> **Good to know:** the GitHub version is still the *demo* — each phone keeps
-> its own sample data. When we connect Supabase (see `SUPABASE_SETUP.md`),
-> the same GitHub link becomes the real, synced app. So this link is not
-> throwaway work — it's your app's permanent home address.
+> **Good to know:** the app on GitHub is now connected to your Supabase
+> project — the same link is the real, synced app for every volunteer,
+> and it installs on phones like an app (Android: "Install app" prompt;
+> iPhone: Share → Add to Home Screen). You can still try the offline
+> demo anytime by adding `?demo=1` to the address.
 
 Takes about **10 minutes**. You need an email address. That's all.
 

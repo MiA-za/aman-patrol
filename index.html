@@ -6912,6 +6912,16 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     setActiveNav("more");
     screenEl.className = "screen";
     var claims = S().myClaims(user.id).sort(function (a, b) { return S().slotStartISO(b.slot || a.slot) - S().slotStartISO(a.slot || b.slot); });
+    var completedShiftMs = claims.reduce(function (total, claim) {
+      if (claim.status !== "completed" || !claim.start_shift_time || !claim.end_shift_time) return total;
+      var start = new Date(claim.start_shift_time).getTime();
+      var end = new Date(claim.end_shift_time).getTime();
+      return total + (isFinite(start) && isFinite(end) && end > start ? end - start : 0);
+    }, 0);
+    function shiftHours(ms) {
+      var hours = ms / 3600000;
+      return (Math.round(hours * 10) / 10).toFixed(hours % 1 ? 1 : 0) + " " + (hours === 1 ? "hour" : "hours");
+    }
     var myIncidents = S().incidents().filter(function (i) { return i.user_id === user.id; });
 
     screenEl.innerHTML =
@@ -6933,12 +6943,13 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
       (user.role === "coordinator" ? '<a class="action full" href="#/admin/approvals" style="margin-bottom:12px"><div class="a-icon navy">' + I("shield",20) + '</div><div class="grow"><div class="a-label">Coordinator dashboard</div></div></a>' : "") +
 
       '<h3 style="font-size:0.95rem;margin:10px 0 8px">My shifts (' + claims.length + ")</h3>" +
+      '<div class="card tight" style="margin-bottom:10px"><div class="row spread"><div><div style="font-weight:800;font-size:0.86rem">Completed patrol time</div><div style="font-size:0.72rem;color:var(--muted)">Calculated from finished shifts</div></div><span class="chip teal">' + shiftHours(completedShiftMs) + '</span></div></div>' +
       '<div class="card tight">' +
       (claims.map(function (c) {
         if (!c.slot) return "";
         return '<div class="detail-list"><div><span class="dl-k">' + esc(S().fmtDate(c.slot.date)) + " · " + esc(c.slot.time_window) + "</span>" +
           '<span class="dl-v">' + (c.slot.zone ? esc(c.slot.zone.replace("Zone ", "")) + " · " : "") + esc(c.slot.activity_window) +
-          (c.status === "completed" && c.start_shift_time ? " · " + esc(S().fmtTime(c.start_shift_time) + "–" + S().fmtTime(c.end_shift_time)) : "") +
+          (c.status === "completed" && c.start_shift_time && c.end_shift_time ? " · " + esc(S().fmtTime(c.start_shift_time) + "–" + S().fmtTime(c.end_shift_time)) + " · " + shiftHours(Math.max(0, new Date(c.end_shift_time).getTime() - new Date(c.start_shift_time).getTime())) : "") +
           ' <span class="chip ' + (c.status === "completed" ? "ok" : c.status === "started" ? "info" : "grey") + '" style="margin-left:4px">' + c.status + "</span></span></div></div>";
       }).join("") || '<div class="muted" style="font-size:0.8rem">No shifts yet — claim one from the roster.</div>') +
       "</div>" +

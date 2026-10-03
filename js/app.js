@@ -556,20 +556,20 @@
     var slots = S.slots ? S.slots() : [];
 
     modal(
-      "<h3>" + I("shield_star", 18) + " Aman AI Patrol Assistant</h3>" +
-      '<p class="m-sub">Instant AI assistant for patrol routes, emergency dispatch, safety protocols, and neighborhood intelligence.</p>' +
+      "<h3>" + I("shield_star", 18) + " Aman Patrol Assistant</h3>" +
+      '<p class="m-sub">Instant guide for patrol routes, emergency contacts, safety SOPs, and live patrol status.</p>' +
       '<div class="ai-prompts-wrap" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">' +
       '<button class="chip teal ai-prompt-btn" data-q="fastest_route">Fastest Routes &amp; Corridors</button>' +
       '<button class="chip navy ai-prompt-btn" data-q="emergency_dispatch">Emergency EMS &amp; SAPS Contacts</button>' +
       '<button class="chip warn ai-prompt-btn" data-q="voi_protocol">Suspicious Vehicle Protocol</button>' +
-      '<button class="chip ok ai-prompt-btn" data-q="active_intel">Current Patrol Intelligence</button>' +
+      '<button class="chip ok ai-prompt-btn" data-q="active_intel">Current Patrol Status</button>' +
       "</div>" +
       '<div id="ai-chat-history" class="card tight" style="min-height:160px;max-height:260px;overflow-y:auto;background:var(--bg);font-size:0.84rem;line-height:1.55;padding:12px;margin-bottom:12px">' +
       '<div style="color:var(--teal-dark);font-weight:700;margin-bottom:4px">Aman AI Assistant:</div>' +
-      '<div>Assalamu alaykum ' + esc(user.first_name) + '. I am your patrol assistant. Ask me for fastest routes, emergency responder protocols, sector boundaries, or live neighborhood intelligence.</div>' +
+      '<div>Assalamu alaykum ' + esc(user.first_name) + '. I am your patrol assistant. Ask me for fastest routes, emergency responder protocols, sector boundaries, or active patrol status.</div>' +
       "</div>" +
       '<div class="row" style="gap:8px">' +
-      '<input type="text" id="ai-user-query" placeholder="Ask about routes, SOPs, contacts, or patrol..." style="flex:1" autocomplete="off">' +
+      '<input type="text" id="ai-user-query" placeholder="Ask about routes, SOPs, contacts, or patrol status..." style="flex:1" autocomplete="off">' +
       '<button class="btn btn-teal" id="ai-query-send">Ask</button>' +
       "</div>" +
       '<div class="m-actions"><button class="btn btn-ghost" data-close>Close</button></div>',
@@ -610,7 +610,7 @@
           } else if (q.indexOf("intel") !== -1 || q.indexOf("incident") !== -1 || q.indexOf("status") !== -1 || q.indexOf("active") !== -1) {
             var incCount = incidents.length;
             var openSlots = slots.filter(function(s){return s.understaffed;}).length;
-            reply = "<b>Live Patrol Intelligence:</b><br>" +
+            reply = "<b>Current Patrol Status & Activity:</b><br>" +
               "• <b>Total incidents logged:</b> " + incCount + " on record.<br>" +
               "• <b>Roster status:</b> " + openSlots + " upcoming slots need a partner.<br>" +
               "• <b>Priority watch areas:</b> Madrassah walking corridor on Greenside Road, Tana Road park edge, and Barry Hertzog robots.";
@@ -645,7 +645,7 @@
             if (qType === "fastest_route") answerQuery("What are the fastest routes and corridors in Greenside and Emmarentia?");
             else if (qType === "emergency_dispatch") answerQuery("What are the emergency numbers for EMS, ambulance, and SAPS?");
             else if (qType === "voi_protocol") answerQuery("What is the protocol for suspicious vehicles (VOI)?");
-            else if (qType === "active_intel") answerQuery("What is the current patrol intelligence and active incidents?");
+            else if (qType === "active_intel") answerQuery("What is the current patrol status and active incidents?");
           };
         });
 
@@ -846,6 +846,38 @@
     );
   }
 
+  function weatherForecastModal() {
+    AmanWeather.current().then(function (w) {
+      var forecastCols = (w.daily || []).map(function (d) {
+        return '<div class="card tight center" style="flex:1;min-width:70px;padding:8px 4px;text-align:center">' +
+          '<div style="font-weight:700;font-size:0.75rem">' + esc(d.day) + '</div>' +
+          '<div style="margin:4px 0">' + d.iconSvg + '</div>' +
+          '<div style="font-weight:800;font-size:0.82rem">' + d.max + '° / ' + d.min + '°</div>' +
+          '<div style="font-size:0.68rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + esc(d.label) + '</div>' +
+          (d.rainProb > 0 ? '<div style="font-size:0.64rem;color:var(--teal-dark);font-weight:700;margin-top:2px">' + d.rainProb + '% rain</div>' : '') +
+          '</div>';
+      }).join("");
+
+      modal(
+        "<h3>" + I("sun", 18) + " Patrol Weather &amp; Outlook</h3>" +
+        '<p class="m-sub">Live conditions and 4-day forecast for Greenside &amp; Emmarentia.</p>' +
+        '<div class="card" style="background:linear-gradient(135deg,var(--navy),var(--navy-2));color:#fff;margin-bottom:12px">' +
+        '<div class="row" style="align-items:center;gap:12px">' +
+        w.iconSvg +
+        '<div><div style="font-size:1.8rem;font-weight:800;line-height:1">' + w.temp + '°C</div>' +
+        '<div style="font-size:0.85rem;opacity:0.9">' + esc(w.label) + ' · feels like ' + w.feels + '°</div></div></div>' +
+        '<div class="w-meta" style="margin-top:10px;font-size:0.75rem;opacity:0.9"><span>' + I("wind",13) + ' Wind: ' + w.wind + ' km/h (gusts ' + (w.gusts || w.wind) + ' km/h)</span> · <span>' + I("rain",13) + ' Rain: ' + (w.rain || 0) + ' mm</span></div>' +
+        '</div>' +
+        (w.warnings.length ? '<div style="margin-bottom:12px">' + w.warnings.map(function(x){ return '<div class="w-note" style="margin-top:4px;background:var(--warn-soft);color:var(--warn);border-radius:8px;padding:7px 10px;font-size:0.76rem;display:flex;gap:6px;align-items:center">' + I("alert",13) + ' ' + esc(x) + '</div>'; }).join("") + '</div>' : '') +
+        '<h4 style="font-size:0.85rem;margin:8px 0 6px">4-Day Outlook</h4>' +
+        '<div class="row" style="gap:6px;overflow-x:auto;padding-bottom:4px">' + forecastCols + '</div>' +
+        '<div class="m-actions"><button class="btn btn-primary" data-close>Close</button></div>'
+      );
+    }).catch(function () {
+      toast("Weather information unavailable offline.", "warn");
+    });
+  }
+
   function renderDashboard() {
     var user = S().sessionUser();
     setShell(true);
@@ -879,7 +911,7 @@
       '<a class="action" href="#/map"><div class="a-icon teal">' + I("map",20) + '</div><div class="a-label">View area map</div><div class="a-sub">Real area data + risk pins</div></a>' +
       '<a class="action" href="#/notifications"><div class="a-icon warn">' + I("bell",20) + '</div><div class="a-label">Notifications</div><div class="a-sub" id="dash-notif-sub">' + S().unreadCount(user) + ' unread</div></a>' +
       '<a class="action" href="#/chat"><div class="a-icon info">' + I("chat",20) + '</div><div class="a-label">Team chat</div><div class="a-sub">Operational team coordination</div></a>' +
-      '<button class="action" id="dash-ai-btn" style="text-align:left;cursor:pointer"><div class="a-icon navy">' + I("shield_star",20) + '</div><div class="a-label">Aman AI Assistant</div><div class="a-sub">Routes · dispatch · live intel</div></button>' +
+      '<button class="action" id="dash-ai-btn" style="text-align:left;cursor:pointer"><div class="a-icon navy">' + I("shield_star",20) + '</div><div class="a-label">Aman Patrol Assistant</div><div class="a-sub">Routes · dispatch · patrol status</div></button>' +
       '<button class="action" id="dash-compass-btn" style="text-align:left;cursor:pointer"><div class="a-icon teal">' + I("compass",20) + '</div><div class="a-label">Compass &amp; Camera</div><div class="a-sub">Bearing · GPS · Stamped photos</div></button>' +
       '<button class="action" id="radio-btn" style="text-align:left;cursor:pointer"><div class="a-icon warn">' + I("radio",20) + '</div><div class="a-label">Patrol comms and voice</div><div class="a-sub">How the team talks on shift</div></button>' +
       "</div>" +
@@ -890,12 +922,26 @@
     AmanWeather.current().then(function (w) {
       var tile = $("#weather-tile");
       if (!tile) return;
+      var forecastHtml = "";
+      if (w.daily && w.daily.length) {
+        forecastHtml = '<div class="w-forecast">' + w.daily.map(function (d) {
+          return '<div class="w-forecast-col">' +
+            '<div class="w-f-day">' + esc(d.day) + '</div>' +
+            d.iconSvg +
+            '<div class="w-f-temps">' + d.max + '° <span style="opacity:0.65;font-weight:500">' + d.min + '°</span></div>' +
+            (d.rainProb > 20 ? '<div class="w-f-rain">' + d.rainProb + '% rain</div>' : '') +
+            '</div>';
+        }).join("") + '</div>';
+      }
       tile.innerHTML =
         '<div class="w-top">' + w.iconSvg +
         '<div><div class="w-temp">' + w.temp + "°C</div><div class=\"w-desc\">" + esc(w.label) + " · feels like " + w.feels + "°</div></div></div>" +
         '<div class="w-meta"><span>' + I("wind",13) + ' Wind ' + w.wind + " km/h</span><span>" + I("rain",13) + " Rain " + (w.rain || 0) + ' mm</span><span>' + (w.is_day ? I("sun",13) + " Day" : I("moon",13) + " Night") + "</span></div>" +
         (w.warnings.length ? w.warnings.map(function (x) { return '<div class="w-note">' + I("alert",13) + ' ' + esc(x) + "</div>"; }).join("") : "") +
-        '<div class="w-src">Live data · Open-Meteo' + (w.stale ? " (cached)" : "") + "</div>";
+        forecastHtml +
+        '<div class="w-src">Live data &amp; 4-day outlook · Open-Meteo' + (w.stale ? " (cached)" : "") + "</div>";
+      tile.style.cursor = "pointer";
+      tile.onclick = weatherForecastModal;
     }).catch(function () {
       var tile = $("#weather-tile");
       if (tile) tile.innerHTML =
@@ -1248,10 +1294,19 @@
     screenEl.className = "screen map-screen";
     screenEl.innerHTML =
       '<div class="map-wrap"><div id="map"></div>' +
+      '<button class="map-weather-badge" id="map-weather-btn" title="View weather conditions &amp; forecast">' + I("sun",14) + ' <span id="map-weather-text">Weather</span></button>' +
       '<button class="map-fab hidden" id="add-pin-btn" title="Add a coordinator pin">' + I("pin",18) + ' Add pin</button>' +
       '<div class="map-note" id="map-note"></div></div>';
     window.AmanMap.setAddPinHandler(addPinModal);
     window.AmanMap.mount();
+    var wb = $("#map-weather-btn");
+    if (wb) {
+      wb.onclick = weatherForecastModal;
+      AmanWeather.current().then(function (w) {
+        var wt = $("#map-weather-text");
+        if (wt) wt.textContent = w.temp + "°C " + (w.label.length > 10 ? w.label.slice(0, 9) + "…" : w.label);
+      }).catch(function () {});
+    }
     if (user.role === "coordinator") {
       var pb = $("#add-pin-btn");
       pb.classList.remove("hidden");
@@ -1495,6 +1550,7 @@
 
   function renderMore() {
     var user = S().sessionUser();
+    var botHidden = isAmanBotHidden();
     setShell(true);
     setActiveNav("more");
     screenEl.className = "screen";
@@ -1538,6 +1594,11 @@
       "</div>" +
 
       '<div class="card">' +
+      '<div class="row spread" style="align-items:center;margin-bottom:12px">' +
+      '<div><div style="font-weight:700;font-size:0.88rem">Floating Aman Assistant</div>' +
+      '<div style="font-size:0.74rem;color:var(--muted)">Show the movable 3D Aman guide on patrol screens</div></div>' +
+      '<label class="switch-toggle"><input type="checkbox" id="toggle-aman-bot"' + (botHidden ? "" : " checked") + '><span class="slider"></span></label>' +
+      '</div>' +
       '<button class="btn btn-ghost block" id="coc-btn" style="margin-bottom:10px">' + I("doc",15) + ' Code of Conduct &amp; values</button>' +
       '<button class="btn btn-ghost block" id="radio-btn2" style="margin-bottom:10px">' + I("radio",15) + ' Patrol comms and voice</button>' +
       (S().live ? "" : '<button class="btn btn-ghost danger block" id="reset-btn" style="margin-bottom:10px">' + I("refresh",15) + ' Reset demo data</button>') +
@@ -1546,6 +1607,18 @@
 
     $all("[data-inc]").forEach(function (r) { r.onclick = function () { window.AmanAdmin.incidentModal(r.getAttribute("data-inc"), null); }; });
     var epb = $("#edit-prof-btn"); if (epb) epb.onclick = function () { editProfileModal(user); };
+    var toggleBot = $("#toggle-aman-bot");
+    if (toggleBot) {
+      toggleBot.onchange = function () {
+        setAmanBotHidden(!toggleBot.checked);
+        if (toggleBot.checked) {
+          toast("Aman assistant enabled.", "ok");
+        } else {
+          removeAmanBot();
+          toast("Aman assistant hidden.", "ok");
+        }
+      };
+    }
     $("#coc-btn").onclick = codeOfConductModal;
     $("#radio-btn2").onclick = radioModal;
     $("#logout-btn").onclick = doLogout;
@@ -1576,6 +1649,21 @@
      ============================================================ */
   var amanBotDrag = null;
 
+  function isAmanBotHidden() {
+    try {
+      return localStorage.getItem("aman_bot_hidden") === "true";
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function setAmanBotHidden(hidden) {
+    try {
+      if (hidden) localStorage.setItem("aman_bot_hidden", "true");
+      else localStorage.removeItem("aman_bot_hidden");
+    } catch (e) {}
+  }
+
   function removeAmanBot() {
     var old = document.getElementById("aman-helper");
     if (old) old.remove();
@@ -1584,20 +1672,20 @@
   function showAmanBot(page) {
     removeAmanBot();
     if (["dashboard", "roster", "incident", "map"].indexOf(page) === -1) return;
+    if (isAmanBotHidden()) return;
 
-    var bot = document.createElement("button");
-    bot.type = "button";
+    var bot = document.createElement("div");
     bot.id = "aman-helper";
     bot.className = "aman-helper";
-    bot.setAttribute("aria-label", "Open Aman patrol assistant. Drag to move.");
+    bot.setAttribute("role", "region");
+    bot.setAttribute("aria-label", "Aman patrol assistant");
     bot.innerHTML =
       '<span class="aman-help-label">Need help?</span>' +
-      '<span class="aman-bot" aria-hidden="true">' +
-        '<span class="aman-bot-antenna"><i></i></span>' +
-        '<span class="aman-bot-head"><i class="aman-eye left"></i><i class="aman-eye right"></i><i class="aman-mouth"></i></span>' +
-        '<span class="aman-bot-body"><i class="aman-badge">A</i></span>' +
-        '<span class="aman-bot-arm left"></span><span class="aman-bot-arm right"></span>' +
-      '</span>';
+      '<button type="button" class="aman-bot-dismiss" id="aman-bot-dismiss" title="Hide Aman assistant" aria-label="Hide Aman assistant">&times;</button>' +
+      '<button type="button" class="aman-bot-avatar" id="aman-bot-avatar" aria-label="Open Aman patrol assistant. Drag to move.">' +
+        '<img src="images/aman_robot.png" alt="Aman patrol assistant" class="aman-bot-img" draggable="false" />' +
+        '<span class="aman-bot-glow" aria-hidden="true"></span>' +
+      '</button>';
     document.body.appendChild(bot);
 
     try {
@@ -1610,33 +1698,49 @@
       }
     } catch (err) {}
 
-    bot.addEventListener("pointerdown", function (e) {
-      amanBotDrag = { x: e.clientX, y: e.clientY, left: bot.offsetLeft, top: bot.offsetTop, moved: false };
-      bot.setPointerCapture(e.pointerId);
-      bot.classList.add("dragging");
-    });
-    bot.addEventListener("pointermove", function (e) {
-      if (!amanBotDrag) return;
-      var dx = e.clientX - amanBotDrag.x;
-      var dy = e.clientY - amanBotDrag.y;
-      if (Math.abs(dx) + Math.abs(dy) > 6) amanBotDrag.moved = true;
-      bot.style.left = Math.max(8, Math.min(window.innerWidth - bot.offsetWidth - 8, amanBotDrag.left + dx)) + "px";
-      bot.style.top = Math.max(70, Math.min(window.innerHeight - bot.offsetHeight - 82, amanBotDrag.top + dy)) + "px";
-      bot.style.right = "auto";
-      bot.style.bottom = "auto";
-    });
-    bot.addEventListener("pointerup", function () {
-      if (!amanBotDrag) return;
-      var moved = amanBotDrag.moved;
-      amanBotDrag = null;
-      bot.classList.remove("dragging");
-      if (moved) {
-        try { localStorage.setItem("aman_bot_position", JSON.stringify({ x: bot.offsetLeft, y: bot.offsetTop })); } catch (err) {}
-      } else {
-        amanAiModal();
-      }
-    });
-    bot.addEventListener("pointercancel", function () { amanBotDrag = null; bot.classList.remove("dragging"); });
+    var avatarBtn = bot.querySelector("#aman-bot-avatar");
+    var dismissBtn = bot.querySelector("#aman-bot-dismiss");
+
+    if (dismissBtn) {
+      dismissBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        e.preventDefault();
+        setAmanBotHidden(true);
+        bot.classList.add("fade-out");
+        setTimeout(function () { removeAmanBot(); }, 250);
+        toast("Aman assistant hidden. Enable it anytime in More > Settings.", "ok");
+      });
+    }
+
+    if (avatarBtn) {
+      avatarBtn.addEventListener("pointerdown", function (e) {
+        amanBotDrag = { x: e.clientX, y: e.clientY, left: bot.offsetLeft, top: bot.offsetTop, moved: false };
+        avatarBtn.setPointerCapture(e.pointerId);
+        bot.classList.add("dragging");
+      });
+      avatarBtn.addEventListener("pointermove", function (e) {
+        if (!amanBotDrag) return;
+        var dx = e.clientX - amanBotDrag.x;
+        var dy = e.clientY - amanBotDrag.y;
+        if (Math.abs(dx) + Math.abs(dy) > 6) amanBotDrag.moved = true;
+        bot.style.left = Math.max(8, Math.min(window.innerWidth - bot.offsetWidth - 8, amanBotDrag.left + dx)) + "px";
+        bot.style.top = Math.max(70, Math.min(window.innerHeight - bot.offsetHeight - 82, amanBotDrag.top + dy)) + "px";
+        bot.style.right = "auto";
+        bot.style.bottom = "auto";
+      });
+      avatarBtn.addEventListener("pointerup", function () {
+        if (!amanBotDrag) return;
+        var moved = amanBotDrag.moved;
+        amanBotDrag = null;
+        bot.classList.remove("dragging");
+        if (moved) {
+          try { localStorage.setItem("aman_bot_position", JSON.stringify({ x: bot.offsetLeft, y: bot.offsetTop })); } catch (err) {}
+        } else {
+          amanAiModal();
+        }
+      });
+      avatarBtn.addEventListener("pointercancel", function () { amanBotDrag = null; bot.classList.remove("dragging"); });
+    }
   }
 
   function route() {

@@ -80,6 +80,8 @@ By design for the demo. When connecting Supabase: use Supabase Auth (email + pas
 
 > `supabase/schema.sql` in this repo is intentionally left untouched. This addendum is the delta the schema needs for the current app. Review it with the coordinator, then run it **once, after `schema.sql`**, in Supabase Dashboard → SQL Editor. It is idempotent-safe to re-run.
 
+A copy-paste-ready version of the main block (without the optional hardening) is saved as `supabase/addendum_a.sql`.
+
 ```sql
 -- ============================================================
 --  ADDENDUM A — bring the schema in line with the app

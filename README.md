@@ -128,8 +128,10 @@ images/favicon.png    app icon file (also embedded inline)
 images/designarena_image_cbaeo2tp.png   original full-size logo artwork
 supabase/schema.sql   paste-once SQL for the live backend
 SUPABASE_SETUP.md     layman's step-by-step Supabase guide
+AUDIT.md              pre-Supabase gap audit: findings + Addendum A migration SQL
 PUT_ON_GITHUB.md      how this site was put on GitHub Pages (already done)
 OPEN_SOURCE_NOTES.md  research: similar open-source projects and what we can learn
+tools/sync_index.py   rebuilds index.html from js/* and css/*, then verifies
 ```
 
 Logo: the provided Aman logo is embedded throughout (header, sign-in

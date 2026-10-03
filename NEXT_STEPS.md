@@ -177,6 +177,8 @@ rest.
 2. **You:** enable GitHub Pages (Settings, Pages, main, root) and create the
    Supabase project (steps above) — say when each is done.
 3. **Me:** merge this work, verify the live site, then build the Supabase
-   connection in stages (accounts, live SOS, passkeys, push).
+   connection in stages (accounts, live SOS, passkeys, push). Read AUDIT.md
+   first: it lists everything the connection needs, including Addendum A,
+   the extra SQL to run after schema.sql.
 4. **Together:** pilot Mumble only if the team still wants voice radio after
    using the WhatsApp group with the new link.

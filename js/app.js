@@ -67,19 +67,52 @@
       (ICONS[name] || "") + "</svg>";
   }
 
+  /* ---------- day / night theme ---------- */
+  function currentTheme() {
+    return document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+  }
+  function applyTheme(t) {
+    document.documentElement.setAttribute("data-theme", t);
+    $all("[data-theme-icon]").forEach(function (el) { el.innerHTML = t === "dark" ? I("sun", 20) : I("moon", 20); });
+  }
+  function toggleTheme() {
+    var t = currentTheme() === "dark" ? "light" : "dark";
+    try { localStorage.setItem("aman-theme", t); } catch (err) {}
+    applyTheme(t);
+    toast(t === "dark" ? "Night mode on" : "Day mode on");
+  }
+  (function initTheme() {
+    var saved = null;
+    try { saved = localStorage.getItem("aman-theme"); } catch (err) {}
+    var dark = saved ? saved === "dark" : !!(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    applyTheme(dark ? "dark" : "light");
+  })();
+  var AUTH_THEME_BTN = '<div class="center" style="margin-top:14px">' +
+    '<button class="auth-theme" type="button" aria-label="Switch day or night mode" data-theme-toggle>' +
+    '<span data-theme-icon aria-hidden="true"></span></button></div>';
+
   /* ---------- authentic duas from the Sunnah, with sources ---------- */
   var DUAS = {
     safety: {
+      title: "Dua for safety",
       arabic: "\u0628\u0650\u0633\u0652\u0645\u0650 \u0627\u0644\u0644\u0651\u064e\u0647\u0650 \u0627\u0644\u0651\u064e\u0630\u0650\u064a \u0644\u064e\u0627 \u064a\u064e\u0636\u064f\u0631\u0651\u064f \u0645\u064e\u0639\u064e \u0627\u0633\u0652\u0645\u0650\u0647\u0650 \u0634\u064e\u064a\u0652\u0621\u064c \u0641\u0650\u064a \u0627\u0644\u0623\u064e\u0631\u0652\u0636\u0650 \u0648\u064e\u0644\u064e\u0627 \u0641\u0650\u064a \u0627\u0644\u0633\u0651\u064e\u0645\u0627\u0621\u0650 \u0648\u064e\u0647\u064f\u0648\u064e \u0627\u0644\u0633\u0651\u064e\u0645\u0650\u064a\u0639\u064f \u0627\u0644\u0639\u064e\u0644\u0650\u064a\u0645\u064f",
       translit: "Bismill\u0101hilladh\u012b l\u0101 ya\u1e11urru ma\u2018asmih\u012b shay\u2019un fil-ar\u1e0di wa l\u0101 fis-sam\u0101\u2019, wa huwas-Sam\u012b\u2018ul-\u2018Al\u012bm.",
       meaning: "In the name of Allah, with whose name nothing can cause harm on earth or in heaven; and He is the All-Hearing, the All-Knowing.",
       source: "Recite three times \u2014 Sunan Ab\u012b D\u0101w\u016bd 5088 \u00b7 J\u0101mi\u2018 at-Tirmidh\u012b 3388. The Prophet \ufdfa taught that whoever recites it three times in the morning and the evening, nothing will harm them."
     },
     leaving: {
+      title: "Dua for leaving home",
       arabic: "\u0628\u0650\u0633\u0652\u0645\u0650 \u0627\u0644\u0644\u0651\u064e\u0647\u0650 \u062a\u064e\u0648\u064e\u0643\u0651\u064e\u0644\u0652\u062a\u064f \u0639\u064e\u0644\u064e\u0649 \u0627\u0644\u0644\u0651\u064e\u0647\u0650 \u0648\u064e\u0644\u064e\u0627 \u062d\u064e\u0648\u0652\u0644\u064e \u0648\u064e\u0644\u064e\u0627 \u0642\u064f\u0648\u0651\u064e\u0629\u064e \u0625\u0650\u0644\u0651\u064e\u0627 \u0628\u0650\u0627\u0644\u0644\u0651\u064e\u0647\u0650",
       translit: "Bismill\u0101hi tawakkaltu \u2018alall\u0101h, wa l\u0101 \u1e25awla wa l\u0101 quwwata ill\u0101 bill\u0101h.",
       meaning: "In the name of Allah, I place my trust in Allah; there is no power nor might except by Allah.",
       source: "The dua the Prophet \ufdfa taught for when leaving the home \u2014 Sunan Ab\u012b D\u0101w\u016bd 5095 \u00b7 J\u0101mi\u2018 at-Tirmidh\u012b 3426."
+    },
+    completion: {
+      title: "Dua of gratitude",
+      arabic: "\u0627\u0644\u0652\u062d\u064e\u0645\u0652\u062f\u064f \u0644\u0650\u0644\u0651\u064e\u0647\u0650 \u0627\u0644\u0651\u064e\u0630\u0650\u064a \u0628\u0650\u0646\u0650\u0639\u0652\u0645\u064e\u062a\u0650\u0647\u0650 \u062a\u064e\u062a\u0650\u0645\u0651\u064f \u0627\u0644\u0635\u0651\u064e\u0627\u0644\u0650\u062d\u064e\u0627\u062a\u064f",
+      translit: "Alhamdulill\u0101hil-ladh\u012b bi-ni\u2018matihi tatimmu\u1e63-\u1e63\u0101li\u1e25\u0101t.",
+      meaning: "All praise is for Allah, by whose blessing good deeds are completed.",
+      source: "The Prophet \ufdfa would say this whenever he saw or completed something good \u2014 Sunan Ibn M\u0101jah 3803, graded \u1e25asan by Shaykh al-Alb\u0101n\u012b."
     }
   };
   function duaCardHtml() {
@@ -95,7 +128,7 @@
   function duaModal(kind) {
     var d = DUAS[kind] || DUAS.safety;
     modal(
-      '<div class="dua-modal-title">' + I("book", 17) + " Dua for safety</div>" +
+      '<div class="dua-modal-title">' + I("book", 17) + " " + (d.title || "Dua") + "</div>" +
       '<div class="dua-card">' +
       '<div class="dua-arabic" dir="rtl" lang="ar">' + d.arabic + "</div>" +
       '<div class="dua-translit">' + d.translit + "</div>" +
@@ -224,7 +257,8 @@
       '<div class="demo-login"><h4>DEMO — TRY IT INSTANTLY</h4>' +
       "<p>No need to register — jump straight in with a demo account (password <b>demo1234</b>):</p>" +
       '<div class="row"><button class="btn btn-ghost grow" id="demo-coord">' + I("shield",16) + ' Coordinator</button>' +
-      '<button class="btn btn-ghost grow" id="demo-vol">' + I("user",16) + ' Volunteer</button></div></div>';
+      '<button class="btn btn-ghost grow" id="demo-vol">' + I("user",16) + ' Volunteer</button></div></div>' +
+      AUTH_THEME_BTN;
 
     $("#coc-link").onclick = function (e) { e.preventDefault(); codeOfConductModal(); };
     $("#demo-coord").onclick = function () { demoLogin("coordinator@demo.co.za"); };
@@ -311,7 +345,8 @@
       "<p>One tap — password is <b>demo1234</b> for all:</p>" +
       '<button class="btn btn-ghost block" id="demo-coord">' + I("shield",16) + ' Coordinator — Yusuf (full dashboard)</button>' +
       '<div class="row mt-8"><button class="btn btn-ghost grow" id="demo-vol">' + I("user",16) + ' Aisha (volunteer)</button>' +
-      '<button class="btn btn-ghost grow" id="demo-pend">' + I("hourglass",16) + ' Ismail (pending)</button></div></div>';
+      '<button class="btn btn-ghost grow" id="demo-pend">' + I("hourglass",16) + ' Ismail (pending)</button></div></div>' +
+      AUTH_THEME_BTN;
 
     $("#l-submit").onclick = function () {
       var res = S().login($("#l-email").value, $("#l-pass").value);
@@ -563,6 +598,7 @@
       var res = S().endShift(slotId, user.id, gps);
       if (!res.ok) { toast(res.error, "error"); return; }
       toast("Shift completed at " + S().fmtTime(res.end_shift_time) + " — thank you for your service. Shift log updated.", "ok");
+      duaModal("completion");
       if (rerender) rerender();
     });
   }
@@ -789,6 +825,7 @@
       default: renderDashboard();
     }
     refreshBell();
+    applyTheme(currentTheme());
   }
 
   /* ============================================================
@@ -828,6 +865,10 @@
     $("#nav-map").innerHTML = I("map", 22) + "<span>Map</span>";
     $("#nav-more").innerHTML = I("more", 22) + "<span>More</span>";
     $("#fab-incident").addEventListener("click", function () { location.hash = "#/incident"; });
+    document.addEventListener("click", function (e) {
+      var t = e.target && e.target.closest ? e.target.closest("[data-theme-toggle]") : null;
+      if (t) toggleTheme();
+    });
 
     window.addEventListener("hashchange", route);
     route();

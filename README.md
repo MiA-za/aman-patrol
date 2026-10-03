@@ -153,6 +153,10 @@ Each dua is shown in Arabic, transliteration and English, **with its source**:
 - **When starting a patrol shift** — the dua for leaving the home:
   *Bismillāhi tawakkaltu ʿalallāh, wa lā ḥawla wa lā quwwata illā billāh* —
   Sunan Abī Dāwūd 5095 · Jāmiʿ at-Tirmidhī 3426.
+- **When finishing a patrol shift (END SHIFT)** — the dua of gratitude:
+  *Alhamdulillāhil-ladhī bi-niʿmatihi tatimmuṣ-ṣāliḥāt* — Sunan Ibn Mājah
+  3803, graded ḥasan by Shaykh al-Albānī. The Prophet ﷺ would say it
+  whenever he saw or completed something good.
 
 ---
 
@@ -162,6 +166,10 @@ Each dua is shown in Arabic, transliteration and English, **with its source**:
   (Feather/Lucide style) — no emoji anywhere in the app.
 - Deep navy (#13294b) primary, teal (#0e9f9f) accent, white cards, large tap
   targets, phone-first.
+- Day and night themes: the sun/moon button in the header (and on the login
+  and register screens) switches instantly, remembers the choice on the
+  device, and follows the phone's system setting by default. Night mode
+  dims the map tiles for patrols after Maghrib.
 
 ---
 

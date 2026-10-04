@@ -140,8 +140,15 @@
           role: "volunteer", status: "pending", password: "demo1234", created_at: new Date(now - 20 * H).toISOString()
         }
       ],
-      slots: [],
-      claims: [],
+      slots: [
+        { id: "s-history-1", zone: ZONE_A, activity_window: "Evening patrol", date: dateISO(-3), day_offset: -3, time_window: "18:00–20:00", min_required: 2 },
+        { id: "s-history-2", zone: ZONE_B, activity_window: "Early morning patrol", date: dateISO(-6), day_offset: -6, time_window: "06:00–07:30", min_required: 2 }
+      ],
+      claims: [
+        { id: "c-history-1", slot_id: "s-history-1", user_id: "u-aisha", status: "completed", start_shift_time: new Date(now - 3 * 24 * H).toISOString(), end_shift_time: new Date(now - 3 * 24 * H + 2 * H).toISOString(), notes: "All quiet. Checked the Gleneagles Road corridor.", start_gps: null, end_gps: null },
+        { id: "c-history-2", slot_id: "s-history-1", user_id: "u-mo", status: "completed", start_shift_time: new Date(now - 3 * 24 * H).toISOString(), end_shift_time: new Date(now - 3 * 24 * H + 2 * H).toISOString(), notes: "No new concerns observed.", start_gps: null, end_gps: null },
+        { id: "c-history-3", slot_id: "s-history-2", user_id: "u-aisha", status: "completed", start_shift_time: new Date(now - 6 * 24 * H).toISOString(), end_shift_time: new Date(now - 6 * 24 * H + 90 * 60000).toISOString(), notes: "Completed the Emmarentia route.", start_gps: null, end_gps: null }
+      ],
       incidents: [
         {
           id: "i1", user_id: "u-aisha", category: "Suspicious Vehicle (VOI)", status: "SAPS/Security Notified",
@@ -161,6 +168,27 @@
           responder_type: "None yet", responder_name: "", vehicle_reg: "", call_sign: "", contact_details: "", arrival_time: null, outcome: "",
           fields: { number_of_persons: "2", gender: "Male", approximate_age: "Early 20s", build: "Slim", clothing_top: "Dark grey hoodies", clothing_bottom: "Blue jeans", distinguishing_features: "One carrying a small black backpack", direction: "Stationary" },
           created_at: new Date(now - 20 * H).toISOString()
+        },
+        {
+          id: "i4", user_id: "u-mo", category: "Suspicious Vehicle (VOI)", status: "Acknowledged",
+          gps_lat: -26.1466, gps_lng: 28.0089, zone: ZONE_A, location_address: "Gleneagles Road, near the Greenside restaurant strip",
+          description: "Vehicle repeatedly circling the same block. Observed from a safe distance and reported without pursuit.", photo_url: null,
+          responder_type: "None yet", responder_name: "", vehicle_reg: "", call_sign: "", contact_details: "", arrival_time: null, outcome: "",
+          fields: { make_model: "Dark hatchback", direction: "East" }, created_at: new Date(now - 2 * 24 * H + 19 * H).toISOString()
+        },
+        {
+          id: "i5", user_id: "u-aisha", category: "Incident (SOI)", status: "Logged",
+          gps_lat: -26.1466, gps_lng: 28.0089, zone: ZONE_A, location_address: "Gleneagles Road, near the Greenside restaurant strip",
+          description: "Streetlight outage left part of the walking route dark. Logged for follow-up.", photo_url: null,
+          responder_type: "None yet", responder_name: "", vehicle_reg: "", call_sign: "", contact_details: "", arrival_time: null, outcome: "",
+          fields: { incident_type: "Vandalism" }, created_at: new Date(now - 4 * 24 * H + 20 * H).toISOString()
+        },
+        {
+          id: "i6", user_id: "u-mo", category: "Suspicious Vehicle (VOI)", status: "Logged",
+          gps_lat: -26.1466, gps_lng: 28.0089, zone: ZONE_A, location_address: "Gleneagles Road, near the Greenside restaurant strip",
+          description: "Vehicle stopped without lights for an extended period. Details logged and team notified.", photo_url: null,
+          responder_type: "None yet", responder_name: "", vehicle_reg: "", call_sign: "", contact_details: "", arrival_time: null, outcome: "",
+          fields: { make_model: "White sedan", direction: "Stationary" }, created_at: new Date(now - 5 * 24 * H + 19 * H).toISOString()
         },
         {
           id: "i3", user_id: "u-aisha", category: "Incident (SOI)", status: "Resolved",

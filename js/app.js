@@ -88,7 +88,10 @@
   }
   function applyTheme(t) {
     document.documentElement.setAttribute("data-theme", t);
-    $all("[data-theme-icon]").forEach(function (el) { el.innerHTML = t === "dark" ? I("sun", 20) : I("moon", 20); });
+    $all("[data-theme-icon]").forEach(function (el) {
+      var nextMode = t === "dark" ? "Day" : "Night";
+      el.innerHTML = I(t === "dark" ? "sun" : "moon", 18) + '<span class="theme-switch-label">' + nextMode + '</span>';
+    });
     if (window.AmanMap && window.AmanMap.syncTheme) window.AmanMap.syncTheme(t);
   }
   function toggleTheme() {
@@ -305,6 +308,72 @@
     return { lat: c.lat, lng: c.lng, accuracy: null, source: "approximate zone centre (GPS unavailable)" };
   }
 
+  /* ---------- in-app alerts, sound and supported-phone vibration ---------- */
+  var ALERT_PREFS_KEY = "aman_alert_preferences";
+  var lastChatAlertCount = null;
+  var alertSoundReady = false;
+
+  function alertPreferences() {
+    var defaults = { inApp: true, sound: true, vibration: true, chat: true };
+    try {
+      var saved = JSON.parse(localStorage.getItem(ALERT_PREFS_KEY) || "{}");
+      Object.keys(defaults).forEach(function (key) { if (typeof saved[key] === "boolean") defaults[key] = saved[key]; });
+    } catch (err) {}
+    return defaults;
+  }
+  function saveAlertPreferences(prefs) {
+    try { localStorage.setItem(ALERT_PREFS_KEY, JSON.stringify(prefs)); } catch (err) {}
+  }
+  function alertIsCritical(item) {
+    var words = String((item && item.title) || "").toLowerCase();
+    return item && (item.kind === "sos" || item.kind === "danger" || words.indexOf("shift starts") !== -1 || words.indexOf("announcement") !== -1 || words.indexOf("approved") !== -1);
+  }
+  function alertSound(critical) {
+    if (!alertSoundReady) return;
+    try {
+      var AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return;
+      var ctx = new AudioContext();
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.type = "sine"; osc.frequency.value = critical ? 880 : 660;
+      gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.14, ctx.currentTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + (critical ? 0.32 : 0.18));
+      osc.connect(gain); gain.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + (critical ? 0.34 : 0.2));
+      osc.onended = function () { ctx.close(); };
+    } catch (err) {}
+  }
+  function alertVibrate(critical) {
+    try { if (navigator.vibrate) navigator.vibrate(critical ? [220, 90, 220, 90, 320] : [100]); } catch (err) {}
+  }
+  function dismissInAppAlert() {
+    var root = $("#in-app-alert-root");
+    if (root) root.innerHTML = "";
+  }
+  function showInAppAlert(item, options) {
+    options = options || {};
+    var prefs = alertPreferences();
+    if (!prefs.inApp || (options.chat && !prefs.chat)) return;
+    var critical = options.critical === true || alertIsCritical(item);
+    var root = $("#in-app-alert-root");
+    if (!root) {
+      root = document.createElement("div");
+      root.id = "in-app-alert-root";
+      root.setAttribute("aria-live", critical ? "assertive" : "polite");
+      document.body.appendChild(root);
+    }
+    root.innerHTML = '<div class="in-app-alert' + (critical ? ' critical' : '') + '" role="alert">' +
+      '<a href="#/notifications" class="in-app-alert-main"><span class="in-app-alert-icon">' + I(critical ? "siren" : "bell", 19) + '</span><span class="grow"><b>' + esc(item.title || "Aman Patrol alert") + '</b><small>' + esc(item.body || "Open Notifications for details.") + '</small></span></a>' +
+      '<button type="button" class="in-app-alert-close" aria-label="Dismiss this alert">&times;</button></div>';
+    var close = root.querySelector(".in-app-alert-close");
+    if (close) close.onclick = dismissInAppAlert;
+    if (prefs.sound) alertSound(critical);
+    if (prefs.vibration) alertVibrate(critical);
+  }
+  document.addEventListener("pointerdown", function () { alertSoundReady = true; }, { once: true });
+  document.addEventListener("keydown", function () { alertSoundReady = true; }, { once: true });
+
   /* ---------- browser notifications ---------- */
   function browserNotify(title, body) {
     try {
@@ -324,12 +393,20 @@
     badge.classList.toggle("hidden", n === 0);
     var list = S().notificationsFor(user);
     if (list.length && list[0].id !== lastNotifId) {
-      if (lastNotifId) browserNotify(list[0].title, list[0].body);
+      if (lastNotifId) {
+        browserNotify(list[0].title, list[0].body);
+        showInAppAlert(list[0]);
+      }
       lastNotifId = list[0].id;
     }
     var chatNav = $("#nav-chat");
     if (chatNav) {
       var c = S().unreadChatCount ? S().unreadChatCount(user) : 0;
+      var onChat = (location.hash || "").indexOf("#/chat") === 0;
+      if (lastChatAlertCount !== null && c > lastChatAlertCount && !onChat) {
+        showInAppAlert({ title: "New team chat message", body: c + (c === 1 ? " unread message" : " unread messages") }, { chat: true });
+      }
+      lastChatAlertCount = c;
       chatNav.innerHTML = I("chat", 22) + "<span>Chat</span>" + (c > 0 ? '<span class="nav-badge">' + (c > 9 ? "9+" : c) + "</span>" : "");
     }
   }
@@ -670,6 +747,7 @@
     var user = S.sessionUser();
     var incidents = S.incidents ? S.incidents() : [];
     var slots = S.slots ? S.slots() : [];
+    var intel = patrolIntel();
 
     modal(
       "<h3>" + I("shield_star", 18) + " Aman Patrol Assistant</h3>" +
@@ -682,7 +760,7 @@
       "</div>" +
       '<div id="ai-chat-history" class="card tight" style="min-height:160px;max-height:260px;overflow-y:auto;background:var(--bg);font-size:0.84rem;line-height:1.55;padding:12px;margin-bottom:12px">' +
       '<div style="color:var(--teal-dark);font-weight:700;margin-bottom:4px">Aman AI Assistant:</div>' +
-      '<div>Assalamu alaykum ' + esc(user.first_name) + '. I am your patrol assistant. Ask me for fastest routes, emergency responder protocols, sector boundaries, or active patrol status.</div>' +
+      '<div>Assalamu alaykum ' + esc(user.first_name) + '. ' + esc(intelFocusLine(intel)) + ' Ask me about patrol intel, safety steps, contacts or patrol status.</div>' +
       "</div>" +
       '<div class="row" style="gap:8px">' +
       '<input type="text" id="ai-user-query" placeholder="Ask about routes, SOPs, contacts, or patrol status..." style="flex:1" autocomplete="off">' +
@@ -724,12 +802,12 @@
               "• <b>Key descriptors:</b> Clothing top/bottom, approximate age, build, distinctive features (backpack, limp, markings), and direction of travel.<br>" +
               "• <b>Pairs only:</b> Never patrol or approach an area alone.";
           } else if (q.indexOf("intel") !== -1 || q.indexOf("incident") !== -1 || q.indexOf("status") !== -1 || q.indexOf("active") !== -1) {
-            var incCount = incidents.length;
             var openSlots = slots.filter(function(s){return s.understaffed;}).length;
-            reply = "<b>Current Patrol Status & Activity:</b><br>" +
-              "• <b>Total incidents logged:</b> " + incCount + " on record.<br>" +
+            reply = "<b>Patrol Intel from our own records:</b><br>" +
+              "• <b>Recorded activity:</b> " + intel.reportCount + " reports, " + intel.pinCount + " map pins and " + intel.shiftCount + " completed shifts.<br>" +
+              "• <b>Current focus:</b> " + esc(intelFocusLine(intel)) + "<br>" +
               "• <b>Roster status:</b> " + openSlots + " upcoming slots need a partner.<br>" +
-              "• <b>Priority watch areas:</b> Madrassah walking corridor on Greenside Road, Tana Road park edge, and Barry Hertzog robots.";
+              "This summarises places, times and categories only. It never profiles people.";
           } else if (S.askAman) {
             hist.innerHTML += '<div style="margin-top:10px;text-align:right"><span style="background:var(--navy-soft);padding:4px 10px;border-radius:8px;display:inline-block"><b>You:</b> ' + esc(query) + '</span></div>' +
               '<div class="ai-wait" style="margin-top:8px;color:var(--muted)">Aman is checking the free AI service...</div>';
@@ -1045,6 +1123,141 @@
     );
   }
 
+  /* Patrol Intel uses only approved-user data already held by the app.
+     It counts reports, coordinator pins and completed patrol shifts. It never
+     reads or groups names, descriptions of people, or reporter details. */
+  function patrolIntel() {
+    var reports = S().incidents ? S().incidents() : [];
+    var pins = S().pins ? S().pins() : [];
+    var shifts = S().completedShifts ? S().completedShifts() : [];
+    var places = {};
+    var categories = {};
+    var times = {};
+
+    function addCount(bucket, key) {
+      key = String(key || "Unknown").trim();
+      if (!key) key = "Unknown";
+      bucket[key] = (bucket[key] || 0) + 1;
+    }
+    function timeBand(value) {
+      var d = new Date(value);
+      if (!isFinite(d.getTime())) return "Unknown time";
+      var h = d.getHours();
+      if (h >= 5 && h < 12) return "Early morning";
+      if (h >= 12 && h < 17) return "Afternoon";
+      if (h >= 17 && h < 21) return "Evening";
+      return "Night";
+    }
+    function categoryName(report) {
+      if (report.fields && report.fields.incident_type) return report.fields.incident_type;
+      return String(report.category || "Other").replace(/\s*\([^)]*\)\s*$/, "");
+    }
+    reports.forEach(function (report) {
+      var place = String(report.location_address || report.zone || "Location not recorded").trim();
+      var category = categoryName(report);
+      addCount(places, place);
+      addCount(categories, category);
+      if (!times[category]) times[category] = {};
+      addCount(times[category], timeBand(report.created_at));
+    });
+    function ranked(bucket) {
+      return Object.keys(bucket).map(function (key) { return { label: key, count: bucket[key] }; })
+        .sort(function (a, b) { return b.count - a.count || a.label.localeCompare(b.label); });
+    }
+    var timeRows = Object.keys(times).map(function (category) {
+      var best = ranked(times[category])[0];
+      return { category: category, band: best.label, count: best.count };
+    }).sort(function (a, b) { return b.count - a.count || a.category.localeCompare(b.category); });
+    var validShifts = shifts.filter(function (shift) {
+      var start = new Date(shift.start_shift_time).getTime();
+      var end = new Date(shift.end_shift_time).getTime();
+      return isFinite(start) && isFinite(end) && end > start;
+    });
+    var shiftBands = {};
+    validShifts.forEach(function (shift) { addCount(shiftBands, timeBand(shift.start_shift_time)); });
+    return {
+      reportCount: reports.length,
+      pinCount: pins.length,
+      shiftCount: validShifts.length,
+      places: ranked(places),
+      categories: ranked(categories),
+      times: timeRows,
+      shiftBands: ranked(shiftBands)
+    };
+  }
+
+  function countText(count, one, many) {
+    return count + " " + (count === 1 ? one : many);
+  }
+
+  function intelFocusLine(intel) {
+    if (!intel.reportCount) return "No incident pattern is available yet. Keep logging factual observations so the team can learn where and when attention is needed.";
+    var place = intel.places[0];
+    var category = intel.categories[0];
+    var time = intel.times[0];
+    return "Focus: " + place.label + " has " + countText(place.count, "report", "reports") + ". " +
+      category.label + " is the most logged category at " + countText(category.count, "report", "reports") +
+      (time ? ", most often in the " + time.band.toLowerCase() : "") + ".";
+  }
+
+  function renderIntel() {
+    setShell(true);
+    setActiveNav("");
+    screenEl.className = "screen intel-screen";
+    var intel = patrolIntel();
+    var maxCategory = intel.categories.length ? intel.categories[0].count : 1;
+    var placesHtml = intel.places.slice(0, 5).map(function (item, index) {
+      return '<div class="intel-row"><span class="intel-rank">' + (index + 1) + '</span><div class="grow"><b>' + esc(item.label) + '</b><div class="muted">' + countText(item.count, "report", "reports") + '</div></div></div>';
+    }).join("") || '<p class="intel-empty">No reported places yet.</p>';
+    var categoriesHtml = intel.categories.map(function (item) {
+      var width = Math.max(8, Math.round(item.count / maxCategory * 100));
+      return '<div class="intel-category"><div class="row spread"><b>' + esc(item.label) + '</b><span>' + item.count + '</span></div><div class="intel-bar"><span style="width:' + width + '%"></span></div></div>';
+    }).join("") || '<p class="intel-empty">No categories yet.</p>';
+    var timesHtml = intel.times.map(function (item) {
+      return '<div class="intel-row"><span class="chip navy">' + esc(item.band) + '</span><div class="grow"><b>' + esc(item.category) + '</b><div class="muted">' + countText(item.count, "report", "reports") + ' in this time period</div></div></div>';
+    }).join("") || '<p class="intel-empty">No time pattern yet.</p>';
+    var coverage = intel.shiftBands.length ? intel.shiftBands.map(function (item) {
+      return item.label + " " + item.count;
+    }).join(" · ") : "No completed shifts yet";
+
+    screenEl.innerHTML =
+      '<a href="#/dashboard" class="back-link">' + I("chev_left", 16) + ' Back to Home</a>' +
+      '<div class="intel-hero"><div class="intel-kicker">PATROL INTEL</div><h1>Patterns from our own patrol records</h1><p>Places, times and categories only. This panel never profiles people.</p></div>' +
+      '<div class="intel-summary"><div><strong>' + intel.reportCount + '</strong><span>Reports</span></div><div><strong>' + intel.pinCount + '</strong><span>Map pins</span></div><div><strong>' + intel.shiftCount + '</strong><span>Finished shifts</span></div></div>' +
+      '<div class="card intel-focus"><span class="chip teal">Suggested focus</span><p>' + esc(intelFocusLine(intel)) + '</p><small>This is a summary of recorded activity, not a prediction or an instruction to confront anyone.</small></div>' +
+      '<section class="card intel-section"><h2>Where reports cluster</h2><p class="muted">Most frequently recorded locations.</p>' + placesHtml + '</section>' +
+      '<section class="card intel-section"><h2>When activity is logged</h2><p class="muted">Strongest time period for each category.</p>' + timesHtml + '<div class="intel-coverage"><b>Completed patrol coverage:</b> ' + esc(coverage) + '</div></section>' +
+      '<section class="card intel-section"><h2>What the team records</h2><p class="muted">Category mix across all incident reports.</p>' + categoriesHtml + '</section>' +
+      '<div class="intel-safety">Observe and report only. Never confront or chase. Never patrol alone. For a police emergency call SAPS on 10111.</div>';
+  }
+
+  window.AmanIntel = { calculate: patrolIntel, focusLine: intelFocusLine };
+
+  function homeDateHtml() {
+    var now = new Date();
+    var gregorian = "";
+    var hijri = "";
+    try {
+      gregorian = new Intl.DateTimeFormat("en-ZA", {
+        timeZone: "Africa/Johannesburg", weekday: "long", day: "numeric", month: "long", year: "numeric"
+      }).format(now);
+    } catch (err) {
+      gregorian = now.toDateString();
+    }
+    try {
+      hijri = new Intl.DateTimeFormat("en", {
+        calendar: "islamic-umalqura", timeZone: "Africa/Johannesburg", day: "numeric", month: "long", year: "numeric"
+      }).format(now);
+    } catch (err2) {
+      try {
+        hijri = new Intl.DateTimeFormat("en-u-ca-islamic", {
+          timeZone: "Africa/Johannesburg", day: "numeric", month: "long", year: "numeric"
+        }).format(now);
+      } catch (err3) { hijri = "Hijri date unavailable on this phone"; }
+    }
+    return '<div class="home-date-card"><div><span class="home-date-label">TODAY</span><strong>' + esc(gregorian) + '</strong></div><div class="home-hijri"><span>Hijri</span><b>' + esc(hijri) + '</b></div></div>';
+  }
+
   function renderDashboard() {
     var user = S().sessionUser();
     setShell(true);
@@ -1073,6 +1286,7 @@
       '<span class="chip ' + (coord ? "teal" : "ok") + '">' + (coord ? "Coordinator" : "Approved volunteer") + "</span>" +
       '<span class="chip grey" style="font-size:0.6rem;padding:2px 6px">Power: Stage 0 (Normal)</span></div></div>' +
 
+      homeDateHtml() +
       handoverHtml +
 
       '<div class="weather" id="weather-tile">' +
@@ -1093,6 +1307,7 @@
       '<div class="action-grid">' +
       '<a class="action" href="#/roster"><div class="a-icon navy">' + I("calendar",20) + '</div><div class="a-label">Create or join a patrol</div><div class="a-sub">Pick any date &amp; time · pairs only · ' + S().slots().filter(function (s) { return s.understaffed; }).length + ' need a partner</div></a>' +
       '<a class="action" href="#/map"><div class="a-icon teal">' + I("map",20) + '</div><div class="a-label">View area map</div><div class="a-sub">Satellite, streets &amp; risk pins</div></a>' +
+      '<a class="action" href="#/intel"><div class="a-icon navy">' + I("shield_star",20) + '</div><div class="a-label">Patrol Intel</div><div class="a-sub">Where, when and what our reports show</div></a>' +
       '<button class="action" id="dash-emerg-btn" style="text-align:left;cursor:pointer"><div class="a-icon danger" style="background:var(--danger-soft);color:var(--danger)">' + I("phone",20) + '</div><div class="a-label">Emergency Speed-Dial</div><div class="a-sub">Beagle · CAP · SCP · SAPS</div></button>' +
       '<a class="action" href="#/chat"><div class="a-icon info">' + I("chat",20) + '</div><div class="a-label">Team chat</div><div class="a-sub">Operational team coordination</div></a>' +
       '<button class="action" id="dash-ai-btn" style="text-align:left;cursor:pointer"><div class="a-icon navy">' + I("shield_star",20) + '</div><div class="a-label">Aman Patrol Assistant</div><div class="a-sub">Routes · dispatch · patrol status</div></button>' +
@@ -1921,6 +2136,7 @@
   function renderMore() {
     var user = S().sessionUser();
     var botHidden = isAmanBotHidden();
+    var alertPrefs = alertPreferences();
     setShell(true);
     setActiveNav("more");
     screenEl.className = "screen";
@@ -1984,6 +2200,14 @@
       '<div class="a-icon danger" style="background:var(--danger-soft);color:var(--danger)">' + I("phone",20) + '</div>' +
       '<div class="grow"><div class="a-label">Emergency Speed-Dial</div><div class="a-sub">Beagle · CAP · SCP · ADT · SAPS · EMS</div></div></button>' +
 
+      '<div class="card alert-settings" style="margin-bottom:12px">' +
+      '<h3>Alerts on this phone</h3><p class="muted" style="margin:0 0 10px">In-app alerts work on Android and iPhone. Vibration works where the phone browser allows it; iPhone uses the visible alert and sound instead.</p>' +
+      '<label class="setting-row"><span><b>In-app alerts</b><small>Persistent banner for new activity</small></span><span class="switch-toggle"><input type="checkbox" data-alert-pref="inApp"' + (alertPrefs.inApp ? " checked" : "") + '><span class="slider"></span></span></label>' +
+      '<label class="setting-row"><span><b>Alert sound</b><small>Plays after you have interacted with the app</small></span><span class="switch-toggle"><input type="checkbox" data-alert-pref="sound"' + (alertPrefs.sound ? " checked" : "") + '><span class="slider"></span></span></label>' +
+      '<label class="setting-row"><span><b>Vibration</b><small>Supported Android phones; iPhone may block it</small></span><span class="switch-toggle"><input type="checkbox" data-alert-pref="vibration"' + (alertPrefs.vibration ? " checked" : "") + '><span class="slider"></span></span></label>' +
+      '<label class="setting-row"><span><b>Team chat alerts</b><small>Silent while Team Chat is already open</small></span><span class="switch-toggle"><input type="checkbox" data-alert-pref="chat"' + (alertPrefs.chat ? " checked" : "") + '><span class="slider"></span></span></label>' +
+      '<button type="button" class="btn btn-teal block" id="test-alert-btn">Test alert on this phone</button></div>' +
+
       '<div class="card">' +
       '<div class="row spread" style="align-items:center;margin-bottom:12px">' +
       '<div><div style="font-weight:700;font-size:0.88rem">Floating Aman Assistant</div>' +
@@ -2024,6 +2248,18 @@
         }
       };
     }
+    $all("[data-alert-pref]").forEach(function (input) {
+      input.onchange = function () {
+        var prefs = alertPreferences();
+        prefs[input.getAttribute("data-alert-pref")] = input.checked;
+        saveAlertPreferences(prefs);
+      };
+    });
+    var testAlertBtn = $("#test-alert-btn");
+    if (testAlertBtn) testAlertBtn.onclick = function () {
+      alertSoundReady = true;
+      showInAppAlert({ kind: "danger", title: "Test critical alert", body: "Visible alert, sound and supported-phone vibration are working." }, { critical: true });
+    };
     $("#coc-btn").onclick = codeOfConductModal;
     $("#radio-btn2").onclick = radioModal;
     $("#logout-btn").onclick = doLogout;
@@ -2080,7 +2316,7 @@
 
   function showAmanBot(page) {
     removeAmanBot();
-    if (["dashboard", "roster", "incident", "map", "more"].indexOf(page) === -1) return;
+    if (["dashboard", "roster", "incident", "map", "intel", "more"].indexOf(page) === -1) return;
     if (isAmanBotHidden()) return;
 
     var bot = document.createElement("div");
@@ -2090,7 +2326,6 @@
     bot.setAttribute("aria-label", "Aman patrol assistant");
     bot.innerHTML =
       '<span class="aman-help-label">Need help?</span>' +
-      '<button type="button" class="aman-bot-dismiss" id="aman-bot-dismiss" title="Hide Aman assistant" aria-label="Hide Aman assistant">&times;</button>' +
       '<button type="button" class="aman-bot-avatar" id="aman-bot-avatar" aria-label="Open Aman patrol assistant. Drag to move.">' +
         '<img src="images/aman_robot.png" alt="Aman patrol assistant" class="aman-bot-img" draggable="false" />' +
         '<span class="aman-bot-glow" aria-hidden="true"></span>' +
@@ -2108,19 +2343,6 @@
     } catch (err) {}
 
     var avatarBtn = bot.querySelector("#aman-bot-avatar");
-    var dismissBtn = bot.querySelector("#aman-bot-dismiss");
-
-    if (dismissBtn) {
-      dismissBtn.addEventListener("click", function (e) {
-        e.stopPropagation();
-        e.preventDefault();
-        setAmanBotHidden(true);
-        bot.classList.add("fade-out");
-        setTimeout(function () { removeAmanBot(); }, 250);
-        toast("Aman assistant hidden. Enable it anytime in More > Settings.", "ok");
-      });
-    }
-
     if (avatarBtn) {
       avatarBtn.addEventListener("pointerdown", function (e) {
         amanBotDrag = { x: e.clientX, y: e.clientY, left: bot.offsetLeft, top: bot.offsetTop, moved: false };
@@ -2173,6 +2395,7 @@
       case "roster": renderRoster(); break;
       case "incident": window.AmanIncident.render(screenEl); setActiveNav(""); break;
       case "map": renderMap(); break;
+      case "intel": renderIntel(); break;
       case "notifications": renderNotifications(); break;
       case "more": renderMore(); break;
       case "chat": renderChat(); break;
@@ -2215,13 +2438,14 @@
     screenEl = $("#screen");
     $("#logo-slot").innerHTML = LOGO.replace(/\{s\}/g, "30");
         $("#bell-icon").innerHTML = I("bell", 22);
-    $("#fab-incident").innerHTML = I("plus", 26);
+    var incidentFab = $("#fab-incident");
+    if (incidentFab) incidentFab.innerHTML = I("plus", 26);
     $("#nav-dashboard").innerHTML = I("home", 22) + "<span>Home</span>";
     $("#nav-roster").innerHTML = I("roster", 22) + "<span>Roster</span>";
     $("#nav-map").innerHTML = I("map", 22) + "<span>Map</span>";
     $("#nav-more").innerHTML = I("more", 22) + "<span>More</span>";
     $("#nav-chat").innerHTML = I("chat", 22) + "<span>Chat</span>";
-    $("#fab-incident").addEventListener("click", function () { location.hash = "#/incident"; });
+    if (incidentFab) incidentFab.addEventListener("click", function () { location.hash = "#/incident"; });
     document.addEventListener("click", function (e) {
       var t = e.target && e.target.closest ? e.target.closest("[data-theme-toggle]") : null;
       if (t) toggleTheme();
@@ -2261,12 +2485,25 @@
       startApp();
     }
 
-    // PWA: register the service worker (offline shell + install support)
+    // PWA: register the service worker (offline shell + install support).
+    // Updates download automatically. When an already-installed app changes
+    // version, show a clear reload action instead of leaving an open screen old.
     if ("serviceWorker" in navigator) {
       try {
+        var hadController = !!navigator.serviceWorker.controller;
+        var updateNoticeShown = false;
+        navigator.serviceWorker.addEventListener("controllerchange", function () {
+          if (!hadController || updateNoticeShown) return;
+          updateNoticeShown = true;
+          var root = document.createElement("div");
+          root.id = "app-update-notice";
+          root.setAttribute("role", "alert");
+          root.innerHTML = '<div><b>Aman Patrol has been updated</b><small>Reload now to use the newest version.</small></div><button type="button" id="app-update-reload">Reload app</button>';
+          document.body.appendChild(root);
+          root.querySelector("#app-update-reload").onclick = function () { location.reload(); };
+        });
         navigator.serviceWorker.register("./sw.js").then(function (reg) {
-          // Check for a new service worker version on every load, so an
-          // updated app never leaves users on the previous version.
+          // Check for a new service worker version on every load.
           if (reg && typeof reg.update === "function") {
             try { reg.update(); } catch (err) {}
           }
@@ -2280,5 +2517,5 @@
 
   /* expose a few things needed by map popups & other modules */
   window.AmanApp = { viewIncident: function (id) { window.AmanAdmin.incidentModal(id, null); }, deletePin: deletePin };
-  window.AmanUI = { esc: esc, toast: toast, modal: modal, closeModal: closeModal, refreshBell: refreshBell, captureGPS: captureGPS, I: I };
+  window.AmanUI = { esc: esc, toast: toast, modal: modal, closeModal: closeModal, refreshBell: refreshBell, captureGPS: captureGPS, I: I, showInAppAlert: showInAppAlert, alertPreferences: alertPreferences };
 })();

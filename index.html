@@ -1588,6 +1588,95 @@ html[data-theme="dark"] .aman-bot-dismiss { background: #1a2b47; border-color: #
   .screen.map-screen { min-height: calc(100dvh - 136px); }
   .map-wrap { min-height: calc(100dvh - 136px); }
 }
+/* ---------- Patrol Intel ---------- */
+.intel-screen { max-width: 760px; margin: 0 auto; }
+.back-link { display:inline-flex; align-items:center; gap:5px; color:var(--navy); font-weight:800; font-size:.82rem; margin-bottom:12px; }
+.intel-hero { background:linear-gradient(135deg,var(--navy-deep),var(--navy-2)); color:#fff; border-radius:18px; padding:20px; margin-bottom:12px; }
+.intel-hero h1 { font-size:1.35rem; line-height:1.18; margin:4px 0 7px; }
+.intel-hero p { margin:0; opacity:.82; font-size:.83rem; line-height:1.45; }
+.intel-kicker { color:#7de3e3; font-size:.7rem; font-weight:900; letter-spacing:1.2px; }
+.intel-summary { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:12px; }
+.intel-summary div { background:var(--card); border:1px solid var(--line); border-radius:13px; padding:11px 5px; text-align:center; box-shadow:var(--shadow); }
+.intel-summary strong { display:block; color:var(--navy); font-size:1.45rem; line-height:1; }
+.intel-summary span { color:var(--muted); font-size:.67rem; font-weight:700; }
+.intel-focus { border-left:5px solid var(--teal); margin-bottom:12px; }
+.intel-focus p { font-weight:750; line-height:1.5; margin:9px 0; }
+.intel-focus small { color:var(--muted); line-height:1.4; display:block; }
+.intel-section { margin-bottom:12px; }
+.intel-section h2 { font-size:1rem; margin:0 0 3px; }
+.intel-section > .muted { margin:0 0 10px; }
+.intel-row { display:flex; align-items:center; gap:10px; padding:10px 0; border-top:1px solid var(--line); font-size:.82rem; }
+.intel-rank { width:25px; height:25px; border-radius:50%; display:grid; place-items:center; flex:none; background:var(--navy-soft); color:var(--navy); font-weight:900; }
+.intel-row .muted { font-size:.71rem; margin-top:2px; }
+.intel-category { padding:8px 0; font-size:.8rem; }
+.intel-bar { height:8px; background:var(--line); border-radius:99px; overflow:hidden; margin-top:5px; }
+.intel-bar span { display:block; height:100%; background:linear-gradient(90deg,var(--teal-dark),var(--teal)); border-radius:99px; }
+.intel-coverage { margin-top:10px; padding:10px; border-radius:10px; background:var(--navy-soft); font-size:.76rem; line-height:1.45; }
+.intel-empty { color:var(--muted); font-size:.8rem; }
+.intel-safety { border:1px solid var(--line); border-radius:12px; padding:12px; color:var(--muted); text-align:center; font-size:.72rem; line-height:1.5; }
+html[data-theme="dark"] .back-link, html[data-theme="dark"] .intel-summary strong, html[data-theme="dark"] .intel-rank { color:#cfe0f7; }
+/* ---------- persistent in-app alerts ---------- */
+#in-app-alert-root { position:fixed; z-index:1100; top:calc(68px + env(safe-area-inset-top)); left:50%; transform:translateX(-50%); width:min(520px,calc(100% - 20px)); pointer-events:none; }
+.in-app-alert { display:flex; align-items:stretch; overflow:hidden; border:2px solid var(--teal); border-radius:14px; background:var(--card); color:var(--text); box-shadow:0 8px 30px rgba(12,27,51,.28); pointer-events:auto; }
+.in-app-alert.critical { border-color:var(--danger); }
+.in-app-alert-main { display:flex; align-items:center; gap:10px; flex:1; min-width:0; padding:12px; color:var(--text); }
+.in-app-alert-main b { display:block; font-size:.84rem; }
+.in-app-alert-main small { display:block; margin-top:2px; color:var(--muted); font-size:.72rem; line-height:1.35; }
+.in-app-alert-icon { display:grid; place-items:center; flex:none; width:34px; height:34px; border-radius:50%; color:#fff; background:var(--teal-dark); }
+.in-app-alert.critical .in-app-alert-icon { background:var(--danger); }
+.in-app-alert-close { width:44px; flex:none; border:0; border-left:1px solid var(--line); background:var(--plain); color:var(--text); font-size:24px; cursor:pointer; }
+.setting-row { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 0; border-top:1px solid var(--line); }
+.setting-row > span:first-child { display:block; min-width:0; }
+.setting-row b { display:block; font-size:.82rem; }
+.setting-row small { display:block; color:var(--muted); font-size:.69rem; line-height:1.35; margin-top:2px; }
+
+/* Keep Aman's question field clearly outlined and readable in night mode. */
+html[data-theme="dark"] #ai-user-query {
+  background:#0b1629; color:#f4f7fb; border:2px solid #5fd1d1;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);
+}
+html[data-theme="dark"] #ai-user-query::placeholder { color:#b8c6da; opacity:1; }
+html[data-theme="dark"] #ai-user-query:focus { border-color:#7de3e3; box-shadow:0 0 0 3px rgba(95,209,209,.25); }
+
+/* The small control next to Aman is always round and large enough to recognise. */
+.aman-bot-dismiss { width:26px; height:26px; border-radius:50%; line-height:24px; font-size:18px; font-weight:700; }
+/* Aman's question field is deliberately light in night mode for unmistakable contrast. */
+html[data-theme="dark"] #ai-user-query {
+  background:#ffffff; color:#0c1b33; border:2px solid #5fd1d1;
+  box-shadow:0 0 0 1px rgba(255,255,255,.18);
+}
+html[data-theme="dark"] #ai-user-query::placeholder { color:#52637a; opacity:1; }
+
+/* Installed-app update notice. */
+#app-update-notice { position:fixed; z-index:1300; left:50%; bottom:calc(var(--nav-h) + 14px + env(safe-area-inset-bottom)); transform:translateX(-50%); width:min(520px,calc(100% - 24px)); display:flex; align-items:center; gap:12px; padding:12px; border:2px solid var(--teal); border-radius:14px; background:var(--card); color:var(--text); box-shadow:0 8px 30px rgba(12,27,51,.32); }
+#app-update-notice div { flex:1; min-width:0; }
+#app-update-notice b, #app-update-notice small { display:block; }
+#app-update-notice b { font-size:.86rem; }
+#app-update-notice small { color:var(--muted); margin-top:2px; font-size:.72rem; }
+#app-update-notice button { border:0; border-radius:10px; padding:10px 12px; background:var(--teal-dark); color:#fff; font:inherit; font-size:.78rem; font-weight:800; cursor:pointer; }
+/* Keep the floating Aman's "Need help?" label readable in night mode. */
+html[data-theme="dark"] .aman-help-label {
+  background:#ffffff; color:#0c1b33; border:2px solid #5fd1d1;
+  box-shadow:0 4px 14px rgba(0,0,0,.45);
+}
+/* ---------- Home Gregorian and Hijri date ---------- */
+.home-date-card { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:12px 0; padding:12px 14px; border:1px solid var(--line); border-left:4px solid var(--teal); border-radius:13px; background:var(--card); box-shadow:var(--shadow); }
+.home-date-card strong { display:block; margin-top:2px; color:var(--text); font-size:.84rem; line-height:1.3; }
+.home-date-label { color:var(--teal-dark); font-size:.62rem; font-weight:900; letter-spacing:1px; }
+.home-hijri { flex:none; text-align:right; padding-left:12px; border-left:1px solid var(--line); }
+.home-hijri span, .home-hijri b { display:block; }
+.home-hijri span { color:var(--muted); font-size:.63rem; font-weight:700; }
+.home-hijri b { margin-top:2px; color:var(--navy); font-size:.78rem; }
+html[data-theme="dark"] .home-date-label { color:#7de3e3; }
+html[data-theme="dark"] .home-hijri b { color:#f4f7fb; }
+@media (max-width:380px) { .home-date-card { align-items:flex-start; flex-direction:column; } .home-hijri { width:100%; padding:8px 0 0; border-left:0; border-top:1px solid var(--line); text-align:left; } }
+/* Make the day/night function obvious instead of showing an unexplained square. */
+.app-header .theme-btn { width:68px; color:#ffffff; border:1px solid rgba(255,255,255,.25); }
+.app-header .theme-btn [data-theme-icon] { display:flex; align-items:center; justify-content:center; gap:5px; color:#ffffff; }
+.app-header .theme-btn .ico { stroke:#ffffff; }
+.theme-switch-label { font-size:.66rem; font-weight:800; line-height:1; }
+.auth-theme .theme-switch-label { margin-left:5px; }
+.auth-theme { width:80px; }
 
 </style>
 </head>
@@ -1822,8 +1911,15 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
           role: "volunteer", status: "pending", password: "demo1234", created_at: new Date(now - 20 * H).toISOString()
         }
       ],
-      slots: [],
-      claims: [],
+      slots: [
+        { id: "s-history-1", zone: ZONE_A, activity_window: "Evening patrol", date: dateISO(-3), day_offset: -3, time_window: "18:00–20:00", min_required: 2 },
+        { id: "s-history-2", zone: ZONE_B, activity_window: "Early morning patrol", date: dateISO(-6), day_offset: -6, time_window: "06:00–07:30", min_required: 2 }
+      ],
+      claims: [
+        { id: "c-history-1", slot_id: "s-history-1", user_id: "u-aisha", status: "completed", start_shift_time: new Date(now - 3 * 24 * H).toISOString(), end_shift_time: new Date(now - 3 * 24 * H + 2 * H).toISOString(), notes: "All quiet. Checked the Gleneagles Road corridor.", start_gps: null, end_gps: null },
+        { id: "c-history-2", slot_id: "s-history-1", user_id: "u-mo", status: "completed", start_shift_time: new Date(now - 3 * 24 * H).toISOString(), end_shift_time: new Date(now - 3 * 24 * H + 2 * H).toISOString(), notes: "No new concerns observed.", start_gps: null, end_gps: null },
+        { id: "c-history-3", slot_id: "s-history-2", user_id: "u-aisha", status: "completed", start_shift_time: new Date(now - 6 * 24 * H).toISOString(), end_shift_time: new Date(now - 6 * 24 * H + 90 * 60000).toISOString(), notes: "Completed the Emmarentia route.", start_gps: null, end_gps: null }
+      ],
       incidents: [
         {
           id: "i1", user_id: "u-aisha", category: "Suspicious Vehicle (VOI)", status: "SAPS/Security Notified",
@@ -1843,6 +1939,27 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
           responder_type: "None yet", responder_name: "", vehicle_reg: "", call_sign: "", contact_details: "", arrival_time: null, outcome: "",
           fields: { number_of_persons: "2", gender: "Male", approximate_age: "Early 20s", build: "Slim", clothing_top: "Dark grey hoodies", clothing_bottom: "Blue jeans", distinguishing_features: "One carrying a small black backpack", direction: "Stationary" },
           created_at: new Date(now - 20 * H).toISOString()
+        },
+        {
+          id: "i4", user_id: "u-mo", category: "Suspicious Vehicle (VOI)", status: "Acknowledged",
+          gps_lat: -26.1466, gps_lng: 28.0089, zone: ZONE_A, location_address: "Gleneagles Road, near the Greenside restaurant strip",
+          description: "Vehicle repeatedly circling the same block. Observed from a safe distance and reported without pursuit.", photo_url: null,
+          responder_type: "None yet", responder_name: "", vehicle_reg: "", call_sign: "", contact_details: "", arrival_time: null, outcome: "",
+          fields: { make_model: "Dark hatchback", direction: "East" }, created_at: new Date(now - 2 * 24 * H + 19 * H).toISOString()
+        },
+        {
+          id: "i5", user_id: "u-aisha", category: "Incident (SOI)", status: "Logged",
+          gps_lat: -26.1466, gps_lng: 28.0089, zone: ZONE_A, location_address: "Gleneagles Road, near the Greenside restaurant strip",
+          description: "Streetlight outage left part of the walking route dark. Logged for follow-up.", photo_url: null,
+          responder_type: "None yet", responder_name: "", vehicle_reg: "", call_sign: "", contact_details: "", arrival_time: null, outcome: "",
+          fields: { incident_type: "Vandalism" }, created_at: new Date(now - 4 * 24 * H + 20 * H).toISOString()
+        },
+        {
+          id: "i6", user_id: "u-mo", category: "Suspicious Vehicle (VOI)", status: "Logged",
+          gps_lat: -26.1466, gps_lng: 28.0089, zone: ZONE_A, location_address: "Gleneagles Road, near the Greenside restaurant strip",
+          description: "Vehicle stopped without lights for an extended period. Details logged and team notified.", photo_url: null,
+          responder_type: "None yet", responder_name: "", vehicle_reg: "", call_sign: "", contact_details: "", arrival_time: null, outcome: "",
+          fields: { make_model: "White sedan", direction: "Stationary" }, created_at: new Date(now - 5 * 24 * H + 19 * H).toISOString()
         },
         {
           id: "i3", user_id: "u-aisha", category: "Incident (SOI)", status: "Resolved",
@@ -5162,7 +5279,10 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
   }
   function applyTheme(t) {
     document.documentElement.setAttribute("data-theme", t);
-    $all("[data-theme-icon]").forEach(function (el) { el.innerHTML = t === "dark" ? I("sun", 20) : I("moon", 20); });
+    $all("[data-theme-icon]").forEach(function (el) {
+      var nextMode = t === "dark" ? "Day" : "Night";
+      el.innerHTML = I(t === "dark" ? "sun" : "moon", 18) + '<span class="theme-switch-label">' + nextMode + '</span>';
+    });
     if (window.AmanMap && window.AmanMap.syncTheme) window.AmanMap.syncTheme(t);
   }
   function toggleTheme() {
@@ -5379,6 +5499,72 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     return { lat: c.lat, lng: c.lng, accuracy: null, source: "approximate zone centre (GPS unavailable)" };
   }
 
+  /* ---------- in-app alerts, sound and supported-phone vibration ---------- */
+  var ALERT_PREFS_KEY = "aman_alert_preferences";
+  var lastChatAlertCount = null;
+  var alertSoundReady = false;
+
+  function alertPreferences() {
+    var defaults = { inApp: true, sound: true, vibration: true, chat: true };
+    try {
+      var saved = JSON.parse(localStorage.getItem(ALERT_PREFS_KEY) || "{}");
+      Object.keys(defaults).forEach(function (key) { if (typeof saved[key] === "boolean") defaults[key] = saved[key]; });
+    } catch (err) {}
+    return defaults;
+  }
+  function saveAlertPreferences(prefs) {
+    try { localStorage.setItem(ALERT_PREFS_KEY, JSON.stringify(prefs)); } catch (err) {}
+  }
+  function alertIsCritical(item) {
+    var words = String((item && item.title) || "").toLowerCase();
+    return item && (item.kind === "sos" || item.kind === "danger" || words.indexOf("shift starts") !== -1 || words.indexOf("announcement") !== -1 || words.indexOf("approved") !== -1);
+  }
+  function alertSound(critical) {
+    if (!alertSoundReady) return;
+    try {
+      var AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return;
+      var ctx = new AudioContext();
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.type = "sine"; osc.frequency.value = critical ? 880 : 660;
+      gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.14, ctx.currentTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + (critical ? 0.32 : 0.18));
+      osc.connect(gain); gain.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + (critical ? 0.34 : 0.2));
+      osc.onended = function () { ctx.close(); };
+    } catch (err) {}
+  }
+  function alertVibrate(critical) {
+    try { if (navigator.vibrate) navigator.vibrate(critical ? [220, 90, 220, 90, 320] : [100]); } catch (err) {}
+  }
+  function dismissInAppAlert() {
+    var root = $("#in-app-alert-root");
+    if (root) root.innerHTML = "";
+  }
+  function showInAppAlert(item, options) {
+    options = options || {};
+    var prefs = alertPreferences();
+    if (!prefs.inApp || (options.chat && !prefs.chat)) return;
+    var critical = options.critical === true || alertIsCritical(item);
+    var root = $("#in-app-alert-root");
+    if (!root) {
+      root = document.createElement("div");
+      root.id = "in-app-alert-root";
+      root.setAttribute("aria-live", critical ? "assertive" : "polite");
+      document.body.appendChild(root);
+    }
+    root.innerHTML = '<div class="in-app-alert' + (critical ? ' critical' : '') + '" role="alert">' +
+      '<a href="#/notifications" class="in-app-alert-main"><span class="in-app-alert-icon">' + I(critical ? "siren" : "bell", 19) + '</span><span class="grow"><b>' + esc(item.title || "Aman Patrol alert") + '</b><small>' + esc(item.body || "Open Notifications for details.") + '</small></span></a>' +
+      '<button type="button" class="in-app-alert-close" aria-label="Dismiss this alert">&times;</button></div>';
+    var close = root.querySelector(".in-app-alert-close");
+    if (close) close.onclick = dismissInAppAlert;
+    if (prefs.sound) alertSound(critical);
+    if (prefs.vibration) alertVibrate(critical);
+  }
+  document.addEventListener("pointerdown", function () { alertSoundReady = true; }, { once: true });
+  document.addEventListener("keydown", function () { alertSoundReady = true; }, { once: true });
+
   /* ---------- browser notifications ---------- */
   function browserNotify(title, body) {
     try {
@@ -5398,12 +5584,20 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     badge.classList.toggle("hidden", n === 0);
     var list = S().notificationsFor(user);
     if (list.length && list[0].id !== lastNotifId) {
-      if (lastNotifId) browserNotify(list[0].title, list[0].body);
+      if (lastNotifId) {
+        browserNotify(list[0].title, list[0].body);
+        showInAppAlert(list[0]);
+      }
       lastNotifId = list[0].id;
     }
     var chatNav = $("#nav-chat");
     if (chatNav) {
       var c = S().unreadChatCount ? S().unreadChatCount(user) : 0;
+      var onChat = (location.hash || "").indexOf("#/chat") === 0;
+      if (lastChatAlertCount !== null && c > lastChatAlertCount && !onChat) {
+        showInAppAlert({ title: "New team chat message", body: c + (c === 1 ? " unread message" : " unread messages") }, { chat: true });
+      }
+      lastChatAlertCount = c;
       chatNav.innerHTML = I("chat", 22) + "<span>Chat</span>" + (c > 0 ? '<span class="nav-badge">' + (c > 9 ? "9+" : c) + "</span>" : "");
     }
   }
@@ -5744,6 +5938,7 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     var user = S.sessionUser();
     var incidents = S.incidents ? S.incidents() : [];
     var slots = S.slots ? S.slots() : [];
+    var intel = patrolIntel();
 
     modal(
       "<h3>" + I("shield_star", 18) + " Aman Patrol Assistant</h3>" +
@@ -5756,7 +5951,7 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
       "</div>" +
       '<div id="ai-chat-history" class="card tight" style="min-height:160px;max-height:260px;overflow-y:auto;background:var(--bg);font-size:0.84rem;line-height:1.55;padding:12px;margin-bottom:12px">' +
       '<div style="color:var(--teal-dark);font-weight:700;margin-bottom:4px">Aman AI Assistant:</div>' +
-      '<div>Assalamu alaykum ' + esc(user.first_name) + '. I am your patrol assistant. Ask me for fastest routes, emergency responder protocols, sector boundaries, or active patrol status.</div>' +
+      '<div>Assalamu alaykum ' + esc(user.first_name) + '. ' + esc(intelFocusLine(intel)) + ' Ask me about patrol intel, safety steps, contacts or patrol status.</div>' +
       "</div>" +
       '<div class="row" style="gap:8px">' +
       '<input type="text" id="ai-user-query" placeholder="Ask about routes, SOPs, contacts, or patrol status..." style="flex:1" autocomplete="off">' +
@@ -5798,12 +5993,12 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
               "• <b>Key descriptors:</b> Clothing top/bottom, approximate age, build, distinctive features (backpack, limp, markings), and direction of travel.<br>" +
               "• <b>Pairs only:</b> Never patrol or approach an area alone.";
           } else if (q.indexOf("intel") !== -1 || q.indexOf("incident") !== -1 || q.indexOf("status") !== -1 || q.indexOf("active") !== -1) {
-            var incCount = incidents.length;
             var openSlots = slots.filter(function(s){return s.understaffed;}).length;
-            reply = "<b>Current Patrol Status & Activity:</b><br>" +
-              "• <b>Total incidents logged:</b> " + incCount + " on record.<br>" +
+            reply = "<b>Patrol Intel from our own records:</b><br>" +
+              "• <b>Recorded activity:</b> " + intel.reportCount + " reports, " + intel.pinCount + " map pins and " + intel.shiftCount + " completed shifts.<br>" +
+              "• <b>Current focus:</b> " + esc(intelFocusLine(intel)) + "<br>" +
               "• <b>Roster status:</b> " + openSlots + " upcoming slots need a partner.<br>" +
-              "• <b>Priority watch areas:</b> Madrassah walking corridor on Greenside Road, Tana Road park edge, and Barry Hertzog robots.";
+              "This summarises places, times and categories only. It never profiles people.";
           } else if (S.askAman) {
             hist.innerHTML += '<div style="margin-top:10px;text-align:right"><span style="background:var(--navy-soft);padding:4px 10px;border-radius:8px;display:inline-block"><b>You:</b> ' + esc(query) + '</span></div>' +
               '<div class="ai-wait" style="margin-top:8px;color:var(--muted)">Aman is checking the free AI service...</div>';
@@ -6119,6 +6314,141 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     );
   }
 
+  /* Patrol Intel uses only approved-user data already held by the app.
+     It counts reports, coordinator pins and completed patrol shifts. It never
+     reads or groups names, descriptions of people, or reporter details. */
+  function patrolIntel() {
+    var reports = S().incidents ? S().incidents() : [];
+    var pins = S().pins ? S().pins() : [];
+    var shifts = S().completedShifts ? S().completedShifts() : [];
+    var places = {};
+    var categories = {};
+    var times = {};
+
+    function addCount(bucket, key) {
+      key = String(key || "Unknown").trim();
+      if (!key) key = "Unknown";
+      bucket[key] = (bucket[key] || 0) + 1;
+    }
+    function timeBand(value) {
+      var d = new Date(value);
+      if (!isFinite(d.getTime())) return "Unknown time";
+      var h = d.getHours();
+      if (h >= 5 && h < 12) return "Early morning";
+      if (h >= 12 && h < 17) return "Afternoon";
+      if (h >= 17 && h < 21) return "Evening";
+      return "Night";
+    }
+    function categoryName(report) {
+      if (report.fields && report.fields.incident_type) return report.fields.incident_type;
+      return String(report.category || "Other").replace(/\s*\([^)]*\)\s*$/, "");
+    }
+    reports.forEach(function (report) {
+      var place = String(report.location_address || report.zone || "Location not recorded").trim();
+      var category = categoryName(report);
+      addCount(places, place);
+      addCount(categories, category);
+      if (!times[category]) times[category] = {};
+      addCount(times[category], timeBand(report.created_at));
+    });
+    function ranked(bucket) {
+      return Object.keys(bucket).map(function (key) { return { label: key, count: bucket[key] }; })
+        .sort(function (a, b) { return b.count - a.count || a.label.localeCompare(b.label); });
+    }
+    var timeRows = Object.keys(times).map(function (category) {
+      var best = ranked(times[category])[0];
+      return { category: category, band: best.label, count: best.count };
+    }).sort(function (a, b) { return b.count - a.count || a.category.localeCompare(b.category); });
+    var validShifts = shifts.filter(function (shift) {
+      var start = new Date(shift.start_shift_time).getTime();
+      var end = new Date(shift.end_shift_time).getTime();
+      return isFinite(start) && isFinite(end) && end > start;
+    });
+    var shiftBands = {};
+    validShifts.forEach(function (shift) { addCount(shiftBands, timeBand(shift.start_shift_time)); });
+    return {
+      reportCount: reports.length,
+      pinCount: pins.length,
+      shiftCount: validShifts.length,
+      places: ranked(places),
+      categories: ranked(categories),
+      times: timeRows,
+      shiftBands: ranked(shiftBands)
+    };
+  }
+
+  function countText(count, one, many) {
+    return count + " " + (count === 1 ? one : many);
+  }
+
+  function intelFocusLine(intel) {
+    if (!intel.reportCount) return "No incident pattern is available yet. Keep logging factual observations so the team can learn where and when attention is needed.";
+    var place = intel.places[0];
+    var category = intel.categories[0];
+    var time = intel.times[0];
+    return "Focus: " + place.label + " has " + countText(place.count, "report", "reports") + ". " +
+      category.label + " is the most logged category at " + countText(category.count, "report", "reports") +
+      (time ? ", most often in the " + time.band.toLowerCase() : "") + ".";
+  }
+
+  function renderIntel() {
+    setShell(true);
+    setActiveNav("");
+    screenEl.className = "screen intel-screen";
+    var intel = patrolIntel();
+    var maxCategory = intel.categories.length ? intel.categories[0].count : 1;
+    var placesHtml = intel.places.slice(0, 5).map(function (item, index) {
+      return '<div class="intel-row"><span class="intel-rank">' + (index + 1) + '</span><div class="grow"><b>' + esc(item.label) + '</b><div class="muted">' + countText(item.count, "report", "reports") + '</div></div></div>';
+    }).join("") || '<p class="intel-empty">No reported places yet.</p>';
+    var categoriesHtml = intel.categories.map(function (item) {
+      var width = Math.max(8, Math.round(item.count / maxCategory * 100));
+      return '<div class="intel-category"><div class="row spread"><b>' + esc(item.label) + '</b><span>' + item.count + '</span></div><div class="intel-bar"><span style="width:' + width + '%"></span></div></div>';
+    }).join("") || '<p class="intel-empty">No categories yet.</p>';
+    var timesHtml = intel.times.map(function (item) {
+      return '<div class="intel-row"><span class="chip navy">' + esc(item.band) + '</span><div class="grow"><b>' + esc(item.category) + '</b><div class="muted">' + countText(item.count, "report", "reports") + ' in this time period</div></div></div>';
+    }).join("") || '<p class="intel-empty">No time pattern yet.</p>';
+    var coverage = intel.shiftBands.length ? intel.shiftBands.map(function (item) {
+      return item.label + " " + item.count;
+    }).join(" · ") : "No completed shifts yet";
+
+    screenEl.innerHTML =
+      '<a href="#/dashboard" class="back-link">' + I("chev_left", 16) + ' Back to Home</a>' +
+      '<div class="intel-hero"><div class="intel-kicker">PATROL INTEL</div><h1>Patterns from our own patrol records</h1><p>Places, times and categories only. This panel never profiles people.</p></div>' +
+      '<div class="intel-summary"><div><strong>' + intel.reportCount + '</strong><span>Reports</span></div><div><strong>' + intel.pinCount + '</strong><span>Map pins</span></div><div><strong>' + intel.shiftCount + '</strong><span>Finished shifts</span></div></div>' +
+      '<div class="card intel-focus"><span class="chip teal">Suggested focus</span><p>' + esc(intelFocusLine(intel)) + '</p><small>This is a summary of recorded activity, not a prediction or an instruction to confront anyone.</small></div>' +
+      '<section class="card intel-section"><h2>Where reports cluster</h2><p class="muted">Most frequently recorded locations.</p>' + placesHtml + '</section>' +
+      '<section class="card intel-section"><h2>When activity is logged</h2><p class="muted">Strongest time period for each category.</p>' + timesHtml + '<div class="intel-coverage"><b>Completed patrol coverage:</b> ' + esc(coverage) + '</div></section>' +
+      '<section class="card intel-section"><h2>What the team records</h2><p class="muted">Category mix across all incident reports.</p>' + categoriesHtml + '</section>' +
+      '<div class="intel-safety">Observe and report only. Never confront or chase. Never patrol alone. For a police emergency call SAPS on 10111.</div>';
+  }
+
+  window.AmanIntel = { calculate: patrolIntel, focusLine: intelFocusLine };
+
+  function homeDateHtml() {
+    var now = new Date();
+    var gregorian = "";
+    var hijri = "";
+    try {
+      gregorian = new Intl.DateTimeFormat("en-ZA", {
+        timeZone: "Africa/Johannesburg", weekday: "long", day: "numeric", month: "long", year: "numeric"
+      }).format(now);
+    } catch (err) {
+      gregorian = now.toDateString();
+    }
+    try {
+      hijri = new Intl.DateTimeFormat("en", {
+        calendar: "islamic-umalqura", timeZone: "Africa/Johannesburg", day: "numeric", month: "long", year: "numeric"
+      }).format(now);
+    } catch (err2) {
+      try {
+        hijri = new Intl.DateTimeFormat("en-u-ca-islamic", {
+          timeZone: "Africa/Johannesburg", day: "numeric", month: "long", year: "numeric"
+        }).format(now);
+      } catch (err3) { hijri = "Hijri date unavailable on this phone"; }
+    }
+    return '<div class="home-date-card"><div><span class="home-date-label">TODAY</span><strong>' + esc(gregorian) + '</strong></div><div class="home-hijri"><span>Hijri</span><b>' + esc(hijri) + '</b></div></div>';
+  }
+
   function renderDashboard() {
     var user = S().sessionUser();
     setShell(true);
@@ -6147,6 +6477,7 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
       '<span class="chip ' + (coord ? "teal" : "ok") + '">' + (coord ? "Coordinator" : "Approved volunteer") + "</span>" +
       '<span class="chip grey" style="font-size:0.6rem;padding:2px 6px">Power: Stage 0 (Normal)</span></div></div>' +
 
+      homeDateHtml() +
       handoverHtml +
 
       '<div class="weather" id="weather-tile">' +
@@ -6167,6 +6498,7 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
       '<div class="action-grid">' +
       '<a class="action" href="#/roster"><div class="a-icon navy">' + I("calendar",20) + '</div><div class="a-label">Create or join a patrol</div><div class="a-sub">Pick any date &amp; time · pairs only · ' + S().slots().filter(function (s) { return s.understaffed; }).length + ' need a partner</div></a>' +
       '<a class="action" href="#/map"><div class="a-icon teal">' + I("map",20) + '</div><div class="a-label">View area map</div><div class="a-sub">Satellite, streets &amp; risk pins</div></a>' +
+      '<a class="action" href="#/intel"><div class="a-icon navy">' + I("shield_star",20) + '</div><div class="a-label">Patrol Intel</div><div class="a-sub">Where, when and what our reports show</div></a>' +
       '<button class="action" id="dash-emerg-btn" style="text-align:left;cursor:pointer"><div class="a-icon danger" style="background:var(--danger-soft);color:var(--danger)">' + I("phone",20) + '</div><div class="a-label">Emergency Speed-Dial</div><div class="a-sub">Beagle · CAP · SCP · SAPS</div></button>' +
       '<a class="action" href="#/chat"><div class="a-icon info">' + I("chat",20) + '</div><div class="a-label">Team chat</div><div class="a-sub">Operational team coordination</div></a>' +
       '<button class="action" id="dash-ai-btn" style="text-align:left;cursor:pointer"><div class="a-icon navy">' + I("shield_star",20) + '</div><div class="a-label">Aman Patrol Assistant</div><div class="a-sub">Routes · dispatch · patrol status</div></button>' +
@@ -6995,6 +7327,7 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
   function renderMore() {
     var user = S().sessionUser();
     var botHidden = isAmanBotHidden();
+    var alertPrefs = alertPreferences();
     setShell(true);
     setActiveNav("more");
     screenEl.className = "screen";
@@ -7058,6 +7391,14 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
       '<div class="a-icon danger" style="background:var(--danger-soft);color:var(--danger)">' + I("phone",20) + '</div>' +
       '<div class="grow"><div class="a-label">Emergency Speed-Dial</div><div class="a-sub">Beagle · CAP · SCP · ADT · SAPS · EMS</div></div></button>' +
 
+      '<div class="card alert-settings" style="margin-bottom:12px">' +
+      '<h3>Alerts on this phone</h3><p class="muted" style="margin:0 0 10px">In-app alerts work on Android and iPhone. Vibration works where the phone browser allows it; iPhone uses the visible alert and sound instead.</p>' +
+      '<label class="setting-row"><span><b>In-app alerts</b><small>Persistent banner for new activity</small></span><span class="switch-toggle"><input type="checkbox" data-alert-pref="inApp"' + (alertPrefs.inApp ? " checked" : "") + '><span class="slider"></span></span></label>' +
+      '<label class="setting-row"><span><b>Alert sound</b><small>Plays after you have interacted with the app</small></span><span class="switch-toggle"><input type="checkbox" data-alert-pref="sound"' + (alertPrefs.sound ? " checked" : "") + '><span class="slider"></span></span></label>' +
+      '<label class="setting-row"><span><b>Vibration</b><small>Supported Android phones; iPhone may block it</small></span><span class="switch-toggle"><input type="checkbox" data-alert-pref="vibration"' + (alertPrefs.vibration ? " checked" : "") + '><span class="slider"></span></span></label>' +
+      '<label class="setting-row"><span><b>Team chat alerts</b><small>Silent while Team Chat is already open</small></span><span class="switch-toggle"><input type="checkbox" data-alert-pref="chat"' + (alertPrefs.chat ? " checked" : "") + '><span class="slider"></span></span></label>' +
+      '<button type="button" class="btn btn-teal block" id="test-alert-btn">Test alert on this phone</button></div>' +
+
       '<div class="card">' +
       '<div class="row spread" style="align-items:center;margin-bottom:12px">' +
       '<div><div style="font-weight:700;font-size:0.88rem">Floating Aman Assistant</div>' +
@@ -7098,6 +7439,18 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
         }
       };
     }
+    $all("[data-alert-pref]").forEach(function (input) {
+      input.onchange = function () {
+        var prefs = alertPreferences();
+        prefs[input.getAttribute("data-alert-pref")] = input.checked;
+        saveAlertPreferences(prefs);
+      };
+    });
+    var testAlertBtn = $("#test-alert-btn");
+    if (testAlertBtn) testAlertBtn.onclick = function () {
+      alertSoundReady = true;
+      showInAppAlert({ kind: "danger", title: "Test critical alert", body: "Visible alert, sound and supported-phone vibration are working." }, { critical: true });
+    };
     $("#coc-btn").onclick = codeOfConductModal;
     $("#radio-btn2").onclick = radioModal;
     $("#logout-btn").onclick = doLogout;
@@ -7154,7 +7507,7 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
 
   function showAmanBot(page) {
     removeAmanBot();
-    if (["dashboard", "roster", "incident", "map", "more"].indexOf(page) === -1) return;
+    if (["dashboard", "roster", "incident", "map", "intel", "more"].indexOf(page) === -1) return;
     if (isAmanBotHidden()) return;
 
     var bot = document.createElement("div");
@@ -7164,7 +7517,6 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     bot.setAttribute("aria-label", "Aman patrol assistant");
     bot.innerHTML =
       '<span class="aman-help-label">Need help?</span>' +
-      '<button type="button" class="aman-bot-dismiss" id="aman-bot-dismiss" title="Hide Aman assistant" aria-label="Hide Aman assistant">&times;</button>' +
       '<button type="button" class="aman-bot-avatar" id="aman-bot-avatar" aria-label="Open Aman patrol assistant. Drag to move.">' +
         '<img src="images/aman_robot.png" alt="Aman patrol assistant" class="aman-bot-img" draggable="false" />' +
         '<span class="aman-bot-glow" aria-hidden="true"></span>' +
@@ -7182,19 +7534,6 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     } catch (err) {}
 
     var avatarBtn = bot.querySelector("#aman-bot-avatar");
-    var dismissBtn = bot.querySelector("#aman-bot-dismiss");
-
-    if (dismissBtn) {
-      dismissBtn.addEventListener("click", function (e) {
-        e.stopPropagation();
-        e.preventDefault();
-        setAmanBotHidden(true);
-        bot.classList.add("fade-out");
-        setTimeout(function () { removeAmanBot(); }, 250);
-        toast("Aman assistant hidden. Enable it anytime in More > Settings.", "ok");
-      });
-    }
-
     if (avatarBtn) {
       avatarBtn.addEventListener("pointerdown", function (e) {
         amanBotDrag = { x: e.clientX, y: e.clientY, left: bot.offsetLeft, top: bot.offsetTop, moved: false };
@@ -7247,6 +7586,7 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
       case "roster": renderRoster(); break;
       case "incident": window.AmanIncident.render(screenEl); setActiveNav(""); break;
       case "map": renderMap(); break;
+      case "intel": renderIntel(); break;
       case "notifications": renderNotifications(); break;
       case "more": renderMore(); break;
       case "chat": renderChat(); break;
@@ -7289,13 +7629,14 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
     screenEl = $("#screen");
     $("#logo-slot").innerHTML = LOGO.replace(/\{s\}/g, "30");
         $("#bell-icon").innerHTML = I("bell", 22);
-    $("#fab-incident").innerHTML = I("plus", 26);
+    var incidentFab = $("#fab-incident");
+    if (incidentFab) incidentFab.innerHTML = I("plus", 26);
     $("#nav-dashboard").innerHTML = I("home", 22) + "<span>Home</span>";
     $("#nav-roster").innerHTML = I("roster", 22) + "<span>Roster</span>";
     $("#nav-map").innerHTML = I("map", 22) + "<span>Map</span>";
     $("#nav-more").innerHTML = I("more", 22) + "<span>More</span>";
     $("#nav-chat").innerHTML = I("chat", 22) + "<span>Chat</span>";
-    $("#fab-incident").addEventListener("click", function () { location.hash = "#/incident"; });
+    if (incidentFab) incidentFab.addEventListener("click", function () { location.hash = "#/incident"; });
     document.addEventListener("click", function (e) {
       var t = e.target && e.target.closest ? e.target.closest("[data-theme-toggle]") : null;
       if (t) toggleTheme();
@@ -7335,12 +7676,25 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
       startApp();
     }
 
-    // PWA: register the service worker (offline shell + install support)
+    // PWA: register the service worker (offline shell + install support).
+    // Updates download automatically. When an already-installed app changes
+    // version, show a clear reload action instead of leaving an open screen old.
     if ("serviceWorker" in navigator) {
       try {
+        var hadController = !!navigator.serviceWorker.controller;
+        var updateNoticeShown = false;
+        navigator.serviceWorker.addEventListener("controllerchange", function () {
+          if (!hadController || updateNoticeShown) return;
+          updateNoticeShown = true;
+          var root = document.createElement("div");
+          root.id = "app-update-notice";
+          root.setAttribute("role", "alert");
+          root.innerHTML = '<div><b>Aman Patrol has been updated</b><small>Reload now to use the newest version.</small></div><button type="button" id="app-update-reload">Reload app</button>';
+          document.body.appendChild(root);
+          root.querySelector("#app-update-reload").onclick = function () { location.reload(); };
+        });
         navigator.serviceWorker.register("./sw.js").then(function (reg) {
-          // Check for a new service worker version on every load, so an
-          // updated app never leaves users on the previous version.
+          // Check for a new service worker version on every load.
           if (reg && typeof reg.update === "function") {
             try { reg.update(); } catch (err) {}
           }
@@ -7354,7 +7708,7 @@ window.AREA = {"name":"Greenside & Emmarentia, Johannesburg","center":{"lat":-26
 
   /* expose a few things needed by map popups & other modules */
   window.AmanApp = { viewIncident: function (id) { window.AmanAdmin.incidentModal(id, null); }, deletePin: deletePin };
-  window.AmanUI = { esc: esc, toast: toast, modal: modal, closeModal: closeModal, refreshBell: refreshBell, captureGPS: captureGPS, I: I };
+  window.AmanUI = { esc: esc, toast: toast, modal: modal, closeModal: closeModal, refreshBell: refreshBell, captureGPS: captureGPS, I: I, showInAppAlert: showInAppAlert, alertPreferences: alertPreferences };
 })();
 
 </script>
